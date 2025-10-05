@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Plus, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { QuickBetForm } from '@/components/forms/QuickBetForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
 import { useBets } from '@/contexts/BetContext';
@@ -7,8 +9,9 @@ import { formatCurrency } from '@/utils/currency';
 import { formatDateTime } from '@/utils/dates';
 
 export default function QuickBets() {
-  const { getQuickBets } = useBets();
+  const { getQuickBets, deleteBet } = useBets();
   const quickBets = getQuickBets();
+  const [showQuickBetForm, setShowQuickBetForm] = useState(false);
 
   const totalQuickBets = quickBets.reduce((sum, bet) => sum + bet.stake, 0);
 
@@ -21,7 +24,7 @@ export default function QuickBets() {
             Saldo Giocate Rapide: <span className="font-semibold text-foreground">{formatCurrency(totalQuickBets)}</span>
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setShowQuickBetForm(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Nuova Giocata
         </Button>
@@ -38,7 +41,7 @@ export default function QuickBets() {
               title="Nessuna giocata rapida registrata"
               description="Le giocate rapide permettono di tracciare velocemente le tue puntate."
               action={
-                <Button>
+                <Button onClick={() => setShowQuickBetForm(true)}>
                   <Plus className="mr-2 h-4 w-4" />
                   Nuova Giocata
                 </Button>
@@ -70,7 +73,7 @@ export default function QuickBets() {
                       <td className="p-3 text-sm">{bet.note || '-'}</td>
                       <td className="p-3 text-sm font-semibold">{formatCurrency(bet.stake)}</td>
                       <td className="p-3">
-                        <Button size="sm" variant="destructive">
+                        <Button size="sm" variant="destructive" onClick={() => deleteBet(bet.id)}>
                           Elimina
                         </Button>
                       </td>
@@ -85,6 +88,8 @@ export default function QuickBets() {
           )}
         </CardContent>
       </Card>
+
+      <QuickBetForm open={showQuickBetForm} onOpenChange={setShowQuickBetForm} />
     </div>
   );
 }

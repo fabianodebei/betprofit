@@ -1,5 +1,8 @@
+import { useState } from 'react';
 import { Plus, FileText, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { AccountForm } from '@/components/forms/AccountForm';
+import { TransactionForm } from '@/components/forms/TransactionForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Badge } from '@/components/common/Badge';
@@ -9,6 +12,8 @@ import { formatDate } from '@/utils/dates';
 
 export default function Accounts() {
   const { accounts } = useAccounts();
+  const [showAccountForm, setShowAccountForm] = useState(false);
+  const [showTransactionForm, setShowTransactionForm] = useState(false);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -19,7 +24,7 @@ export default function Accounts() {
             <Download className="mr-2 h-4 w-4" />
             Esporta Conti
           </Button>
-          <Button>
+          <Button onClick={() => setShowAccountForm(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Nuovo Conto
           </Button>
@@ -37,7 +42,7 @@ export default function Accounts() {
               title="Nessun conto presente"
               description="Aggiungi il tuo primo conto bookmaker per iniziare a tracciare le tue puntate."
               action={
-                <Button>
+                <Button onClick={() => setShowAccountForm(true)}>
                   <Plus className="mr-2 h-4 w-4" />
                   Nuovo Conto
                 </Button>
@@ -74,7 +79,7 @@ export default function Accounts() {
                       </td>
                       <td className="p-3">
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
+                          <Button size="sm" variant="outline" onClick={() => setShowTransactionForm(true)}>
                             Nuovo Movimento
                           </Button>
                           <Button size="sm" variant="outline">
@@ -93,6 +98,9 @@ export default function Accounts() {
           )}
         </CardContent>
       </Card>
+
+      <AccountForm open={showAccountForm} onOpenChange={setShowAccountForm} />
+      <TransactionForm open={showTransactionForm} onOpenChange={setShowTransactionForm} />
     </div>
   );
 }

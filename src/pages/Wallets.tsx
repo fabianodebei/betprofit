@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, Wallet as WalletIcon } from 'lucide-react';
+import { WalletForm } from '@/components/forms/WalletForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -10,6 +11,7 @@ import { formatCurrency } from '@/utils/currency';
 export default function Wallets() {
   const { wallets, getTotalBalance } = useWallets();
   const [activeTab, setActiveTab] = useState<'nuovo' | 'trasferisci' | 'ricarica'>('nuovo');
+  const [showWalletForm, setShowWalletForm] = useState(false);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -58,7 +60,7 @@ export default function Wallets() {
               title="Nessun wallet presente"
               description="Clicca 'Nuovo Wallet' per iniziare a gestire i tuoi portafogli."
               action={
-                <Button>
+                <Button onClick={() => setShowWalletForm(true)}>
                   <Plus className="mr-2 h-4 w-4" />
                   Nuovo Wallet
                 </Button>
@@ -105,6 +107,8 @@ export default function Wallets() {
           )}
         </CardContent>
       </Card>
+
+      <WalletForm open={showWalletForm} onOpenChange={setShowWalletForm} />
     </div>
   );
 }

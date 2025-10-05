@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Plus, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { SingleBetForm } from '@/components/forms/SingleBetForm';
+import { CasinoBetForm } from '@/components/forms/CasinoBetForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Badge } from '@/components/common/Badge';
@@ -8,8 +10,10 @@ import { useBets } from '@/contexts/BetContext';
 import { formatDate } from '@/utils/dates';
 
 export default function OngoingBets() {
-  const { getOngoingBets } = useBets();
+  const { getOngoingBets, deleteBet, archiveBet } = useBets();
   const [activeTab, setActiveTab] = useState<'singola' | 'multipla' | 'casino'>('singola');
+  const [showSingleBetForm, setShowSingleBetForm] = useState(false);
+  const [showCasinoBetForm, setShowCasinoBetForm] = useState(false);
   const ongoingBets = getOngoingBets();
 
   return (
@@ -22,7 +26,10 @@ export default function OngoingBets() {
       <div className="mb-6 flex gap-2 border-b">
         <Button
           variant={activeTab === 'singola' ? 'default' : 'ghost'}
-          onClick={() => setActiveTab('singola')}
+          onClick={() => {
+            setActiveTab('singola');
+            setShowSingleBetForm(true);
+          }}
           className="rounded-b-none"
         >
           Nuova Singola
@@ -36,7 +43,10 @@ export default function OngoingBets() {
         </Button>
         <Button
           variant={activeTab === 'casino' ? 'default' : 'ghost'}
-          onClick={() => setActiveTab('casino')}
+          onClick={() => {
+            setActiveTab('casino');
+            setShowCasinoBetForm(true);
+          }}
           className="rounded-b-none"
         >
           Nuova Puntata Casinò
@@ -54,7 +64,7 @@ export default function OngoingBets() {
               title="Nessuna puntata in corso"
               description="Inizia con 'Nuova Singola' per creare la tua prima puntata."
               action={
-                <Button>
+                <Button onClick={() => setShowSingleBetForm(true)}>
                   <Plus className="mr-2 h-4 w-4" />
                   Nuova Singola
                 </Button>
@@ -96,9 +106,9 @@ export default function OngoingBets() {
                       <td className="p-3">
                         <div className="flex gap-1">
                           <Button size="sm" variant="outline">Dettaglio</Button>
-                          <Button size="sm" variant="outline">Archivia</Button>
+                          <Button size="sm" variant="outline" onClick={() => archiveBet(bet.id, 0)}>Archivia</Button>
                           <Button size="sm" variant="outline">Clona</Button>
-                          <Button size="sm" variant="destructive">Elimina</Button>
+                          <Button size="sm" variant="destructive" onClick={() => deleteBet(bet.id)}>Elimina</Button>
                         </div>
                       </td>
                     </tr>
@@ -112,6 +122,9 @@ export default function OngoingBets() {
           )}
         </CardContent>
       </Card>
+
+      <SingleBetForm open={showSingleBetForm} onOpenChange={setShowSingleBetForm} />
+      <CasinoBetForm open={showCasinoBetForm} onOpenChange={setShowCasinoBetForm} />
     </div>
   );
 }

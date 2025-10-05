@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Plus, ArrowRightLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { TransactionForm } from '@/components/forms/TransactionForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Badge } from '@/components/common/Badge';
@@ -8,13 +10,14 @@ import { formatCurrency } from '@/utils/currency';
 import { formatDateTime } from '@/utils/dates';
 
 export default function Deposits() {
-  const { transactions } = useTransactions();
+  const { transactions, deleteTransaction } = useTransactions();
+  const [showTransactionForm, setShowTransactionForm] = useState(false);
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold text-foreground">Depositi/Prelievi</h1>
-        <Button>
+        <Button onClick={() => setShowTransactionForm(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Nuovo Movimento
         </Button>
@@ -31,7 +34,7 @@ export default function Deposits() {
               title="Nessun movimento registrato"
               description="Inizia a tracciare i tuoi depositi, prelievi e spese."
               action={
-                <Button>
+                <Button onClick={() => setShowTransactionForm(true)}>
                   <Plus className="mr-2 h-4 w-4" />
                   Nuovo Movimento
                 </Button>
@@ -81,7 +84,7 @@ export default function Deposits() {
                       <td className="p-3 text-sm">{transaction.wallet || '-'}</td>
                       <td className="p-3 text-sm">{transaction.descrizione || '-'}</td>
                       <td className="p-3">
-                        <Button size="sm" variant="destructive">
+                        <Button size="sm" variant="destructive" onClick={() => deleteTransaction(transaction.id)}>
                           Elimina
                         </Button>
                       </td>
@@ -96,6 +99,8 @@ export default function Deposits() {
           )}
         </CardContent>
       </Card>
+
+      <TransactionForm open={showTransactionForm} onOpenChange={setShowTransactionForm} />
     </div>
   );
 }
