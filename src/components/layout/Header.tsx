@@ -44,9 +44,9 @@ export function Header() {
   const [year, setYear] = useState(2025);
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
-  return <header className="sticky top-0 z-50 w-full border-b bg-gradient-to-r from-primary to-accent shadow-sm">
-      <div className="container mx-auto px-4 bg-blue-900">
-        <div className="flex h-16 items-center justify-between bg-blue-900 rounded-none">
+  return <header className="sticky top-0 z-50 w-full border-b bg-gradient-to-r from-primary to-accent shadow-sm bg-indigo-950">
+      <div className="container mx-auto px-4 bg-indigo-950">
+        <div className="flex h-16 items-center justify-between rounded-none bg-indigo-950">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 text-primary-foreground">
             
