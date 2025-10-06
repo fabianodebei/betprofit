@@ -28,7 +28,7 @@ export interface Transaction {
   addebito?: number;
   accredito?: number;
   descrizione?: string;
-  registrato: Date;
+  registrato: Date; // Include time
 }
 
 export interface Bet {
@@ -38,7 +38,7 @@ export interface Bet {
   stake: number;
   quota?: number;
   evento?: string;
-  dataEvento: Date;
+  dataEvento: Date; // Include time
   metodo?: string;
   tipoBonus?: 'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet';
   bonus?: number;
@@ -52,7 +52,7 @@ export interface Bet {
   urlEvento?: string;
   nomeGioco?: string;
   quotaPunta?: number;
-  createdAt: Date;
+  createdAt: Date; // Include time
 }
 
 export interface DashboardStats {

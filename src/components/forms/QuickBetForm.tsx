@@ -9,11 +9,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { TimePicker } from '@/components/ui/time-picker';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useBets } from '@/contexts/BetContext';
 import { useAccounts } from '@/contexts/AccountContext';
+import { QUICK_BET_METHODS } from '@/constants/markets';
 import { toast } from 'sonner';
 
 const quickBetSchema = z.object({
@@ -119,10 +121,11 @@ export function QuickBetForm({ open, onOpenChange }: QuickBetFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Puntata">Puntata</SelectItem>
-                      <SelectItem value="Vincita">Vincita</SelectItem>
-                      <SelectItem value="Perdita">Perdita</SelectItem>
-                      <SelectItem value="Rimborso">Rimborso</SelectItem>
+                      {QUICK_BET_METHODS.map((metodo) => (
+                        <SelectItem key={metodo} value={metodo}>
+                          {metodo}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -196,6 +199,9 @@ export function QuickBetForm({ open, onOpenChange }: QuickBetFormProps) {
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
+                      <div className="p-3 border-b">
+                        <TimePicker value={field.value} onChange={field.onChange} />
+                      </div>
                       <Calendar
                         mode="single"
                         selected={field.value}

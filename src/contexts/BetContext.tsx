@@ -12,12 +12,18 @@ interface BetContextType {
   getArchivedBets: () => Bet[];
   getQuickBets: () => Bet[];
   getTotalStakeInCorso: () => number;
+  notifyChange: () => void; // For dashboard reactivity
 }
 
 const BetContext = createContext<BetContextType | undefined>(undefined);
 
 export function BetProvider({ children }: { children: ReactNode }) {
   const [bets, setBets] = useState<Bet[]>([]);
+  const [changeCounter, setChangeCounter] = useState(0);
+
+  const notifyChange = () => {
+    setChangeCounter(prev => prev + 1);
+  };
 
   const addBet = (bet: Omit<Bet, 'id' | 'createdAt'>) => {
     const newBet: Bet = {
@@ -28,16 +34,19 @@ export function BetProvider({ children }: { children: ReactNode }) {
       createdAt: new Date(),
     };
     setBets((prev) => [...prev, newBet]);
+    notifyChange();
   };
 
   const updateBet = (id: string, updates: Partial<Bet>) => {
     setBets((prev) =>
       prev.map((bet) => (bet.id === id ? { ...bet, ...updates } : bet))
     );
+    notifyChange();
   };
 
   const deleteBet = (id: string) => {
     setBets((prev) => prev.filter((bet) => bet.id !== id));
+    notifyChange();
   };
 
   const archiveBet = (id: string, risultato: number) => {
@@ -77,6 +86,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
         getArchivedBets,
         getQuickBets,
         getTotalStakeInCorso,
+        notifyChange,
       }}
     >
       {children}

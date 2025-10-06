@@ -9,11 +9,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { TimePicker } from '@/components/ui/time-picker';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useBets } from '@/contexts/BetContext';
 import { useAccounts } from '@/contexts/AccountContext';
+import { CASINO_MARKETS } from '@/constants/markets';
 import { toast } from 'sonner';
 
 const casinoBetSchema = z.object({
@@ -127,6 +129,9 @@ export function CasinoBetForm({ open, onOpenChange }: CasinoBetFormProps) {
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
+                      <div className="p-3 border-b">
+                        <TimePicker value={field.value} onChange={field.onChange} />
+                      </div>
                       <Calendar
                         mode="single"
                         selected={field.value}
@@ -153,11 +158,11 @@ export function CasinoBetForm({ open, onOpenChange }: CasinoBetFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Slot">Slot</SelectItem>
-                      <SelectItem value="Roulette">Roulette</SelectItem>
-                      <SelectItem value="Blackjack">Blackjack</SelectItem>
-                      <SelectItem value="Poker">Poker</SelectItem>
-                      <SelectItem value="Altro">Altro</SelectItem>
+                      {CASINO_MARKETS.map((mercato) => (
+                        <SelectItem key={mercato} value={mercato}>
+                          {mercato}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />

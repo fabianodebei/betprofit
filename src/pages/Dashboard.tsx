@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { TrendingUp, Calendar, Trophy, Wallet } from 'lucide-react';
 import { KPICard } from '@/components/dashboard/KPICard';
 import { TrendChart } from '@/components/dashboard/TrendChart';
@@ -10,29 +11,53 @@ import { useBets } from '@/contexts/BetContext';
 export default function Dashboard() {
   const { accounts } = useAccounts();
   const { wallets } = useWallets();
-  const { getArchivedBets } = useBets();
+  const { getArchivedBets, bets } = useBets();
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Trigger re-render when bets change
+  useEffect(() => {
+    setRefreshKey(prev => prev + 1);
+  }, [bets, accounts, wallets]);
 
   const archivedBets = getArchivedBets();
 
-  // Calculate stats
-  const currentMonthEarnings = 0;
-  const monthlyAverage = 0;
-  const bestMonth = 0;
-  const totalYear = 0;
+  // Calculate stats from archived bets
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  
+  const currentMonthBets = archivedBets.filter(
+    bet => bet.createdAt.getMonth() === currentMonth && 
+           bet.createdAt.getFullYear() === currentYear
+  );
+  
+  const currentMonthEarnings = currentMonthBets.reduce((sum, bet) => sum + (bet.risultato || 0), 0);
+  
+  const yearBets = archivedBets.filter(bet => bet.createdAt.getFullYear() === currentYear);
+  const totalYear = yearBets.reduce((sum, bet) => sum + (bet.risultato || 0), 0);
+  
+  // Calculate monthly earnings for the chart
+  const monthlyEarnings = new Array(12).fill(0);
+  yearBets.forEach(bet => {
+    const month = bet.createdAt.getMonth();
+    monthlyEarnings[month] += (bet.risultato || 0);
+  });
+  
+  const monthlyAverage = totalYear / 12;
+  const bestMonth = Math.max(...monthlyEarnings);
 
   const chartData = [
-    { month: 'Gen', earnings: 0 },
-    { month: 'Feb', earnings: 0 },
-    { month: 'Mar', earnings: 0 },
-    { month: 'Apr', earnings: 0 },
-    { month: 'Mag', earnings: 0 },
-    { month: 'Giu', earnings: 0 },
-    { month: 'Lug', earnings: 0 },
-    { month: 'Ago', earnings: 0 },
-    { month: 'Set', earnings: 0 },
-    { month: 'Ott', earnings: 0 },
-    { month: 'Nov', earnings: 0 },
-    { month: 'Dic', earnings: 0 },
+    { month: 'Gen', earnings: monthlyEarnings[0] },
+    { month: 'Feb', earnings: monthlyEarnings[1] },
+    { month: 'Mar', earnings: monthlyEarnings[2] },
+    { month: 'Apr', earnings: monthlyEarnings[3] },
+    { month: 'Mag', earnings: monthlyEarnings[4] },
+    { month: 'Giu', earnings: monthlyEarnings[5] },
+    { month: 'Lug', earnings: monthlyEarnings[6] },
+    { month: 'Ago', earnings: monthlyEarnings[7] },
+    { month: 'Set', earnings: monthlyEarnings[8] },
+    { month: 'Ott', earnings: monthlyEarnings[9] },
+    { month: 'Nov', earnings: monthlyEarnings[10] },
+    { month: 'Dic', earnings: monthlyEarnings[11] },
   ];
 
   return (

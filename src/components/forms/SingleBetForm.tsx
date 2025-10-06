@@ -9,11 +9,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { TimePicker } from '@/components/ui/time-picker';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useBets } from '@/contexts/BetContext';
 import { useAccounts } from '@/contexts/AccountContext';
+import { SPORT_MARKETS } from '@/constants/markets';
 import { toast } from 'sonner';
 
 const singleBetSchema = z.object({
@@ -162,6 +164,9 @@ export function SingleBetForm({ open, onOpenChange }: SingleBetFormProps) {
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
+                      <div className="p-3 border-b">
+                        <TimePicker value={field.value} onChange={field.onChange} />
+                      </div>
                       <Calendar
                         mode="single"
                         selected={field.value}
@@ -187,12 +192,19 @@ export function SingleBetForm({ open, onOpenChange }: SingleBetFormProps) {
                         <SelectValue placeholder="Seleziona mercato" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="1X2">1X2</SelectItem>
-                      <SelectItem value="Under/Over">Under/Over</SelectItem>
-                      <SelectItem value="Goal/No Goal">Goal/No Goal</SelectItem>
-                      <SelectItem value="Doppia Chance">Doppia Chance</SelectItem>
-                      <SelectItem value="Handicap">Handicap</SelectItem>
+                    <SelectContent className="max-h-[300px]">
+                      {Object.entries(SPORT_MARKETS).map(([categoria, mercati]) => (
+                        <div key={categoria}>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase">
+                            {categoria}
+                          </div>
+                          {mercati.map((mercato) => (
+                            <SelectItem key={mercato} value={mercato}>
+                              {mercato}
+                            </SelectItem>
+                          ))}
+                        </div>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
