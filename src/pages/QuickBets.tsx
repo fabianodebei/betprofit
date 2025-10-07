@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Zap } from 'lucide-react';
+import { Plus, Zap, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { QuickBetForm } from '@/components/forms/QuickBetForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,11 +7,23 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { useBets } from '@/contexts/BetContext';
 import { formatCurrency } from '@/utils/currency';
 import { formatDateTime } from '@/utils/dates';
+import { Bet } from '@/types';
 
 export default function QuickBets() {
   const { getQuickBets, deleteBet } = useBets();
   const quickBets = getQuickBets();
   const [showQuickBetForm, setShowQuickBetForm] = useState(false);
+  const [editingBet, setEditingBet] = useState<Bet | null>(null);
+
+  const handleEdit = (bet: Bet) => {
+    setEditingBet(bet);
+    setShowQuickBetForm(true);
+  };
+
+  const handleCloseForm = () => {
+    setShowQuickBetForm(false);
+    setEditingBet(null);
+  };
 
   const totalQuickBets = quickBets.reduce((sum, bet) => sum + bet.stake, 0);
 
@@ -73,9 +85,14 @@ export default function QuickBets() {
                       <td className="p-3 text-sm">{bet.note || '-'}</td>
                       <td className="p-3 text-sm font-semibold">{formatCurrency(bet.stake)}</td>
                       <td className="p-3">
-                        <Button size="sm" variant="destructive" onClick={() => deleteBet(bet.id)}>
-                          Elimina
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button size="sm" variant="outline" onClick={() => handleEdit(bet)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={() => deleteBet(bet.id)}>
+                            Elimina
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -89,7 +106,11 @@ export default function QuickBets() {
         </CardContent>
       </Card>
 
-      <QuickBetForm open={showQuickBetForm} onOpenChange={setShowQuickBetForm} />
+      <QuickBetForm 
+        open={showQuickBetForm} 
+        onOpenChange={handleCloseForm}
+        editingBet={editingBet}
+      />
     </div>
   );
 }

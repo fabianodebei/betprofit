@@ -32,15 +32,23 @@ type QuickBetFormData = z.infer<typeof quickBetSchema>;
 interface QuickBetFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editingBet?: any;
 }
 
-export function QuickBetForm({ open, onOpenChange }: QuickBetFormProps) {
-  const { addBet } = useBets();
+export function QuickBetForm({ open, onOpenChange, editingBet }: QuickBetFormProps) {
+  const { addBet, updateBet } = useBets();
   const { accounts, updateAccount } = useAccounts();
 
   const form = useForm<QuickBetFormData>({
     resolver: zodResolver(quickBetSchema),
-    defaultValues: {
+    defaultValues: editingBet ? {
+      conto: editingBet.conto || '',
+      metodo: editingBet.metodo || '',
+      saldoReale: 0,
+      movimento: editingBet.stake || 0,
+      registrato: editingBet.dataEvento || new Date(),
+      note: editingBet.note || '',
+    } : {
       conto: '',
       metodo: '',
       saldoReale: 0,
@@ -53,22 +61,43 @@ export function QuickBetForm({ open, onOpenChange }: QuickBetFormProps) {
   const onSubmit = async (data: QuickBetFormData) => {
     const account = accounts.find((a) => a.conto === data.conto);
     
-    if (account) {
-      await updateAccount(account.id, { 
-        saldoAttuale: data.saldoReale,
-        bilancioGiocateRapide: account.bilancioGiocateRapide + data.movimento 
+    if (editingBet) {
+      // Update existing bet
+      await updateBet(editingBet.id, {
+        conto: data.conto,
+        stake: data.movimento,
+        metodo: data.metodo,
+        dataEvento: data.registrato,
+        note: data.note,
+      });
+      
+      if (account) {
+        const oldStake = editingBet.stake || 0;
+        const stakeDifference = data.movimento - oldStake;
+        await updateAccount(account.id, { 
+          saldoAttuale: data.saldoReale,
+          bilancioGiocateRapide: account.bilancioGiocateRapide + stakeDifference 
+        });
+      }
+    } else {
+      // Add new bet
+      if (account) {
+        await updateAccount(account.id, { 
+          saldoAttuale: data.saldoReale,
+          bilancioGiocateRapide: account.bilancioGiocateRapide + data.movimento 
+        });
+      }
+
+      await addBet({
+        tipo: 'Rapida',
+        conto: data.conto,
+        stake: data.movimento,
+        metodo: data.metodo,
+        stato: 'In Corso',
+        dataEvento: data.registrato,
+        note: data.note,
       });
     }
-
-    await addBet({
-      tipo: 'Rapida',
-      conto: data.conto,
-      stake: data.movimento,
-      metodo: data.metodo,
-      stato: 'In Corso',
-      dataEvento: data.registrato,
-      note: data.note,
-    });
 
     form.reset();
     onOpenChange(false);
@@ -78,7 +107,7 @@ export function QuickBetForm({ open, onOpenChange }: QuickBetFormProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Nuova Giocata Rapida</DialogTitle>
+          <DialogTitle>{editingBet ? 'Modifica Giocata Rapida' : 'Nuova Giocata Rapida'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
