@@ -140,22 +140,7 @@ export function CasinoBetForm({
                 </FormItem>} />
             <FormField control={form.control} name="conto" render={({
             field
-          }) => <FormItem>
-                  <FormLabel>Conto *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleziona conto" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {accounts.map(account => <SelectItem key={account.id} value={account.conto}>
-                          {account.conto}
-                        </SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>} />
+          }) => {}} />
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="stake" render={({
               field
