@@ -1,17 +1,39 @@
 import { useState } from 'react';
 import { Plus, Wallet as WalletIcon } from 'lucide-react';
 import { WalletForm } from '@/components/forms/WalletForm';
+import { WalletTransferForm } from '@/components/forms/WalletTransferForm';
+import { WalletTransactionForm } from '@/components/forms/WalletTransactionForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Badge } from '@/components/common/Badge';
 import { useWallets } from '@/contexts/WalletContext';
 import { formatCurrency } from '@/utils/currency';
+import { Wallet } from '@/types';
 
 export default function Wallets() {
   const { wallets, getTotalBalance } = useWallets();
   const [activeTab, setActiveTab] = useState<'nuovo' | 'trasferisci' | 'ricarica'>('nuovo');
   const [showWalletForm, setShowWalletForm] = useState(false);
+  const [showTransferForm, setShowTransferForm] = useState(false);
+  const [showTransactionForm, setShowTransactionForm] = useState(false);
+  const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
+
+  const handleEdit = (wallet: Wallet) => {
+    setEditingWallet(wallet);
+    setShowWalletForm(true);
+  };
+
+  const handleTabClick = (tab: 'nuovo' | 'trasferisci' | 'ricarica') => {
+    setActiveTab(tab);
+    if (tab === 'nuovo') {
+      setShowWalletForm(true);
+    } else if (tab === 'trasferisci') {
+      setShowTransferForm(true);
+    } else if (tab === 'ricarica') {
+      setShowTransactionForm(true);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -28,21 +50,21 @@ export default function Wallets() {
       <div className="mb-6 flex gap-2 border-b">
         <Button
           variant={activeTab === 'nuovo' ? 'default' : 'ghost'}
-          onClick={() => setActiveTab('nuovo')}
+          onClick={() => handleTabClick('nuovo')}
           className="rounded-b-none"
         >
           Nuovo Wallet
         </Button>
         <Button
           variant={activeTab === 'trasferisci' ? 'default' : 'ghost'}
-          onClick={() => setActiveTab('trasferisci')}
+          onClick={() => handleTabClick('trasferisci')}
           className="rounded-b-none"
         >
           Trasferisci
         </Button>
         <Button
           variant={activeTab === 'ricarica' ? 'default' : 'ghost'}
-          onClick={() => setActiveTab('ricarica')}
+          onClick={() => handleTabClick('ricarica')}
           className="rounded-b-none"
         >
           Ricarica/Spesa
@@ -92,7 +114,7 @@ export default function Wallets() {
                         </Badge>
                       </td>
                       <td className="p-3">
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => handleEdit(wallet)}>
                           Modifica
                         </Button>
                       </td>
@@ -108,7 +130,22 @@ export default function Wallets() {
         </CardContent>
       </Card>
 
-      <WalletForm open={showWalletForm} onOpenChange={setShowWalletForm} />
+      <WalletForm 
+        open={showWalletForm} 
+        onOpenChange={(open) => {
+          setShowWalletForm(open);
+          if (!open) setEditingWallet(null);
+        }} 
+        editingWallet={editingWallet}
+      />
+      <WalletTransferForm 
+        open={showTransferForm} 
+        onOpenChange={setShowTransferForm} 
+      />
+      <WalletTransactionForm 
+        open={showTransactionForm} 
+        onOpenChange={setShowTransactionForm} 
+      />
     </div>
   );
 }

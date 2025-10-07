@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useWallets } from '@/contexts/WalletContext';
+import { Wallet } from '@/types';
 
 const walletSchema = z.object({
   intestatario: z.string().min(1, 'Intestatario è obbligatorio'),
@@ -21,10 +23,11 @@ type WalletFormData = z.infer<typeof walletSchema>;
 interface WalletFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editingWallet?: Wallet | null;
 }
 
-export function WalletForm({ open, onOpenChange }: WalletFormProps) {
-  const { addWallet } = useWallets();
+export function WalletForm({ open, onOpenChange, editingWallet }: WalletFormProps) {
+  const { addWallet, updateWallet } = useWallets();
 
   const form = useForm<WalletFormData>({
     resolver: zodResolver(walletSchema),
@@ -36,14 +39,41 @@ export function WalletForm({ open, onOpenChange }: WalletFormProps) {
     },
   });
 
+  useEffect(() => {
+    if (editingWallet && open) {
+      form.reset({
+        intestatario: editingWallet.intestatario,
+        nome: editingWallet.nome,
+        descrizione: editingWallet.descrizione || '',
+        stato: editingWallet.stato,
+      });
+    } else if (!open) {
+      form.reset({
+        intestatario: '',
+        nome: '',
+        descrizione: '',
+        stato: 'Abilitato',
+      });
+    }
+  }, [editingWallet, open, form]);
+
   const onSubmit = async (data: WalletFormData) => {
-    await addWallet({
-      intestatario: data.intestatario,
-      nome: data.nome,
-      descrizione: data.descrizione,
-      stato: data.stato,
-      saldoAttuale: 0,
-    });
+    if (editingWallet) {
+      await updateWallet(editingWallet.id, {
+        intestatario: data.intestatario,
+        nome: data.nome,
+        descrizione: data.descrizione,
+        stato: data.stato,
+      });
+    } else {
+      await addWallet({
+        intestatario: data.intestatario,
+        nome: data.nome,
+        descrizione: data.descrizione,
+        stato: data.stato,
+        saldoAttuale: 0,
+      });
+    }
     form.reset();
     onOpenChange(false);
   };
@@ -52,7 +82,7 @@ export function WalletForm({ open, onOpenChange }: WalletFormProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Nuovo Wallet</DialogTitle>
+          <DialogTitle>{editingWallet ? 'Modifica Wallet' : 'Nuovo Wallet'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
