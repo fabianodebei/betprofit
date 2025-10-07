@@ -168,9 +168,10 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
                     <SelectContent position="popper" className="z-[70] bg-popover">
                       {accounts
                         .filter(account => account.intestatario === selectedIntestatario)
+                        .sort((a, b) => a.conto.localeCompare(b.conto, 'it', { sensitivity: 'base' }))
                         .map((account) => (
                           <SelectItem key={account.id} value={account.conto}>
-                            {account.conto}
+                            {account.conto} ({account.intestatario})
                           </SelectItem>
                         ))}
                     </SelectContent>
