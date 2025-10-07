@@ -121,7 +121,7 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
                         <SelectValue placeholder="Seleziona bookmaker" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent position="popper" className="max-h-[200px]">
                       {bookmakers.map((bookmaker) => (
                         <SelectItem key={bookmaker} value={bookmaker}>
                           {bookmaker}
@@ -148,7 +148,7 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
                         <SelectValue placeholder="Seleziona wallet" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent position="popper" className="max-h-[200px]">
                       <SelectItem value="none">Nessuno</SelectItem>
                       {wallets
                         .filter((w) => w.stato === 'Abilitato')
@@ -188,7 +188,7 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
                         <SelectValue placeholder="Seleziona stato" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent position="popper">
                       <SelectItem value="Abilitato">Abilitato</SelectItem>
                       <SelectItem value="Disabilitato">Disabilitato</SelectItem>
                     </SelectContent>
