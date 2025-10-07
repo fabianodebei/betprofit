@@ -1,25 +1,43 @@
 import { useState } from 'react';
-import { Plus, FileText, Download } from 'lucide-react';
+import { Plus, FileText, Download, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AccountForm } from '@/components/forms/AccountForm';
 import { TransactionForm } from '@/components/forms/TransactionForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Badge } from '@/components/common/Badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useAccounts } from '@/contexts/AccountContext';
 import { formatCurrency } from '@/utils/currency';
 import { formatDate } from '@/utils/dates';
 import { Account } from '@/types';
 
 export default function Accounts() {
-  const { accounts } = useAccounts();
+  const { accounts, deleteAccount } = useAccounts();
   const [showAccountForm, setShowAccountForm] = useState(false);
   const [showTransactionForm, setShowTransactionForm] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+  const [deletingAccount, setDeletingAccount] = useState<Account | null>(null);
 
   const handleEdit = (account: Account) => {
     setEditingAccount(account);
     setShowAccountForm(true);
+  };
+
+  const handleDelete = async () => {
+    if (deletingAccount) {
+      await deleteAccount(deletingAccount.id);
+      setDeletingAccount(null);
+    }
   };
 
   return (
@@ -92,6 +110,14 @@ export default function Accounts() {
                           <Button size="sm" variant="outline" onClick={() => handleEdit(account)}>
                             Modifica
                           </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => setDeletingAccount(account)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -115,6 +141,23 @@ export default function Accounts() {
         editingAccount={editingAccount}
       />
       <TransactionForm open={showTransactionForm} onOpenChange={setShowTransactionForm} />
+      
+      <AlertDialog open={!!deletingAccount} onOpenChange={(open) => !open && setDeletingAccount(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Conferma eliminazione</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sei sicuro di voler eliminare il conto "{deletingAccount?.conto}"? Questa azione non può essere annullata.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Elimina
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
