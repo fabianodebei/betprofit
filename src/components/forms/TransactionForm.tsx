@@ -19,7 +19,7 @@ import { useAccounts } from '@/contexts/AccountContext';
 import { useWallets } from '@/contexts/WalletContext';
 
 const transactionSchema = z.object({
-  metodo: z.enum(['Deposito', 'Spesa', 'Prelievo']),
+  metodo: z.enum(['Deposito', 'Spesa', 'Prelievo', 'Riconciliazione']),
   intestatario: z.string().min(1, 'Intestatario è obbligatorio'),
   conto: z.string().min(1, 'Conto è obbligatorio'),
   wallet: z.string().optional(),
@@ -61,14 +61,17 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
 
     // Update account balance
     if (account) {
-      const newBalance = metodo === 'Deposito' 
-        ? account.saldoAttuale + data.movimento 
-        : account.saldoAttuale - data.movimento;
+      let newBalance = account.saldoAttuale;
+      if (metodo === 'Deposito' || metodo === 'Riconciliazione') {
+        newBalance = account.saldoAttuale + data.movimento;
+      } else {
+        newBalance = account.saldoAttuale - data.movimento;
+      }
       await updateAccount(account.id, { saldoAttuale: newBalance });
     }
 
-    // Update wallet balance
-    if (wallet && data.wallet) {
+    // Update wallet balance (only if not Riconciliazione)
+    if (wallet && data.wallet && metodo !== 'Riconciliazione') {
       const newWalletBalance = metodo === 'Prelievo'
         ? wallet.saldoAttuale + data.movimento
         : wallet.saldoAttuale - data.movimento;
@@ -79,8 +82,8 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
       metodo: data.metodo,
       conto: data.conto,
       wallet: data.wallet,
-      addebito: metodo === 'Deposito' ? data.movimento : undefined,
-      accredito: metodo !== 'Deposito' ? data.movimento : undefined,
+      addebito: metodo === 'Deposito' || metodo === 'Riconciliazione' ? data.movimento : undefined,
+      accredito: metodo === 'Prelievo' || metodo === 'Spesa' ? data.movimento : undefined,
       descrizione: data.descrizione,
       registrato: data.registrato,
     });
@@ -103,16 +106,16 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Metodo *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleziona metodo" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent position="popper" className="z-[70] bg-popover">
                       <SelectItem value="Deposito">Deposito</SelectItem>
-                      <SelectItem value="Spesa">Spesa</SelectItem>
                       <SelectItem value="Prelievo">Prelievo</SelectItem>
+                      <SelectItem value="Riconciliazione">Riconciliazione</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -131,14 +134,14 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
                       setSelectedIntestatario(value);
                       form.setValue('conto', '');
                     }} 
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleziona intestatario" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent position="popper" className="z-[70] bg-popover">
                       {[...new Set(accounts.map(a => a.intestatario))].map((intestatario) => (
                         <SelectItem key={intestatario} value={intestatario}>
                           {intestatario}
@@ -156,13 +159,13 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Conto *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleziona conto" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent position="popper" className="z-[70] bg-popover">
                       {accounts
                         .filter(account => account.intestatario === selectedIntestatario)
                         .map((account) => (
@@ -182,16 +185,16 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Wallet</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleziona wallet" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent position="popper" className="z-[70] bg-popover">
                       {wallets.map((wallet) => (
                         <SelectItem key={wallet.id} value={wallet.nome}>
-                          {wallet.nome}
+                          {wallet.nome} - {wallet.intestatario}
                         </SelectItem>
                       ))}
                     </SelectContent>

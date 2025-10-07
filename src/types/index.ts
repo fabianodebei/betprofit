@@ -23,7 +23,7 @@ export interface Account {
 
 export interface Transaction {
   id: string;
-  metodo: 'Deposito' | 'Spesa' | 'Prelievo';
+  metodo: 'Deposito' | 'Spesa' | 'Prelievo' | 'Riconciliazione';
   conto: string;
   wallet?: string;
   addebito?: number;
