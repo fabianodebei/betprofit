@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -41,14 +42,7 @@ export function QuickBetForm({ open, onOpenChange, editingBet }: QuickBetFormPro
 
   const form = useForm<QuickBetFormData>({
     resolver: zodResolver(quickBetSchema),
-    defaultValues: editingBet ? {
-      conto: editingBet.conto || '',
-      metodo: editingBet.metodo || '',
-      saldoReale: 0,
-      movimento: editingBet.stake || 0,
-      registrato: editingBet.dataEvento || new Date(),
-      note: editingBet.note || '',
-    } : {
+    defaultValues: {
       conto: '',
       metodo: '',
       saldoReale: 0,
@@ -57,6 +51,29 @@ export function QuickBetForm({ open, onOpenChange, editingBet }: QuickBetFormPro
       note: '',
     },
   });
+
+  // Reset form with editing bet data when it changes
+  useEffect(() => {
+    if (editingBet) {
+      form.reset({
+        conto: editingBet.conto || '',
+        metodo: editingBet.metodo || '',
+        saldoReale: 0,
+        movimento: editingBet.stake || 0,
+        registrato: editingBet.dataEvento || new Date(),
+        note: editingBet.note || '',
+      });
+    } else {
+      form.reset({
+        conto: '',
+        metodo: '',
+        saldoReale: 0,
+        movimento: 0,
+        registrato: new Date(),
+        note: '',
+      });
+    }
+  }, [editingBet, form]);
 
   const onSubmit = async (data: QuickBetFormData) => {
     const account = accounts.find((a) => a.conto === data.conto);
