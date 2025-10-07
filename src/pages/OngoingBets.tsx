@@ -10,6 +10,8 @@ import { useBets } from '@/contexts/BetContext';
 import { formatDate } from '@/utils/dates';
 import { ArchiveBetDialog } from '@/components/dialogs/ArchiveBetDialog';
 import { Bet } from '@/types';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 export default function OngoingBets() {
   const { getOngoingBets, deleteBet, archiveBet } = useBets();
@@ -18,6 +20,9 @@ export default function OngoingBets() {
   const [showCasinoBetForm, setShowCasinoBetForm] = useState(false);
   const [selectedBet, setSelectedBet] = useState<Bet | null>(null);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [detailBet, setDetailBet] = useState<Bet | null>(null);
+  const [editingBet, setEditingBet] = useState<Bet | null>(null);
   const ongoingBets = getOngoingBets();
 
   const handleArchive = (bet: Bet) => {
@@ -29,6 +34,24 @@ export default function OngoingBets() {
     if (selectedBet) {
       archiveBet(selectedBet.id, risultato);
     }
+  };
+
+  const handleDetail = (bet: Bet) => {
+    setDetailBet(bet);
+    setShowDetailDialog(true);
+  };
+
+  const handleClone = (bet: Bet) => {
+    setEditingBet(bet);
+    if (bet.tipo === 'Casino') {
+      setShowCasinoBetForm(true);
+    } else {
+      setShowSingleBetForm(true);
+    }
+  };
+
+  const handleNewMultipla = () => {
+    toast.info('Funzionalità multipla in arrivo');
   };
 
   return (
@@ -51,7 +74,10 @@ export default function OngoingBets() {
         </Button>
         <Button
           variant={activeTab === 'multipla' ? 'default' : 'ghost'}
-          onClick={() => setActiveTab('multipla')}
+          onClick={() => {
+            setActiveTab('multipla');
+            handleNewMultipla();
+          }}
           className="rounded-b-none"
         >
           Nuova Multipla
@@ -120,9 +146,9 @@ export default function OngoingBets() {
                       <td className="p-3 text-sm">{bet.note || '-'}</td>
                       <td className="p-3">
                         <div className="flex gap-1">
-                          <Button size="sm" variant="outline">Dettaglio</Button>
+                          <Button size="sm" variant="outline" onClick={() => handleDetail(bet)}>Dettaglio</Button>
                           <Button size="sm" variant="outline" onClick={() => handleArchive(bet)}>Archivia</Button>
-                          <Button size="sm" variant="outline">Clona</Button>
+                          <Button size="sm" variant="outline" onClick={() => handleClone(bet)}>Clona</Button>
                           <Button size="sm" variant="destructive" onClick={() => deleteBet(bet.id)}>Elimina</Button>
                         </div>
                       </td>
@@ -138,14 +164,98 @@ export default function OngoingBets() {
         </CardContent>
       </Card>
 
-      <SingleBetForm open={showSingleBetForm} onOpenChange={setShowSingleBetForm} />
-      <CasinoBetForm open={showCasinoBetForm} onOpenChange={setShowCasinoBetForm} />
+      <SingleBetForm 
+        open={showSingleBetForm} 
+        onOpenChange={(open) => {
+          setShowSingleBetForm(open);
+          if (!open) setEditingBet(null);
+        }}
+        editingBet={editingBet}
+      />
+      <CasinoBetForm 
+        open={showCasinoBetForm} 
+        onOpenChange={(open) => {
+          setShowCasinoBetForm(open);
+          if (!open) setEditingBet(null);
+        }}
+        editingBet={editingBet}
+      />
       <ArchiveBetDialog
         bet={selectedBet}
         open={showArchiveDialog}
         onOpenChange={setShowArchiveDialog}
         onConfirm={handleConfirmArchive}
       />
+
+      <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Dettaglio Puntata</DialogTitle>
+          </DialogHeader>
+          {detailBet && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">ID</p>
+                  <p className="font-medium">{detailBet.id}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Tipo</p>
+                  <Badge variant="info">{detailBet.tipo}</Badge>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Conto</p>
+                  <p className="font-medium">{detailBet.conto}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Data Evento</p>
+                  <p className="font-medium">{formatDate(detailBet.dataEvento)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Stake</p>
+                  <p className="font-medium">€{detailBet.stake}</p>
+                </div>
+                {detailBet.quota && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Quota</p>
+                    <p className="font-medium">{detailBet.quota}</p>
+                  </div>
+                )}
+                {detailBet.evento && (
+                  <div className="col-span-2">
+                    <p className="text-sm text-muted-foreground">Evento</p>
+                    <p className="font-medium">{detailBet.evento}</p>
+                  </div>
+                )}
+                {detailBet.nomeGioco && (
+                  <div className="col-span-2">
+                    <p className="text-sm text-muted-foreground">Nome Gioco</p>
+                    <p className="font-medium">{detailBet.nomeGioco}</p>
+                  </div>
+                )}
+                {detailBet.tipoBonus && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Tipo Bonus</p>
+                    <Badge variant="secondary">{detailBet.tipoBonus}</Badge>
+                  </div>
+                )}
+                {detailBet.tag && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Tag</p>
+                    <Badge variant="outline">{detailBet.tag}</Badge>
+                  </div>
+                )}
+                {detailBet.note && (
+                  <div className="col-span-2">
+                    <p className="text-sm text-muted-foreground">Note</p>
+                    <p className="font-medium">{detailBet.note}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

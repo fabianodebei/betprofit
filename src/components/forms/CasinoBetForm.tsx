@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { useBets } from '@/contexts/BetContext';
 import { useAccounts } from '@/contexts/AccountContext';
 import { CASINO_MARKETS } from '@/constants/markets';
+import { Bet } from '@/types';
 
 const casinoBetSchema = z.object({
   nomeGioco: z.string().min(1, 'Nome gioco è obbligatorio'),
@@ -34,9 +35,10 @@ type CasinoBetFormData = z.infer<typeof casinoBetSchema>;
 interface CasinoBetFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editingBet?: Bet | null;
 }
 
-export function CasinoBetForm({ open, onOpenChange }: CasinoBetFormProps) {
+export function CasinoBetForm({ open, onOpenChange, editingBet }: CasinoBetFormProps) {
   const { addBet } = useBets();
   const { accounts, updateAccount } = useAccounts();
   const [tipoBonus, setTipoBonus] = useState<'Nessuno' | 'Bonus' | 'Rimborso'>('Nessuno');
@@ -55,6 +57,36 @@ export function CasinoBetForm({ open, onOpenChange }: CasinoBetFormProps) {
       rimborso: 0,
     },
   });
+
+  useEffect(() => {
+    if (editingBet && open) {
+      form.reset({
+        nomeGioco: editingBet.nomeGioco || '',
+        dataEvento: new Date(editingBet.dataEvento),
+        mercato: editingBet.mercato || '',
+        conto: editingBet.conto,
+        stake: editingBet.stake,
+        quota: editingBet.quota || 1.01,
+        tipoBonus: editingBet.tipoBonus as 'Nessuno' | 'Bonus' | 'Rimborso' || 'Nessuno',
+        bonus: editingBet.bonus || 0,
+        rimborso: editingBet.rimborso || 0,
+      });
+      setTipoBonus(editingBet.tipoBonus as 'Nessuno' | 'Bonus' | 'Rimborso' || 'Nessuno');
+    } else if (!editingBet && open) {
+      form.reset({
+        nomeGioco: '',
+        dataEvento: new Date(),
+        mercato: '',
+        conto: '',
+        stake: 0,
+        quota: 1.01,
+        tipoBonus: 'Nessuno',
+        bonus: 0,
+        rimborso: 0,
+      });
+      setTipoBonus('Nessuno');
+    }
+  }, [editingBet, open, form]);
 
   const onSubmit = async (data: CasinoBetFormData) => {
     const account = accounts.find((a) => a.conto === data.conto);
@@ -88,7 +120,7 @@ export function CasinoBetForm({ open, onOpenChange }: CasinoBetFormProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Nuova Puntata Casinò</DialogTitle>
+          <DialogTitle>{editingBet ? 'Clona Puntata Casinò' : 'Nuova Puntata Casinò'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

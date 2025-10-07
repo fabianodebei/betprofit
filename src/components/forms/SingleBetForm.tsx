@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { useBets } from '@/contexts/BetContext';
 import { useAccounts } from '@/contexts/AccountContext';
 import { SPORT_MARKETS } from '@/constants/markets';
+import { Bet } from '@/types';
 
 const singleBetSchema = z.object({
   metodo: z.enum(['Punta', 'Banca']),
@@ -37,9 +38,10 @@ type SingleBetFormData = z.infer<typeof singleBetSchema>;
 interface SingleBetFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editingBet?: Bet | null;
 }
 
-export function SingleBetForm({ open, onOpenChange }: SingleBetFormProps) {
+export function SingleBetForm({ open, onOpenChange, editingBet }: SingleBetFormProps) {
   const { addBet } = useBets();
   const { accounts, updateAccount } = useAccounts();
   const [tipoBonus, setTipoBonus] = useState<'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet'>('Nessuno');
@@ -61,6 +63,42 @@ export function SingleBetForm({ open, onOpenChange }: SingleBetFormProps) {
       competizione: '',
     },
   });
+
+  useEffect(() => {
+    if (editingBet && open) {
+      form.reset({
+        metodo: (editingBet.metodo as 'Punta' | 'Banca') || 'Punta',
+        evento: editingBet.evento || '',
+        dataEvento: new Date(editingBet.dataEvento),
+        mercato: editingBet.mercato || '',
+        conto: editingBet.conto,
+        stake: editingBet.stake,
+        quota: editingBet.quota || 1.01,
+        tipoBonus: editingBet.tipoBonus || 'Nessuno',
+        bonus: editingBet.bonus || 0,
+        rimborso: editingBet.rimborso || 0,
+        urlEvento: editingBet.urlEvento || '',
+        competizione: editingBet.competizione || '',
+      });
+      setTipoBonus(editingBet.tipoBonus || 'Nessuno');
+    } else if (!editingBet && open) {
+      form.reset({
+        metodo: 'Punta',
+        evento: '',
+        dataEvento: new Date(),
+        mercato: '',
+        conto: '',
+        stake: 0,
+        quota: 1.01,
+        tipoBonus: 'Nessuno',
+        bonus: 0,
+        rimborso: 0,
+        urlEvento: '',
+        competizione: '',
+      });
+      setTipoBonus('Nessuno');
+    }
+  }, [editingBet, open, form]);
 
   const onSubmit = async (data: SingleBetFormData) => {
     const account = accounts.find((a) => a.conto === data.conto);
@@ -95,7 +133,7 @@ export function SingleBetForm({ open, onOpenChange }: SingleBetFormProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Nuova Puntata Singola</DialogTitle>
+          <DialogTitle>{editingBet ? 'Clona Puntata Singola' : 'Nuova Puntata Singola'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
