@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useWallets } from '@/contexts/WalletContext';
-import { toast } from 'sonner';
 
 const walletSchema = z.object({
   intestatario: z.string().min(1, 'Intestatario è obbligatorio'),
@@ -37,15 +36,14 @@ export function WalletForm({ open, onOpenChange }: WalletFormProps) {
     },
   });
 
-  const onSubmit = (data: WalletFormData) => {
-    addWallet({
+  const onSubmit = async (data: WalletFormData) => {
+    await addWallet({
       intestatario: data.intestatario,
       nome: data.nome,
       descrizione: data.descrizione,
       stato: data.stato,
       saldoAttuale: 0,
     });
-    toast.success('Wallet creato con successo');
     form.reset();
     onOpenChange(false);
   };

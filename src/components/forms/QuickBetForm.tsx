@@ -50,17 +50,17 @@ export function QuickBetForm({ open, onOpenChange }: QuickBetFormProps) {
     },
   });
 
-  const onSubmit = (data: QuickBetFormData) => {
+  const onSubmit = async (data: QuickBetFormData) => {
     const account = accounts.find((a) => a.conto === data.conto);
     
     if (account) {
-      updateAccount(account.id, { 
+      await updateAccount(account.id, { 
         saldoAttuale: data.saldoReale,
         bilancioGiocateRapide: account.bilancioGiocateRapide + data.movimento 
       });
     }
 
-    addBet({
+    await addBet({
       tipo: 'Rapida',
       conto: data.conto,
       stake: data.movimento,
@@ -70,7 +70,6 @@ export function QuickBetForm({ open, onOpenChange }: QuickBetFormProps) {
       note: data.note,
     });
 
-    toast.success('Giocata rapida registrata con successo');
     form.reset();
     onOpenChange(false);
   };

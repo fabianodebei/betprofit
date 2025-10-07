@@ -1,60 +1,199 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Bet } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface BetContextType {
   bets: Bet[];
-  addBet: (bet: Omit<Bet, 'id' | 'createdAt'>) => void;
-  updateBet: (id: string, bet: Partial<Bet>) => void;
-  deleteBet: (id: string) => void;
-  archiveBet: (id: string, risultato: number) => void;
-  reopenBet: (id: string) => void;
+  addBet: (bet: Omit<Bet, 'id' | 'createdAt'>) => Promise<void>;
+  updateBet: (id: string, bet: Partial<Bet>) => Promise<void>;
+  deleteBet: (id: string) => Promise<void>;
+  archiveBet: (id: string, risultato: number) => Promise<void>;
+  reopenBet: (id: string) => Promise<void>;
   getOngoingBets: () => Bet[];
   getArchivedBets: () => Bet[];
   getQuickBets: () => Bet[];
   getTotalStakeInCorso: () => number;
-  notifyChange: () => void; // For dashboard reactivity
+  loading: boolean;
 }
 
 const BetContext = createContext<BetContextType | undefined>(undefined);
 
 export function BetProvider({ children }: { children: ReactNode }) {
   const [bets, setBets] = useState<Bet[]>([]);
-  const [changeCounter, setChangeCounter] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  const notifyChange = () => {
-    setChangeCounter(prev => prev + 1);
+  useEffect(() => {
+    fetchBets();
+  }, []);
+
+  const fetchBets = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('bets')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const mappedBets: Bet[] = (data || []).map((b) => ({
+        id: b.id,
+        tipo: b.tipo as 'Singola' | 'Multipla' | 'Casino' | 'Rapida',
+        conto: b.conto,
+        stake: Number(b.stake),
+        quota: b.quota ? Number(b.quota) : undefined,
+        evento: b.evento || undefined,
+        dataEvento: new Date(b.data_evento),
+        metodo: b.metodo || undefined,
+        tipoBonus: b.tipo_bonus as 'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet' | undefined,
+        bonus: b.bonus ? Number(b.bonus) : undefined,
+        rimborso: b.rimborso ? Number(b.rimborso) : undefined,
+        stato: b.stato as 'In Corso' | 'Archiviata',
+        risultato: b.risultato ? Number(b.risultato) : undefined,
+        tag: b.tag || undefined,
+        note: b.note || undefined,
+        mercato: b.mercato || undefined,
+        competizione: b.competizione || undefined,
+        urlEvento: b.url_evento || undefined,
+        nomeGioco: b.nome_gioco || undefined,
+        quotaPunta: b.quota_punta ? Number(b.quota_punta) : undefined,
+        createdAt: new Date(b.created_at),
+      }));
+
+      setBets(mappedBets);
+    } catch (error: any) {
+      toast.error('Errore nel caricamento delle puntate');
+      console.error('Error fetching bets:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const addBet = (bet: Omit<Bet, 'id' | 'createdAt'>) => {
-    const newBet: Bet = {
-      ...bet,
-      id: bet.tipo === 'Singola' || bet.tipo === 'Multipla' || bet.tipo === 'Casino' 
-        ? `${bet.tipo} #6${Math.floor(100000 + Math.random() * 900000)}` 
-        : crypto.randomUUID(),
-      createdAt: new Date(),
-    };
-    setBets((prev) => [...prev, newBet]);
-    notifyChange();
+  const addBet = async (bet: Omit<Bet, 'id' | 'createdAt'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('bets')
+        .insert({
+          tipo: bet.tipo,
+          conto: bet.conto,
+          stake: bet.stake,
+          quota: bet.quota || null,
+          evento: bet.evento || null,
+          data_evento: bet.dataEvento.toISOString(),
+          metodo: bet.metodo || null,
+          tipo_bonus: bet.tipoBonus || null,
+          bonus: bet.bonus || null,
+          rimborso: bet.rimborso || null,
+          stato: bet.stato,
+          risultato: bet.risultato || null,
+          tag: bet.tag || null,
+          note: bet.note || null,
+          mercato: bet.mercato || null,
+          competizione: bet.competizione || null,
+          url_evento: bet.urlEvento || null,
+          nome_gioco: bet.nomeGioco || null,
+          quota_punta: bet.quotaPunta || null,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newBet: Bet = {
+        id: data.id,
+        tipo: data.tipo as 'Singola' | 'Multipla' | 'Casino' | 'Rapida',
+        conto: data.conto,
+        stake: Number(data.stake),
+        quota: data.quota ? Number(data.quota) : undefined,
+        evento: data.evento || undefined,
+        dataEvento: new Date(data.data_evento),
+        metodo: data.metodo || undefined,
+        tipoBonus: data.tipo_bonus as 'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet' | undefined,
+        bonus: data.bonus ? Number(data.bonus) : undefined,
+        rimborso: data.rimborso ? Number(data.rimborso) : undefined,
+        stato: data.stato as 'In Corso' | 'Archiviata',
+        risultato: data.risultato ? Number(data.risultato) : undefined,
+        tag: data.tag || undefined,
+        note: data.note || undefined,
+        mercato: data.mercato || undefined,
+        competizione: data.competizione || undefined,
+        urlEvento: data.url_evento || undefined,
+        nomeGioco: data.nome_gioco || undefined,
+        quotaPunta: data.quota_punta ? Number(data.quota_punta) : undefined,
+        createdAt: new Date(data.created_at),
+      };
+
+      setBets((prev) => [newBet, ...prev]);
+      toast.success('Puntata aggiunta con successo');
+    } catch (error: any) {
+      toast.error('Errore durante l\'aggiunta della puntata');
+      console.error('Error adding bet:', error);
+    }
   };
 
-  const updateBet = (id: string, updates: Partial<Bet>) => {
-    setBets((prev) =>
-      prev.map((bet) => (bet.id === id ? { ...bet, ...updates } : bet))
-    );
-    notifyChange();
+  const updateBet = async (id: string, updates: Partial<Bet>) => {
+    try {
+      const dbUpdates: any = {};
+      if (updates.tipo !== undefined) dbUpdates.tipo = updates.tipo;
+      if (updates.conto !== undefined) dbUpdates.conto = updates.conto;
+      if (updates.stake !== undefined) dbUpdates.stake = updates.stake;
+      if (updates.quota !== undefined) dbUpdates.quota = updates.quota;
+      if (updates.evento !== undefined) dbUpdates.evento = updates.evento;
+      if (updates.dataEvento !== undefined) dbUpdates.data_evento = updates.dataEvento.toISOString();
+      if (updates.metodo !== undefined) dbUpdates.metodo = updates.metodo;
+      if (updates.tipoBonus !== undefined) dbUpdates.tipo_bonus = updates.tipoBonus;
+      if (updates.bonus !== undefined) dbUpdates.bonus = updates.bonus;
+      if (updates.rimborso !== undefined) dbUpdates.rimborso = updates.rimborso;
+      if (updates.stato !== undefined) dbUpdates.stato = updates.stato;
+      if (updates.risultato !== undefined) dbUpdates.risultato = updates.risultato;
+      if (updates.tag !== undefined) dbUpdates.tag = updates.tag;
+      if (updates.note !== undefined) dbUpdates.note = updates.note;
+      if (updates.mercato !== undefined) dbUpdates.mercato = updates.mercato;
+      if (updates.competizione !== undefined) dbUpdates.competizione = updates.competizione;
+      if (updates.urlEvento !== undefined) dbUpdates.url_evento = updates.urlEvento;
+      if (updates.nomeGioco !== undefined) dbUpdates.nome_gioco = updates.nomeGioco;
+      if (updates.quotaPunta !== undefined) dbUpdates.quota_punta = updates.quotaPunta;
+
+      const { error } = await supabase
+        .from('bets')
+        .update(dbUpdates)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setBets((prev) =>
+        prev.map((bet) => (bet.id === id ? { ...bet, ...updates } : bet))
+      );
+      toast.success('Puntata aggiornata con successo');
+    } catch (error: any) {
+      toast.error('Errore durante l\'aggiornamento della puntata');
+      console.error('Error updating bet:', error);
+    }
   };
 
-  const deleteBet = (id: string) => {
-    setBets((prev) => prev.filter((bet) => bet.id !== id));
-    notifyChange();
+  const deleteBet = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('bets')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setBets((prev) => prev.filter((bet) => bet.id !== id));
+      toast.success('Puntata eliminata con successo');
+    } catch (error: any) {
+      toast.error('Errore durante l\'eliminazione della puntata');
+      console.error('Error deleting bet:', error);
+    }
   };
 
-  const archiveBet = (id: string, risultato: number) => {
-    updateBet(id, { stato: 'Archiviata', risultato });
+  const archiveBet = async (id: string, risultato: number) => {
+    await updateBet(id, { stato: 'Archiviata', risultato });
   };
 
-  const reopenBet = (id: string) => {
-    updateBet(id, { stato: 'In Corso', risultato: undefined });
+  const reopenBet = async (id: string) => {
+    await updateBet(id, { stato: 'In Corso', risultato: undefined });
   };
 
   const getOngoingBets = () => {
@@ -86,7 +225,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
         getArchivedBets,
         getQuickBets,
         getTotalStakeInCorso,
-        notifyChange,
+        loading,
       }}
     >
       {children}

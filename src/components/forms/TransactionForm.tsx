@@ -16,7 +16,6 @@ import { cn } from '@/lib/utils';
 import { useTransactions } from '@/contexts/TransactionContext';
 import { useAccounts } from '@/contexts/AccountContext';
 import { useWallets } from '@/contexts/WalletContext';
-import { toast } from 'sonner';
 
 const transactionSchema = z.object({
   metodo: z.enum(['Deposito', 'Spesa', 'Prelievo']),
@@ -51,7 +50,7 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
     },
   });
 
-  const onSubmit = (data: TransactionFormData) => {
+  const onSubmit = async (data: TransactionFormData) => {
     const metodo = data.metodo;
     const account = accounts.find((a) => a.conto === data.conto);
     const wallet = wallets.find((w) => w.nome === data.wallet);
@@ -61,7 +60,7 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
       const newBalance = metodo === 'Deposito' 
         ? account.saldoAttuale + data.movimento 
         : account.saldoAttuale - data.movimento;
-      updateAccount(account.id, { saldoAttuale: newBalance });
+      await updateAccount(account.id, { saldoAttuale: newBalance });
     }
 
     // Update wallet balance
@@ -69,10 +68,10 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
       const newWalletBalance = metodo === 'Prelievo'
         ? wallet.saldoAttuale + data.movimento
         : wallet.saldoAttuale - data.movimento;
-      updateWallet(wallet.id, { saldoAttuale: newWalletBalance });
+      await updateWallet(wallet.id, { saldoAttuale: newWalletBalance });
     }
 
-    addTransaction({
+    await addTransaction({
       metodo: data.metodo,
       conto: data.conto,
       wallet: data.wallet,
@@ -82,7 +81,6 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
       registrato: data.registrato,
     });
 
-    toast.success('Movimento registrato con successo');
     form.reset();
     onOpenChange(false);
   };

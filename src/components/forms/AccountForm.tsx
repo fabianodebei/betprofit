@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useAccounts } from '@/contexts/AccountContext';
-import { toast } from 'sonner';
 
 const accountSchema = z.object({
   intestatario: z.string().min(1, 'Intestatario è obbligatorio'),
@@ -37,14 +36,13 @@ export function AccountForm({ open, onOpenChange }: AccountFormProps) {
     },
   });
 
-  const onSubmit = (data: AccountFormData) => {
-    addAccount({
+  const onSubmit = async (data: AccountFormData) => {
+    await addAccount({
       intestatario: data.intestatario,
       conto: data.conto,
       descrizione: data.descrizione,
       stato: data.stato,
     });
-    toast.success('Conto creato con successo');
     form.reset();
     onOpenChange(false);
   };

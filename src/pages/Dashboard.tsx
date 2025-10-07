@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { TrendingUp, Calendar, Trophy, Wallet } from 'lucide-react';
 import { KPICard } from '@/components/dashboard/KPICard';
 import { TrendChart } from '@/components/dashboard/TrendChart';
@@ -9,15 +9,9 @@ import { useWallets } from '@/contexts/WalletContext';
 import { useBets } from '@/contexts/BetContext';
 
 export default function Dashboard() {
-  const { accounts } = useAccounts();
-  const { wallets } = useWallets();
-  const { getArchivedBets, bets } = useBets();
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  // Trigger re-render when bets change
-  useEffect(() => {
-    setRefreshKey(prev => prev + 1);
-  }, [bets, accounts, wallets]);
+  const { accounts, loading: accountsLoading } = useAccounts();
+  const { wallets, loading: walletsLoading } = useWallets();
+  const { getArchivedBets, loading: betsLoading } = useBets();
 
   const archivedBets = getArchivedBets();
 
@@ -59,6 +53,16 @@ export default function Dashboard() {
     { month: 'Nov', earnings: monthlyEarnings[10] },
     { month: 'Dic', earnings: monthlyEarnings[11] },
   ];
+
+  const loading = accountsLoading || walletsLoading || betsLoading;
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">Caricamento...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">

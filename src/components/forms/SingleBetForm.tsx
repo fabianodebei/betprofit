@@ -16,7 +16,6 @@ import { cn } from '@/lib/utils';
 import { useBets } from '@/contexts/BetContext';
 import { useAccounts } from '@/contexts/AccountContext';
 import { SPORT_MARKETS } from '@/constants/markets';
-import { toast } from 'sonner';
 
 const singleBetSchema = z.object({
   metodo: z.enum(['Punta', 'Banca']),
@@ -63,18 +62,18 @@ export function SingleBetForm({ open, onOpenChange }: SingleBetFormProps) {
     },
   });
 
-  const onSubmit = (data: SingleBetFormData) => {
+  const onSubmit = async (data: SingleBetFormData) => {
     const account = accounts.find((a) => a.conto === data.conto);
     
     if (account) {
       const newBalance = account.saldoAttuale - data.stake;
-      updateAccount(account.id, { 
+      await updateAccount(account.id, { 
         saldoAttuale: newBalance,
         bilancioGiocate: account.bilancioGiocate - data.stake 
       });
     }
 
-    addBet({
+    await addBet({
       tipo: 'Singola',
       conto: data.conto,
       stake: data.stake,
@@ -88,7 +87,6 @@ export function SingleBetForm({ open, onOpenChange }: SingleBetFormProps) {
       stato: 'In Corso',
     });
 
-    toast.success('Puntata singola registrata con successo');
     form.reset();
     onOpenChange(false);
   };

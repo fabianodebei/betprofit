@@ -14,7 +14,177 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      accounts: {
+        Row: {
+          bilancio_giocate: number
+          bilancio_giocate_rapide: number
+          conto: string
+          created_at: string
+          descrizione: string | null
+          id: string
+          intestatario: string
+          saldo_attuale: number
+          stato: string
+        }
+        Insert: {
+          bilancio_giocate?: number
+          bilancio_giocate_rapide?: number
+          conto: string
+          created_at?: string
+          descrizione?: string | null
+          id?: string
+          intestatario: string
+          saldo_attuale?: number
+          stato: string
+        }
+        Update: {
+          bilancio_giocate?: number
+          bilancio_giocate_rapide?: number
+          conto?: string
+          created_at?: string
+          descrizione?: string | null
+          id?: string
+          intestatario?: string
+          saldo_attuale?: number
+          stato?: string
+        }
+        Relationships: []
+      }
+      bets: {
+        Row: {
+          bonus: number | null
+          competizione: string | null
+          conto: string
+          created_at: string
+          data_evento: string
+          evento: string | null
+          id: string
+          mercato: string | null
+          metodo: string | null
+          nome_gioco: string | null
+          note: string | null
+          quota: number | null
+          quota_punta: number | null
+          rimborso: number | null
+          risultato: number | null
+          stake: number
+          stato: string
+          tag: string | null
+          tipo: string
+          tipo_bonus: string | null
+          url_evento: string | null
+        }
+        Insert: {
+          bonus?: number | null
+          competizione?: string | null
+          conto: string
+          created_at?: string
+          data_evento: string
+          evento?: string | null
+          id?: string
+          mercato?: string | null
+          metodo?: string | null
+          nome_gioco?: string | null
+          note?: string | null
+          quota?: number | null
+          quota_punta?: number | null
+          rimborso?: number | null
+          risultato?: number | null
+          stake: number
+          stato: string
+          tag?: string | null
+          tipo: string
+          tipo_bonus?: string | null
+          url_evento?: string | null
+        }
+        Update: {
+          bonus?: number | null
+          competizione?: string | null
+          conto?: string
+          created_at?: string
+          data_evento?: string
+          evento?: string | null
+          id?: string
+          mercato?: string | null
+          metodo?: string | null
+          nome_gioco?: string | null
+          note?: string | null
+          quota?: number | null
+          quota_punta?: number | null
+          rimborso?: number | null
+          risultato?: number | null
+          stake?: number
+          stato?: string
+          tag?: string | null
+          tipo?: string
+          tipo_bonus?: string | null
+          url_evento?: string | null
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          accredito: number | null
+          addebito: number | null
+          conto: string
+          descrizione: string | null
+          id: string
+          metodo: string
+          registrato: string
+          wallet: string | null
+        }
+        Insert: {
+          accredito?: number | null
+          addebito?: number | null
+          conto: string
+          descrizione?: string | null
+          id?: string
+          metodo: string
+          registrato?: string
+          wallet?: string | null
+        }
+        Update: {
+          accredito?: number | null
+          addebito?: number | null
+          conto?: string
+          descrizione?: string | null
+          id?: string
+          metodo?: string
+          registrato?: string
+          wallet?: string | null
+        }
+        Relationships: []
+      }
+      wallets: {
+        Row: {
+          created_at: string
+          descrizione: string | null
+          id: string
+          intestatario: string
+          nome: string
+          saldo_attuale: number
+          stato: string
+        }
+        Insert: {
+          created_at?: string
+          descrizione?: string | null
+          id?: string
+          intestatario: string
+          nome: string
+          saldo_attuale?: number
+          stato: string
+        }
+        Update: {
+          created_at?: string
+          descrizione?: string | null
+          id?: string
+          intestatario?: string
+          nome?: string
+          saldo_attuale?: number
+          stato?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

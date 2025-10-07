@@ -16,7 +16,6 @@ import { cn } from '@/lib/utils';
 import { useBets } from '@/contexts/BetContext';
 import { useAccounts } from '@/contexts/AccountContext';
 import { CASINO_MARKETS } from '@/constants/markets';
-import { toast } from 'sonner';
 
 const casinoBetSchema = z.object({
   nomeGioco: z.string().min(1, 'Nome gioco è obbligatorio'),
@@ -57,18 +56,18 @@ export function CasinoBetForm({ open, onOpenChange }: CasinoBetFormProps) {
     },
   });
 
-  const onSubmit = (data: CasinoBetFormData) => {
+  const onSubmit = async (data: CasinoBetFormData) => {
     const account = accounts.find((a) => a.conto === data.conto);
     
     if (account) {
       const newBalance = account.saldoAttuale - data.stake;
-      updateAccount(account.id, { 
+      await updateAccount(account.id, { 
         saldoAttuale: newBalance,
         bilancioGiocate: account.bilancioGiocate - data.stake 
       });
     }
 
-    addBet({
+    await addBet({
       tipo: 'Casino',
       conto: data.conto,
       stake: data.stake,
@@ -81,7 +80,6 @@ export function CasinoBetForm({ open, onOpenChange }: CasinoBetFormProps) {
       stato: 'In Corso',
     });
 
-    toast.success('Puntata casinò registrata con successo');
     form.reset();
     onOpenChange(false);
   };
