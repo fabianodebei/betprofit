@@ -116,8 +116,29 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Intestatario *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleziona o inserisci intestatario" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent position="popper" className="z-[70] bg-popover max-h-[240px]">
+                      {[...new Set(accounts.map(a => a.intestatario))]
+                        .sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }))
+                        .map((intestatario) => (
+                          <SelectItem key={intestatario} value={intestatario}>
+                            {intestatario}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                   <FormControl>
-                    <Input placeholder="Es: Mario Rossi" {...field} />
+                    <Input 
+                      placeholder="Oppure inserisci nuovo intestatario" 
+                      value={field.value}
+                      onChange={field.onChange}
+                      className="mt-2"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
