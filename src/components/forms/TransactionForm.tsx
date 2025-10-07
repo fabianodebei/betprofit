@@ -68,6 +68,14 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
       }
     }
 
+    // Verifica saldo conto per movimenti in uscita (Prelievo)
+    if (account && metodo === 'Prelievo') {
+      if (account.saldoAttuale < data.movimento) {
+        toast.error(`Saldo insufficiente nel conto ${account.conto}. Disponibile: €${account.saldoAttuale.toFixed(2)}`);
+        return;
+      }
+    }
+
     // Update account balance
     if (account) {
       let newBalance = account.saldoAttuale;
