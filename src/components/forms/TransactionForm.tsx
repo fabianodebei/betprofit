@@ -159,15 +159,25 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Conto *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select 
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      const acc = accounts.find(a => a.conto === value);
+                      if (acc) {
+                        setSelectedIntestatario(acc.intestatario);
+                        form.setValue('intestatario', acc.intestatario);
+                      }
+                    }} 
+                    value={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleziona conto" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent position="popper" className="z-[70] bg-popover">
+                    <SelectContent position="popper" className="z-[70] bg-popover max-h-[240px] overflow-auto">
                       {accounts
-                        .filter(account => account.intestatario === selectedIntestatario)
+                        .slice()
                         .sort((a, b) => a.conto.localeCompare(b.conto, 'it', { sensitivity: 'base' }))
                         .map((account) => (
                           <SelectItem key={account.id} value={account.conto}>
