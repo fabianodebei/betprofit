@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAccounts } from '@/contexts/AccountContext';
 import { useWallets } from '@/contexts/WalletContext';
 import { useBets } from '@/contexts/BetContext';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Dashboard() {
   const { accounts, loading: accountsLoading } = useAccounts();
@@ -19,6 +20,28 @@ export default function Dashboard() {
   useEffect(() => {
     // This will trigger a re-render when bets data changes
   }, [bets]);
+
+  // Listen to realtime updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('dashboard-bets')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bets'
+        },
+        () => {
+          // Data will be refreshed automatically by BetContext
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   // Calculate stats from archived bets
   const currentMonth = new Date().getMonth();

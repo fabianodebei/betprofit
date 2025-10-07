@@ -25,6 +25,26 @@ export function BetProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     fetchBets();
+
+    // Listen to realtime changes
+    const channel = supabase
+      .channel('bets-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bets'
+        },
+        () => {
+          fetchBets();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchBets = async () => {
