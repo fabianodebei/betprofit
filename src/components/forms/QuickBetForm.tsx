@@ -19,12 +19,12 @@ import { QUICK_BET_METHODS } from '@/constants/markets';
 import { toast } from 'sonner';
 
 const quickBetSchema = z.object({
-  conto: z.string().min(1, 'Conto è obbligatorio'),
-  metodo: z.string().min(1, 'Metodo è obbligatorio'),
-  saldoReale: z.number().positive('Il saldo deve essere positivo'),
-  movimento: z.number().positive('Il movimento deve essere positivo'),
+  conto: z.string().trim().min(1, 'Conto è obbligatorio').max(100),
+  metodo: z.string().trim().min(1, 'Metodo è obbligatorio').max(100),
+  saldoReale: z.number(),
+  movimento: z.number(),
   registrato: z.date(),
-  note: z.string().optional(),
+  note: z.string().trim().max(500).optional(),
 });
 
 type QuickBetFormData = z.infer<typeof quickBetSchema>;
@@ -171,7 +171,7 @@ export function QuickBetForm({ open, onOpenChange }: QuickBetFormProps) {
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                     </div>
                   </FormControl>
-                  <FormDescription>Il saldo (Calcolo il Movimento) Inserendo il saldo reale del bookmaker</FormDescription>
+                  <FormDescription>Il saldo (Calcolo il Movimento) Inserendo il saldo reale del bookmaker. Puoi inserire valori negativi.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

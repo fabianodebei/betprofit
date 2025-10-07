@@ -15,6 +15,7 @@ export default function Dashboard() {
   const { bets, getArchivedBets, loading: betsLoading } = useBets();
 
   const archivedBets = getArchivedBets();
+  const quickBets = bets.filter(bet => bet.tipo === 'Rapida');
 
   // Force recalculation when bets change
   useEffect(() => {
@@ -43,25 +44,46 @@ export default function Dashboard() {
     };
   }, []);
 
-  // Calculate stats from archived bets
+  // Calculate stats from archived bets AND quick bets
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
   
-  const currentMonthBets = archivedBets.filter(
+  // Archived bets
+  const currentMonthArchivedBets = archivedBets.filter(
     bet => bet.createdAt.getMonth() === currentMonth && 
            bet.createdAt.getFullYear() === currentYear
   );
   
-  const currentMonthEarnings = currentMonthBets.reduce((sum, bet) => sum + (bet.risultato || 0), 0);
+  const currentMonthArchivedEarnings = currentMonthArchivedBets.reduce((sum, bet) => sum + (bet.risultato || 0), 0);
   
-  const yearBets = archivedBets.filter(bet => bet.createdAt.getFullYear() === currentYear);
-  const totalYear = yearBets.reduce((sum, bet) => sum + (bet.risultato || 0), 0);
+  // Quick bets for current month
+  const currentMonthQuickBets = quickBets.filter(
+    bet => bet.createdAt.getMonth() === currentMonth && 
+           bet.createdAt.getFullYear() === currentYear
+  );
   
-  // Calculate monthly earnings for the chart
+  const currentMonthQuickEarnings = currentMonthQuickBets.reduce((sum, bet) => sum + bet.stake, 0);
+  
+  // Total current month earnings (archived + quick)
+  const currentMonthEarnings = currentMonthArchivedEarnings + currentMonthQuickEarnings;
+  
+  // Year totals
+  const yearArchivedBets = archivedBets.filter(bet => bet.createdAt.getFullYear() === currentYear);
+  const yearQuickBets = quickBets.filter(bet => bet.createdAt.getFullYear() === currentYear);
+  
+  const totalYearArchived = yearArchivedBets.reduce((sum, bet) => sum + (bet.risultato || 0), 0);
+  const totalYearQuick = yearQuickBets.reduce((sum, bet) => sum + bet.stake, 0);
+  const totalYear = totalYearArchived + totalYearQuick;
+  
+  // Calculate monthly earnings for the chart (archived + quick)
   const monthlyEarnings = new Array(12).fill(0);
-  yearBets.forEach(bet => {
+  yearArchivedBets.forEach(bet => {
     const month = bet.createdAt.getMonth();
     monthlyEarnings[month] += (bet.risultato || 0);
+  });
+  yearQuickBets.forEach(bet => {
+    const month = bet.createdAt.getMonth();
+    monthlyEarnings[month] += bet.stake;
   });
   
   const monthlyAverage = totalYear / 12;
