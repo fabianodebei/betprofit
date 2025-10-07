@@ -55,10 +55,11 @@ export function QuickBetForm({ open, onOpenChange, editingBet }: QuickBetFormPro
   // Reset form with editing bet data when it changes
   useEffect(() => {
     if (editingBet) {
+      const account = accounts.find((a) => a.conto === editingBet.conto);
       form.reset({
         conto: editingBet.conto || '',
         metodo: editingBet.metodo || '',
-        saldoReale: 0,
+        saldoReale: account?.saldoAttuale || 0,
         movimento: editingBet.stake || 0,
         registrato: editingBet.dataEvento || new Date(),
         note: editingBet.note || '',
@@ -73,7 +74,18 @@ export function QuickBetForm({ open, onOpenChange, editingBet }: QuickBetFormPro
         note: '',
       });
     }
-  }, [editingBet, form]);
+  }, [editingBet, form, accounts]);
+
+  // Update saldoReale when conto changes
+  const selectedConto = form.watch('conto');
+  useEffect(() => {
+    if (selectedConto) {
+      const account = accounts.find((a) => a.conto === selectedConto);
+      if (account) {
+        form.setValue('saldoReale', account.saldoAttuale);
+      }
+    }
+  }, [selectedConto, accounts, form]);
 
   const onSubmit = async (data: QuickBetFormData) => {
     const account = accounts.find((a) => a.conto === data.conto);
