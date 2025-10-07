@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { useTransactions } from '@/contexts/TransactionContext';
 import { useAccounts } from '@/contexts/AccountContext';
 import { useWallets } from '@/contexts/WalletContext';
+import { toast } from 'sonner';
 
 const transactionSchema = z.object({
   metodo: z.enum(['Deposito', 'Spesa', 'Prelievo', 'Riconciliazione']),
@@ -58,6 +59,14 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
     const metodo = data.metodo;
     const account = accounts.find((a) => a.conto === data.conto);
     const wallet = wallets.find((w) => w.nome === data.wallet);
+
+    // Verifica saldo wallet per movimenti in uscita (Deposito)
+    if (wallet && data.wallet && metodo === 'Deposito') {
+      if (wallet.saldoAttuale < data.movimento) {
+        toast.error(`Saldo insufficiente nel wallet ${wallet.nome}. Disponibile: €${wallet.saldoAttuale.toFixed(2)}`);
+        return;
+      }
+    }
 
     // Update account balance
     if (account) {
