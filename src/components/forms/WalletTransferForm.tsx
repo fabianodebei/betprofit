@@ -3,16 +3,25 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { TimePicker } from '@/components/ui/time-picker';
+import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import { useWallets } from '@/contexts/WalletContext';
-import { useAccounts } from '@/contexts/AccountContext';
+import { formatCurrency } from '@/utils/currency';
 
 const transferSchema = z.object({
   fromWallet: z.string().min(1, 'Seleziona wallet sorgente'),
-  toAccount: z.string().min(1, 'Seleziona conto destinazione'),
+  toWallet: z.string().min(1, 'Seleziona wallet destinazione'),
   amount: z.number().positive('L\'importo deve essere positivo'),
+  registrato: z.date(),
+  descrizione: z.string().optional(),
 });
 
 type TransferFormData = z.infer<typeof transferSchema>;
@@ -24,28 +33,29 @@ interface WalletTransferFormProps {
 
 export function WalletTransferForm({ open, onOpenChange }: WalletTransferFormProps) {
   const { wallets, updateWallet } = useWallets();
-  const { accounts, updateAccount } = useAccounts();
 
   const form = useForm<TransferFormData>({
     resolver: zodResolver(transferSchema),
     defaultValues: {
       fromWallet: '',
-      toAccount: '',
+      toWallet: '',
       amount: 0,
+      registrato: new Date(),
+      descrizione: '',
     },
   });
 
   const onSubmit = async (data: TransferFormData) => {
-    const wallet = wallets.find((w) => w.nome === data.fromWallet);
-    const account = accounts.find((a) => a.conto === data.toAccount);
+    const fromWallet = wallets.find((w) => w.id === data.fromWallet);
+    const toWallet = wallets.find((w) => w.id === data.toWallet);
 
-    if (wallet && account) {
-      await updateWallet(wallet.id, {
-        saldoAttuale: wallet.saldoAttuale - data.amount,
+    if (fromWallet && toWallet) {
+      await updateWallet(fromWallet.id, {
+        saldoAttuale: fromWallet.saldoAttuale - data.amount,
       });
 
-      await updateAccount(account.id, {
-        saldoAttuale: account.saldoAttuale + data.amount,
+      await updateWallet(toWallet.id, {
+        saldoAttuale: toWallet.saldoAttuale + data.amount,
       });
     }
 
@@ -57,7 +67,7 @@ export function WalletTransferForm({ open, onOpenChange }: WalletTransferFormPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Trasferisci da Wallet a Conto</DialogTitle>
+          <DialogTitle>Nuovo Trasferisci</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -66,7 +76,7 @@ export function WalletTransferForm({ open, onOpenChange }: WalletTransferFormPro
               name="fromWallet"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Da Wallet *</FormLabel>
+                  <FormLabel>Da Intestatario *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -77,8 +87,8 @@ export function WalletTransferForm({ open, onOpenChange }: WalletTransferFormPro
                       {wallets
                         .filter((w) => w.stato === 'Abilitato')
                         .map((wallet) => (
-                          <SelectItem key={wallet.id} value={wallet.nome}>
-                            {wallet.nome}
+                          <SelectItem key={wallet.id} value={wallet.id}>
+                            {wallet.nome} ({formatCurrency(wallet.saldoAttuale)} {wallet.intestatario})
                           </SelectItem>
                         ))}
                     </SelectContent>
@@ -89,22 +99,22 @@ export function WalletTransferForm({ open, onOpenChange }: WalletTransferFormPro
             />
             <FormField
               control={form.control}
-              name="toAccount"
+              name="toWallet"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>A Conto *</FormLabel>
+                  <FormLabel>A Intestatario *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Seleziona conto" />
+                        <SelectValue placeholder="Seleziona wallet" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {accounts
-                        .filter((a) => a.stato === 'Abilitato')
-                        .map((account) => (
-                          <SelectItem key={account.id} value={account.conto}>
-                            {account.conto}
+                      {wallets
+                        .filter((w) => w.stato === 'Abilitato' && w.id !== form.watch('fromWallet'))
+                        .map((wallet) => (
+                          <SelectItem key={wallet.id} value={wallet.id}>
+                            {wallet.nome} ({formatCurrency(wallet.saldoAttuale)} {wallet.intestatario})
                           </SelectItem>
                         ))}
                     </SelectContent>
@@ -135,11 +145,62 @@ export function WalletTransferForm({ open, onOpenChange }: WalletTransferFormPro
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="registrato"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Registrato *</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            'w-full pl-3 text-left font-normal',
+                            !field.value && 'text-muted-foreground'
+                          )}
+                        >
+                          {field.value ? format(field.value, 'dd/MM/yyyy HH:mm') : <span>Seleziona data</span>}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <div className="p-3 border-b">
+                        <TimePicker value={field.value} onChange={field.onChange} />
+                      </div>
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="descrizione"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descrizione</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Facoltativo" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Chiudi
               </Button>
-              <Button type="submit">Trasferisci</Button>
+              <Button type="submit">Salva</Button>
             </DialogFooter>
           </form>
         </Form>
