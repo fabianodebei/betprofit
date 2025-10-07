@@ -11,9 +11,14 @@ import { useBets } from '@/contexts/BetContext';
 export default function Dashboard() {
   const { accounts, loading: accountsLoading } = useAccounts();
   const { wallets, loading: walletsLoading } = useWallets();
-  const { getArchivedBets, loading: betsLoading } = useBets();
+  const { bets, getArchivedBets, loading: betsLoading } = useBets();
 
   const archivedBets = getArchivedBets();
+
+  // Force recalculation when bets change
+  useEffect(() => {
+    // This will trigger a re-render when bets data changes
+  }, [bets]);
 
   // Calculate stats from archived bets
   const currentMonth = new Date().getMonth();

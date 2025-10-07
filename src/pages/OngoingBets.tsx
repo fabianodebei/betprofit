@@ -8,13 +8,28 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { Badge } from '@/components/common/Badge';
 import { useBets } from '@/contexts/BetContext';
 import { formatDate } from '@/utils/dates';
+import { ArchiveBetDialog } from '@/components/dialogs/ArchiveBetDialog';
+import { Bet } from '@/types';
 
 export default function OngoingBets() {
   const { getOngoingBets, deleteBet, archiveBet } = useBets();
   const [activeTab, setActiveTab] = useState<'singola' | 'multipla' | 'casino'>('singola');
   const [showSingleBetForm, setShowSingleBetForm] = useState(false);
   const [showCasinoBetForm, setShowCasinoBetForm] = useState(false);
+  const [selectedBet, setSelectedBet] = useState<Bet | null>(null);
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const ongoingBets = getOngoingBets();
+
+  const handleArchive = (bet: Bet) => {
+    setSelectedBet(bet);
+    setShowArchiveDialog(true);
+  };
+
+  const handleConfirmArchive = (risultato: number) => {
+    if (selectedBet) {
+      archiveBet(selectedBet.id, risultato);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -106,7 +121,7 @@ export default function OngoingBets() {
                       <td className="p-3">
                         <div className="flex gap-1">
                           <Button size="sm" variant="outline">Dettaglio</Button>
-                          <Button size="sm" variant="outline" onClick={() => archiveBet(bet.id, 0)}>Archivia</Button>
+                          <Button size="sm" variant="outline" onClick={() => handleArchive(bet)}>Archivia</Button>
                           <Button size="sm" variant="outline">Clona</Button>
                           <Button size="sm" variant="destructive" onClick={() => deleteBet(bet.id)}>Elimina</Button>
                         </div>
@@ -125,6 +140,12 @@ export default function OngoingBets() {
 
       <SingleBetForm open={showSingleBetForm} onOpenChange={setShowSingleBetForm} />
       <CasinoBetForm open={showCasinoBetForm} onOpenChange={setShowCasinoBetForm} />
+      <ArchiveBetDialog
+        bet={selectedBet}
+        open={showArchiveDialog}
+        onOpenChange={setShowArchiveDialog}
+        onConfirm={handleConfirmArchive}
+      />
     </div>
   );
 }

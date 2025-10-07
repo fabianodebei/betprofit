@@ -8,7 +8,7 @@ import { formatCurrency } from '@/utils/currency';
 import { formatDate } from '@/utils/dates';
 
 export default function ArchivedBets() {
-  const { getArchivedBets } = useBets();
+  const { getArchivedBets, reopenBet, deleteBet } = useBets();
   const archivedBets = getArchivedBets();
 
   const totalArchived = archivedBets.reduce((sum, bet) => sum + (bet.risultato || 0), 0);
@@ -70,8 +70,8 @@ export default function ArchivedBets() {
                       </td>
                       <td className="p-3">
                         <div className="flex gap-1">
-                          <Button size="sm" variant="outline">Riapri</Button>
-                          <Button size="sm" variant="destructive">Elimina</Button>
+                          <Button size="sm" variant="outline" onClick={() => reopenBet(bet.id)}>Riapri</Button>
+                          <Button size="sm" variant="destructive" onClick={() => deleteBet(bet.id)}>Elimina</Button>
                         </div>
                       </td>
                     </tr>
