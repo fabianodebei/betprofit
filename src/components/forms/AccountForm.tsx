@@ -29,8 +29,11 @@ interface AccountFormProps {
 }
 
 export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormProps) {
-  const { addAccount, updateAccount } = useAccounts();
+  const { addAccount, updateAccount, accounts } = useAccounts();
   const { wallets } = useWallets();
+
+  // Ottieni lista unica di nomi bookmaker
+  const bookmakers = Array.from(new Set(accounts.map(acc => acc.conto))).sort();
 
   const form = useForm<AccountFormData>({
     resolver: zodResolver(accountSchema),
@@ -112,9 +115,20 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Conto *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Es: Bet365" {...field} />
-                  </FormControl>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleziona bookmaker" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {bookmakers.map((bookmaker) => (
+                        <SelectItem key={bookmaker} value={bookmaker}>
+                          {bookmaker}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
