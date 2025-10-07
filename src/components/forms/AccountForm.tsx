@@ -7,10 +7,31 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { useAccounts } from '@/contexts/AccountContext';
 import { useWallets } from '@/contexts/WalletContext';
 import { Account } from '@/types';
+
+const BOOKMAKERS = [
+  'Betfair.it',
+  'Planetwin365.it',
+  'Lottomatica.it',
+  'WilliamHill.it',
+  'Bet365.it',
+  'BetFlag.it',
+  'Snai.it',
+  'GoldBet.it',
+  'Sisal.it',
+  'Eurobet.it',
+  'LeoVegas.it',
+  'Stanleybet.it',
+  'Unibet.it',
+  'StarCasino.it',
+  'E-Play24.it',
+  'Eplay24',
+  'Vincitu',
+  '888 casino',
+];
 
 const accountSchema = z.object({
   intestatario: z.string().min(1, 'Intestatario è obbligatorio'),
@@ -32,8 +53,8 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
   const { addAccount, updateAccount, accounts } = useAccounts();
   const { wallets } = useWallets();
 
-  // Ottieni lista unica di nomi bookmaker
-  const bookmakers = Array.from(new Set(accounts.map(acc => acc.conto))).sort();
+  // Lista bookmaker statica dalla richiesta
+  const bookmakers = BOOKMAKERS;
 
   const form = useForm<AccountFormData>({
     resolver: zodResolver(accountSchema),
@@ -93,6 +114,7 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>{editingAccount ? 'Modifica Conto' : 'Nuovo Conto'}</DialogTitle>
+          <DialogDescription className="sr-only">Compila i campi per creare o modificare un conto bookmaker.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -121,7 +143,7 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
                         <SelectValue placeholder="Seleziona bookmaker" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent position="popper" className="max-h-[200px]">
+                    <SelectContent position="popper" className="z-[70] max-h-[240px] bg-popover">
                       {bookmakers.map((bookmaker) => (
                         <SelectItem key={bookmaker} value={bookmaker}>
                           {bookmaker}
@@ -148,7 +170,7 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
                         <SelectValue placeholder="Seleziona wallet" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent position="popper" className="max-h-[200px]">
+                    <SelectContent position="popper" className="z-[70] max-h-[240px] bg-popover">
                       <SelectItem value="none">Nessuno</SelectItem>
                       {wallets
                         .filter((w) => w.stato === 'Abilitato')
