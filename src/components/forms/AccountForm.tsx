@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { useAccounts } from '@/contexts/AccountContext';
-import { useWallets } from '@/contexts/WalletContext';
 import { Account } from '@/types';
 
 const BOOKMAKERS = [
@@ -38,7 +37,6 @@ const accountSchema = z.object({
   conto: z.string().min(1, 'Nome conto è obbligatorio'),
   descrizione: z.string().optional(),
   stato: z.enum(['Abilitato', 'Disabilitato']),
-  walletId: z.string().optional(),
 });
 
 type AccountFormData = z.infer<typeof accountSchema>;
@@ -51,7 +49,6 @@ interface AccountFormProps {
 
 export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormProps) {
   const { addAccount, updateAccount, accounts } = useAccounts();
-  const { wallets } = useWallets();
 
   // Lista bookmaker statica dalla richiesta, ordinata alfabeticamente (case-insensitive, locale IT)
   const bookmakers = [...BOOKMAKERS].sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }));
@@ -63,7 +60,6 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
       conto: '',
       descrizione: '',
       stato: 'Abilitato',
-      walletId: '',
     },
   });
 
@@ -74,7 +70,6 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
         conto: editingAccount.conto,
         descrizione: editingAccount.descrizione || '',
         stato: editingAccount.stato,
-        walletId: editingAccount.walletId || '',
       });
     } else if (!open) {
       form.reset({
@@ -82,7 +77,6 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
         conto: '',
         descrizione: '',
         stato: 'Abilitato',
-        walletId: '',
       });
     }
   }, [editingAccount, open, form]);
@@ -94,7 +88,6 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
         conto: data.conto,
         descrizione: data.descrizione,
         stato: data.stato,
-        walletId: data.walletId || undefined,
       });
     } else {
       await addAccount({
@@ -102,7 +95,6 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
         conto: data.conto,
         descrizione: data.descrizione,
         stato: data.stato,
-        walletId: data.walletId || undefined,
       });
     }
     form.reset();
@@ -149,36 +141,6 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
                           {bookmaker}
                         </SelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="walletId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Wallet Collegato</FormLabel>
-                  <Select 
-                    onValueChange={(value) => field.onChange(value === "none" ? undefined : value)} 
-                    value={field.value || "none"}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleziona wallet" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent position="popper" className="z-[70] max-h-[240px] bg-popover">
-                      <SelectItem value="none">Nessuno</SelectItem>
-                      {wallets
-                        .filter((w) => w.stato === 'Abilitato')
-                        .map((wallet) => (
-                          <SelectItem key={wallet.id} value={wallet.id}>
-                            {wallet.nome} - {wallet.intestatario}
-                          </SelectItem>
-                        ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
