@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Wallet as WalletIcon } from 'lucide-react';
+import { Plus, Wallet as WalletIcon, Trash2 } from 'lucide-react';
 import { WalletForm } from '@/components/forms/WalletForm';
 import { WalletTransferForm } from '@/components/forms/WalletTransferForm';
 import { WalletTransactionForm } from '@/components/forms/WalletTransactionForm';
@@ -10,18 +10,36 @@ import { Badge } from '@/components/common/Badge';
 import { useWallets } from '@/contexts/WalletContext';
 import { formatCurrency } from '@/utils/currency';
 import { Wallet } from '@/types';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function Wallets() {
-  const { wallets, getTotalBalance } = useWallets();
+  const { wallets, getTotalBalance, deleteWallet } = useWallets();
   const [activeTab, setActiveTab] = useState<'nuovo' | 'trasferisci' | 'ricarica'>('nuovo');
   const [showWalletForm, setShowWalletForm] = useState(false);
   const [showTransferForm, setShowTransferForm] = useState(false);
   const [showTransactionForm, setShowTransactionForm] = useState(false);
   const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
+  const [deletingWallet, setDeletingWallet] = useState<Wallet | null>(null);
 
   const handleEdit = (wallet: Wallet) => {
     setEditingWallet(wallet);
     setShowWalletForm(true);
+  };
+
+  const handleDelete = async () => {
+    if (deletingWallet) {
+      await deleteWallet(deletingWallet.id);
+      setDeletingWallet(null);
+    }
   };
 
   const handleTabClick = (tab: 'nuovo' | 'trasferisci' | 'ricarica') => {
@@ -114,9 +132,18 @@ export default function Wallets() {
                         </Badge>
                       </td>
                       <td className="p-3">
-                        <Button size="sm" variant="outline" onClick={() => handleEdit(wallet)}>
-                          Modifica
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => handleEdit(wallet)}>
+                            Modifica
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive" 
+                            onClick={() => setDeletingWallet(wallet)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -146,6 +173,24 @@ export default function Wallets() {
         open={showTransactionForm} 
         onOpenChange={setShowTransactionForm} 
       />
+
+      <AlertDialog open={!!deletingWallet} onOpenChange={() => setDeletingWallet(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Conferma Eliminazione</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sei sicuro di voler eliminare il wallet "{deletingWallet?.nome}"? 
+              Questa azione non può essere annullata.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Elimina
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
