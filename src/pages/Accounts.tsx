@@ -9,11 +9,18 @@ import { Badge } from '@/components/common/Badge';
 import { useAccounts } from '@/contexts/AccountContext';
 import { formatCurrency } from '@/utils/currency';
 import { formatDate } from '@/utils/dates';
+import { Account } from '@/types';
 
 export default function Accounts() {
   const { accounts } = useAccounts();
   const [showAccountForm, setShowAccountForm] = useState(false);
   const [showTransactionForm, setShowTransactionForm] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+
+  const handleEdit = (account: Account) => {
+    setEditingAccount(account);
+    setShowAccountForm(true);
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -82,7 +89,7 @@ export default function Accounts() {
                           <Button size="sm" variant="outline" onClick={() => setShowTransactionForm(true)}>
                             Nuovo Movimento
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button size="sm" variant="outline" onClick={() => handleEdit(account)}>
                             Modifica
                           </Button>
                         </div>
@@ -99,7 +106,14 @@ export default function Accounts() {
         </CardContent>
       </Card>
 
-      <AccountForm open={showAccountForm} onOpenChange={setShowAccountForm} />
+      <AccountForm 
+        open={showAccountForm} 
+        onOpenChange={(open) => {
+          setShowAccountForm(open);
+          if (!open) setEditingAccount(null);
+        }} 
+        editingAccount={editingAccount}
+      />
       <TransactionForm open={showTransactionForm} onOpenChange={setShowTransactionForm} />
     </div>
   );

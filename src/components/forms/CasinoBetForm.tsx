@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { useBets } from '@/contexts/BetContext';
 import { useAccounts } from '@/contexts/AccountContext';
 import { CASINO_MARKETS } from '@/constants/markets';
+import { Bet } from '@/types';
 const casinoBetSchema = z.object({
   nomeGioco: z.string().min(1, 'Nome gioco è obbligatorio'),
   dataEvento: z.date(),
@@ -23,7 +24,7 @@ const casinoBetSchema = z.object({
   conto: z.string().min(1, 'Conto è obbligatorio'),
   stake: z.number().positive('Lo stake deve essere positivo'),
   quota: z.number().min(1.01, 'La quota deve essere almeno 1.01'),
-  tipoBonus: z.enum(['Nessuno', 'Bonus', 'Rimborso']),
+  tipoBonus: z.enum(['Nessuno', 'Bonus', 'Rimborso', 'Free Bet']),
   bonus: z.number().optional(),
   rimborso: z.number().optional()
 });
@@ -31,19 +32,24 @@ type CasinoBetFormData = z.infer<typeof casinoBetSchema>;
 interface CasinoBetFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editingBet?: Bet | null;
+  mode?: 'create' | 'edit' | 'clone';
 }
 export function CasinoBetForm({
   open,
-  onOpenChange
+  onOpenChange,
+  editingBet,
+  mode = 'create'
 }: CasinoBetFormProps) {
   const {
-    addBet
+    addBet,
+    updateBet
   } = useBets();
   const {
     accounts,
     updateAccount
   } = useAccounts();
-  const [tipoBonus, setTipoBonus] = useState<'Nessuno' | 'Bonus' | 'Rimborso'>('Nessuno');
+  const [tipoBonus, setTipoBonus] = useState<'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet'>('Nessuno');
   const form = useForm<CasinoBetFormData>({
     resolver: zodResolver(casinoBetSchema),
     defaultValues: {
@@ -58,34 +64,83 @@ export function CasinoBetForm({
       rimborso: 0
     }
   });
+
+  useEffect(() => {
+    if (editingBet && open) {
+      form.reset({
+        nomeGioco: editingBet.nomeGioco || '',
+        dataEvento: editingBet.dataEvento,
+        mercato: editingBet.mercato || '',
+        conto: editingBet.conto,
+        stake: editingBet.stake,
+        quota: editingBet.quota || 1.01,
+        tipoBonus: editingBet.tipoBonus || 'Nessuno',
+        bonus: editingBet.bonus || 0,
+        rimborso: editingBet.rimborso || 0
+      });
+      setTipoBonus(editingBet.tipoBonus || 'Nessuno');
+    } else if (!editingBet) {
+      form.reset({
+        nomeGioco: '',
+        dataEvento: new Date(),
+        mercato: '',
+        conto: '',
+        stake: 0,
+        quota: 1.01,
+        tipoBonus: 'Nessuno',
+        bonus: 0,
+        rimborso: 0
+      });
+      setTipoBonus('Nessuno');
+    }
+  }, [editingBet, open, form]);
+
   const onSubmit = async (data: CasinoBetFormData) => {
-    const account = accounts.find(a => a.conto === data.conto);
-    if (account) {
-      const newBalance = account.saldoAttuale - data.stake;
-      await updateAccount(account.id, {
-        saldoAttuale: newBalance,
-        bilancioGiocate: account.bilancioGiocate - data.stake
+    if (mode === 'edit' && editingBet) {
+      await updateBet(editingBet.id, {
+        tipo: 'Casino',
+        conto: data.conto,
+        stake: data.stake,
+        quota: data.quota,
+        nomeGioco: data.nomeGioco,
+        dataEvento: data.dataEvento,
+        mercato: data.mercato,
+        tipoBonus: data.tipoBonus,
+        bonus: data.bonus,
+        rimborso: data.rimborso
+      });
+    } else {
+      const account = accounts.find(a => a.conto === data.conto);
+      if (account) {
+        const newBalance = account.saldoAttuale - data.stake;
+        await updateAccount(account.id, {
+          saldoAttuale: newBalance,
+          bilancioGiocate: account.bilancioGiocate - data.stake
+        });
+      }
+      await addBet({
+        tipo: 'Casino',
+        conto: data.conto,
+        stake: data.stake,
+        quota: data.quota,
+        nomeGioco: data.nomeGioco,
+        dataEvento: data.dataEvento,
+        mercato: data.mercato,
+        tipoBonus: data.tipoBonus,
+        bonus: data.bonus,
+        rimborso: data.rimborso,
+        stato: 'In Corso'
       });
     }
-    await addBet({
-      tipo: 'Casino',
-      conto: data.conto,
-      stake: data.stake,
-      quota: data.quota,
-      nomeGioco: data.nomeGioco,
-      dataEvento: data.dataEvento,
-      tipoBonus: data.tipoBonus,
-      bonus: data.bonus,
-      rimborso: data.rimborso,
-      stato: 'In Corso'
-    });
     form.reset();
     onOpenChange(false);
   };
   return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Nuova Puntata Casinò</DialogTitle>
+          <DialogTitle>
+            {mode === 'edit' ? 'Modifica Puntata Casinò' : mode === 'clone' ? 'Clona Puntata Casinò' : 'Nuova Puntata Casinò'}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -140,7 +195,22 @@ export function CasinoBetForm({
                 </FormItem>} />
             <FormField control={form.control} name="conto" render={({
             field
-          }) => {}} />
+          }) => <FormItem>
+                  <FormLabel>Conto *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleziona conto" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {accounts.filter(a => a.stato === 'Abilitato').map(account => <SelectItem key={account.id} value={account.conto}>
+                          {account.conto}
+                        </SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>} />
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="stake" render={({
               field
@@ -183,7 +253,10 @@ export function CasinoBetForm({
           }) => <FormItem>
                     <FormLabel>Bonus</FormLabel>
                     <FormControl>
-                      
+                      <div className="relative">
+                        <Input type="number" step="0.01" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>} />}

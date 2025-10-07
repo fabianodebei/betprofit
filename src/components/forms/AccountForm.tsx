@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useAccounts } from '@/contexts/AccountContext';
+import { Account } from '@/types';
 
 const accountSchema = z.object({
   intestatario: z.string().min(1, 'Intestatario è obbligatorio'),
@@ -21,10 +23,11 @@ type AccountFormData = z.infer<typeof accountSchema>;
 interface AccountFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editingAccount?: Account | null;
 }
 
-export function AccountForm({ open, onOpenChange }: AccountFormProps) {
-  const { addAccount } = useAccounts();
+export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormProps) {
+  const { addAccount, updateAccount } = useAccounts();
 
   const form = useForm<AccountFormData>({
     resolver: zodResolver(accountSchema),
@@ -36,13 +39,40 @@ export function AccountForm({ open, onOpenChange }: AccountFormProps) {
     },
   });
 
+  useEffect(() => {
+    if (editingAccount && open) {
+      form.reset({
+        intestatario: editingAccount.intestatario,
+        conto: editingAccount.conto,
+        descrizione: editingAccount.descrizione || '',
+        stato: editingAccount.stato,
+      });
+    } else if (!open) {
+      form.reset({
+        intestatario: '',
+        conto: '',
+        descrizione: '',
+        stato: 'Abilitato',
+      });
+    }
+  }, [editingAccount, open, form]);
+
   const onSubmit = async (data: AccountFormData) => {
-    await addAccount({
-      intestatario: data.intestatario,
-      conto: data.conto,
-      descrizione: data.descrizione,
-      stato: data.stato,
-    });
+    if (editingAccount) {
+      await updateAccount(editingAccount.id, {
+        intestatario: data.intestatario,
+        conto: data.conto,
+        descrizione: data.descrizione,
+        stato: data.stato,
+      });
+    } else {
+      await addAccount({
+        intestatario: data.intestatario,
+        conto: data.conto,
+        descrizione: data.descrizione,
+        stato: data.stato,
+      });
+    }
     form.reset();
     onOpenChange(false);
   };
@@ -51,7 +81,7 @@ export function AccountForm({ open, onOpenChange }: AccountFormProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Nuovo Conto</DialogTitle>
+          <DialogTitle>{editingAccount ? 'Modifica Conto' : 'Nuovo Conto'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
