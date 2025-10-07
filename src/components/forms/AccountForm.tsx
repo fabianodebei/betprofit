@@ -53,8 +53,8 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
   const { addAccount, updateAccount, accounts } = useAccounts();
   const { wallets } = useWallets();
 
-  // Lista bookmaker statica dalla richiesta
-  const bookmakers = BOOKMAKERS;
+  // Lista bookmaker statica dalla richiesta, ordinata alfabeticamente (case-insensitive, locale IT)
+  const bookmakers = [...BOOKMAKERS].sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }));
 
   const form = useForm<AccountFormData>({
     resolver: zodResolver(accountSchema),
