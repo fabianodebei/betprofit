@@ -40,6 +40,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         bilancioGiocate: Number(a.bilancio_giocate),
         bilancioGiocateRapide: Number(a.bilancio_giocate_rapide),
         stato: a.stato as 'Abilitato' | 'Disabilitato',
+        walletId: a.wallet_id || undefined,
         createdAt: new Date(a.created_at),
       }));
 
@@ -60,10 +61,11 @@ export function AccountProvider({ children }: { children: ReactNode }) {
           intestatario: account.intestatario,
           conto: account.conto,
           descrizione: account.descrizione || null,
+          stato: account.stato,
+          wallet_id: account.walletId || null,
           saldo_attuale: 0,
           bilancio_giocate: 0,
           bilancio_giocate_rapide: 0,
-          stato: account.stato,
         })
         .select()
         .single();
@@ -79,6 +81,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         bilancioGiocate: Number(data.bilancio_giocate),
         bilancioGiocateRapide: Number(data.bilancio_giocate_rapide),
         stato: data.stato as 'Abilitato' | 'Disabilitato',
+        walletId: data.wallet_id || undefined,
         createdAt: new Date(data.created_at),
       };
 
@@ -100,6 +103,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       if (updates.bilancioGiocate !== undefined) dbUpdates.bilancio_giocate = updates.bilancioGiocate;
       if (updates.bilancioGiocateRapide !== undefined) dbUpdates.bilancio_giocate_rapide = updates.bilancioGiocateRapide;
       if (updates.stato !== undefined) dbUpdates.stato = updates.stato;
+      if (updates.walletId !== undefined) dbUpdates.wallet_id = updates.walletId;
 
       const { error } = await supabase
         .from('accounts')

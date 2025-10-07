@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useAccounts } from '@/contexts/AccountContext';
+import { useWallets } from '@/contexts/WalletContext';
 import { Account } from '@/types';
 
 const accountSchema = z.object({
@@ -16,6 +17,7 @@ const accountSchema = z.object({
   conto: z.string().min(1, 'Nome conto è obbligatorio'),
   descrizione: z.string().optional(),
   stato: z.enum(['Abilitato', 'Disabilitato']),
+  walletId: z.string().optional(),
 });
 
 type AccountFormData = z.infer<typeof accountSchema>;
@@ -28,6 +30,7 @@ interface AccountFormProps {
 
 export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormProps) {
   const { addAccount, updateAccount } = useAccounts();
+  const { wallets } = useWallets();
 
   const form = useForm<AccountFormData>({
     resolver: zodResolver(accountSchema),
@@ -36,6 +39,7 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
       conto: '',
       descrizione: '',
       stato: 'Abilitato',
+      walletId: '',
     },
   });
 
@@ -46,6 +50,7 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
         conto: editingAccount.conto,
         descrizione: editingAccount.descrizione || '',
         stato: editingAccount.stato,
+        walletId: editingAccount.walletId || '',
       });
     } else if (!open) {
       form.reset({
@@ -53,6 +58,7 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
         conto: '',
         descrizione: '',
         stato: 'Abilitato',
+        walletId: '',
       });
     }
   }, [editingAccount, open, form]);
@@ -64,6 +70,7 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
         conto: data.conto,
         descrizione: data.descrizione,
         stato: data.stato,
+        walletId: data.walletId || undefined,
       });
     } else {
       await addAccount({
@@ -71,6 +78,7 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
         conto: data.conto,
         descrizione: data.descrizione,
         stato: data.stato,
+        walletId: data.walletId || undefined,
       });
     }
     form.reset();
@@ -107,6 +115,33 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
                   <FormControl>
                     <Input placeholder="Es: Bet365" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="walletId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Wallet Collegato</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleziona wallet" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="">Nessuno</SelectItem>
+                      {wallets
+                        .filter((w) => w.stato === 'Abilitato')
+                        .map((wallet) => (
+                          <SelectItem key={wallet.id} value={wallet.id}>
+                            {wallet.nome} - {wallet.intestatario}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

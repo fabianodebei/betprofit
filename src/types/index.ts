@@ -17,6 +17,7 @@ export interface Account {
   bilancioGiocate: number;
   bilancioGiocateRapide: number;
   stato: 'Abilitato' | 'Disabilitato';
+  walletId?: string;
   createdAt: Date;
 }
 

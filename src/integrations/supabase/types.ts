@@ -25,6 +25,7 @@ export type Database = {
           intestatario: string
           saldo_attuale: number
           stato: string
+          wallet_id: string | null
         }
         Insert: {
           bilancio_giocate?: number
@@ -36,6 +37,7 @@ export type Database = {
           intestatario: string
           saldo_attuale?: number
           stato: string
+          wallet_id?: string | null
         }
         Update: {
           bilancio_giocate?: number
@@ -47,8 +49,17 @@ export type Database = {
           intestatario?: string
           saldo_attuale?: number
           stato?: string
+          wallet_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "accounts_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       bets: {
         Row: {
