@@ -1,7 +1,7 @@
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,6 +19,7 @@ import { useAccounts } from '@/contexts/AccountContext';
 import { QUICK_BET_METHODS } from '@/constants/markets';
 import { toast } from 'sonner';
 const quickBetSchema = z.object({
+  intestatario: z.string().trim().min(1, 'Intestatario è obbligatorio').max(100),
   conto: z.string().trim().min(1, 'Conto è obbligatorio').max(100),
   metodo: z.string().trim().min(1, 'Metodo è obbligatorio').max(100),
   movimento: z.number(),
@@ -44,9 +45,11 @@ export function QuickBetForm({
     accounts,
     updateAccount
   } = useAccounts();
+  const [selectedIntestatario, setSelectedIntestatario] = useState<string>('');
   const form = useForm<QuickBetFormData>({
     resolver: zodResolver(quickBetSchema),
     defaultValues: {
+      intestatario: '',
       conto: '',
       metodo: '',
       movimento: 0,
@@ -58,23 +61,30 @@ export function QuickBetForm({
   // Reset form with editing bet data when it changes
   useEffect(() => {
     if (editingBet) {
+      const account = accounts.find(a => a.conto === editingBet.conto);
+      const intestatario = account?.intestatario || '';
+      
       form.reset({
+        intestatario: intestatario,
         conto: editingBet.conto || '',
         metodo: editingBet.metodo || '',
         movimento: editingBet.stake || 0,
         registrato: editingBet.dataEvento || new Date(),
         note: editingBet.note || ''
       });
+      setSelectedIntestatario(intestatario);
     } else {
       form.reset({
+        intestatario: '',
         conto: '',
         metodo: '',
         movimento: 0,
         registrato: new Date(),
         note: ''
       });
+      setSelectedIntestatario('');
     }
-  }, [editingBet, form]);
+  }, [editingBet, form, accounts]);
   const onSubmit = async (data: QuickBetFormData) => {
     const account = accounts.find(a => a.conto === data.conto);
     if (editingBet) {
@@ -120,6 +130,31 @@ export function QuickBetForm({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField control={form.control} name="intestatario" render={({
+            field
+          }) => <FormItem>
+                  <FormLabel>Intestatario *</FormLabel>
+                  <Select 
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      setSelectedIntestatario(value);
+                      form.setValue('conto', '');
+                    }} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleziona intestatario" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {[...new Set(accounts.map(a => a.intestatario))].map(intestatario => <SelectItem key={intestatario} value={intestatario}>
+                          {intestatario}
+                        </SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>} />
             <FormField control={form.control} name="conto" render={({
             field
           }) => <FormItem>
@@ -131,7 +166,9 @@ export function QuickBetForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {accounts.map(account => <SelectItem key={account.id} value={account.conto}>
+                      {accounts
+                        .filter(account => account.intestatario === selectedIntestatario)
+                        .map(account => <SelectItem key={account.id} value={account.conto}>
                           {account.conto}
                         </SelectItem>)}
                     </SelectContent>

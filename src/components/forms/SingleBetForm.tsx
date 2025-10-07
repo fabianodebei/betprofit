@@ -20,6 +20,7 @@ import { Bet } from '@/types';
 
 const singleBetSchema = z.object({
   metodo: z.enum(['Punta', 'Banca']),
+  intestatario: z.string().min(1, 'Intestatario è obbligatorio'),
   evento: z.string().min(1, 'Evento è obbligatorio'),
   dataEvento: z.date(),
   mercato: z.string().min(1, 'Mercato è obbligatorio'),
@@ -46,11 +47,13 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
   const { addBet, updateBet } = useBets();
   const { accounts, updateAccount } = useAccounts();
   const [tipoBonus, setTipoBonus] = useState<'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet'>('Nessuno');
+  const [selectedIntestatario, setSelectedIntestatario] = useState<string>('');
 
   const form = useForm<SingleBetFormData>({
     resolver: zodResolver(singleBetSchema),
     defaultValues: {
       metodo: 'Punta',
+      intestatario: '',
       evento: '',
       dataEvento: new Date(),
       mercato: '',
@@ -67,8 +70,12 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
 
   useEffect(() => {
     if (editingBet && open) {
+      const account = accounts.find(a => a.conto === editingBet.conto);
+      const intestatario = account?.intestatario || '';
+      
       form.reset({
         metodo: (editingBet.metodo as 'Punta' | 'Banca') || 'Punta',
+        intestatario: intestatario,
         evento: editingBet.evento || '',
         dataEvento: new Date(editingBet.dataEvento),
         mercato: editingBet.mercato || '',
@@ -81,10 +88,12 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         urlEvento: editingBet.urlEvento || '',
         competizione: editingBet.competizione || '',
       });
+      setSelectedIntestatario(intestatario);
       setTipoBonus(editingBet.tipoBonus || 'Nessuno');
     } else if (!editingBet && open) {
       form.reset({
         metodo: 'Punta',
+        intestatario: '',
         evento: '',
         dataEvento: new Date(),
         mercato: '',
@@ -97,9 +106,10 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         urlEvento: '',
         competizione: '',
       });
+      setSelectedIntestatario('');
       setTipoBonus('Nessuno');
     }
-  }, [editingBet, open, form]);
+  }, [editingBet, open, form, accounts]);
 
   const onSubmit = async (data: SingleBetFormData) => {
     const account = accounts.find((a) => a.conto === data.conto);
@@ -272,6 +282,37 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
             />
             <FormField
               control={form.control}
+              name="intestatario"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Intestatario *</FormLabel>
+                  <Select 
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      setSelectedIntestatario(value);
+                      form.setValue('conto', '');
+                    }} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleziona intestatario" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {[...new Set(accounts.map(a => a.intestatario))].map((intestatario) => (
+                        <SelectItem key={intestatario} value={intestatario}>
+                          {intestatario}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="conto"
               render={({ field }) => (
                 <FormItem>
@@ -283,11 +324,13 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {accounts.map((account) => (
-                        <SelectItem key={account.id} value={account.conto}>
-                          {account.conto}
-                        </SelectItem>
-                      ))}
+                      {accounts
+                        .filter(account => account.intestatario === selectedIntestatario)
+                        .map((account) => (
+                          <SelectItem key={account.id} value={account.conto}>
+                            {account.conto}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />

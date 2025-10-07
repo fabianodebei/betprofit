@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -19,6 +20,7 @@ import { useWallets } from '@/contexts/WalletContext';
 
 const transactionSchema = z.object({
   metodo: z.enum(['Deposito', 'Spesa', 'Prelievo']),
+  intestatario: z.string().min(1, 'Intestatario è obbligatorio'),
   conto: z.string().min(1, 'Conto è obbligatorio'),
   wallet: z.string().optional(),
   movimento: z.number().positive('Il movimento deve essere positivo'),
@@ -37,11 +39,13 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
   const { addTransaction } = useTransactions();
   const { accounts, updateAccount } = useAccounts();
   const { wallets, updateWallet } = useWallets();
+  const [selectedIntestatario, setSelectedIntestatario] = useState<string>('');
 
   const form = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
       metodo: 'Deposito',
+      intestatario: '',
       conto: '',
       wallet: '',
       movimento: 0,
@@ -117,6 +121,37 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
             />
             <FormField
               control={form.control}
+              name="intestatario"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Intestatario *</FormLabel>
+                  <Select 
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      setSelectedIntestatario(value);
+                      form.setValue('conto', '');
+                    }} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleziona intestatario" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {[...new Set(accounts.map(a => a.intestatario))].map((intestatario) => (
+                        <SelectItem key={intestatario} value={intestatario}>
+                          {intestatario}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="conto"
               render={({ field }) => (
                 <FormItem>
@@ -128,11 +163,13 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {accounts.map((account) => (
-                        <SelectItem key={account.id} value={account.conto}>
-                          {account.conto}
-                        </SelectItem>
-                      ))}
+                      {accounts
+                        .filter(account => account.intestatario === selectedIntestatario)
+                        .map((account) => (
+                          <SelectItem key={account.id} value={account.conto}>
+                            {account.conto}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
