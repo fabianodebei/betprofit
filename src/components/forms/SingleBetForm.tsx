@@ -39,10 +39,11 @@ interface SingleBetFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingBet?: Bet | null;
+  mode?: 'create' | 'edit' | 'clone';
 }
 
-export function SingleBetForm({ open, onOpenChange, editingBet }: SingleBetFormProps) {
-  const { addBet } = useBets();
+export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' }: SingleBetFormProps) {
+  const { addBet, updateBet } = useBets();
   const { accounts, updateAccount } = useAccounts();
   const [tipoBonus, setTipoBonus] = useState<'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet'>('Nessuno');
 
@@ -103,27 +104,47 @@ export function SingleBetForm({ open, onOpenChange, editingBet }: SingleBetFormP
   const onSubmit = async (data: SingleBetFormData) => {
     const account = accounts.find((a) => a.conto === data.conto);
     
-    if (account) {
-      const newBalance = account.saldoAttuale - data.stake;
-      await updateAccount(account.id, { 
-        saldoAttuale: newBalance,
-        bilancioGiocate: account.bilancioGiocate - data.stake 
+    if (mode === 'edit' && editingBet) {
+      // Modalità modifica: aggiorna la scommessa esistente
+      await updateBet(editingBet.id, {
+        evento: data.evento,
+        dataEvento: data.dataEvento,
+        mercato: data.mercato,
+        metodo: data.metodo,
+        quota: data.quota,
+        tipoBonus: data.tipoBonus,
+        bonus: data.bonus,
+        rimborso: data.rimborso,
+        urlEvento: data.urlEvento,
+        competizione: data.competizione,
+      });
+    } else {
+      // Modalità crea/clona: crea una nuova scommessa
+      if (account) {
+        const newBalance = account.saldoAttuale - data.stake;
+        await updateAccount(account.id, { 
+          saldoAttuale: newBalance,
+          bilancioGiocate: account.bilancioGiocate - data.stake 
+        });
+      }
+
+      await addBet({
+        tipo: 'Singola',
+        conto: data.conto,
+        stake: data.stake,
+        quota: data.quota,
+        evento: data.evento,
+        dataEvento: data.dataEvento,
+        metodo: data.metodo,
+        tipoBonus: data.tipoBonus,
+        bonus: data.bonus,
+        rimborso: data.rimborso,
+        stato: 'In Corso',
+        mercato: data.mercato,
+        urlEvento: data.urlEvento,
+        competizione: data.competizione,
       });
     }
-
-    await addBet({
-      tipo: 'Singola',
-      conto: data.conto,
-      stake: data.stake,
-      quota: data.quota,
-      evento: data.evento,
-      dataEvento: data.dataEvento,
-      metodo: data.metodo,
-      tipoBonus: data.tipoBonus,
-      bonus: data.bonus,
-      rimborso: data.rimborso,
-      stato: 'In Corso',
-    });
 
     form.reset();
     onOpenChange(false);
@@ -133,7 +154,9 @@ export function SingleBetForm({ open, onOpenChange, editingBet }: SingleBetFormP
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{editingBet ? 'Clona Puntata Singola' : 'Nuova Puntata Singola'}</DialogTitle>
+          <DialogTitle>
+            {mode === 'edit' ? 'Modifica Puntata Singola' : mode === 'clone' ? 'Clona Puntata Singola' : 'Nuova Puntata Singola'}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

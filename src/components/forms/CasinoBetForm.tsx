@@ -36,10 +36,11 @@ interface CasinoBetFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingBet?: Bet | null;
+  mode?: 'create' | 'edit' | 'clone';
 }
 
-export function CasinoBetForm({ open, onOpenChange, editingBet }: CasinoBetFormProps) {
-  const { addBet } = useBets();
+export function CasinoBetForm({ open, onOpenChange, editingBet, mode = 'create' }: CasinoBetFormProps) {
+  const { addBet, updateBet } = useBets();
   const { accounts, updateAccount } = useAccounts();
   const [tipoBonus, setTipoBonus] = useState<'Nessuno' | 'Bonus' | 'Rimborso'>('Nessuno');
 
@@ -91,26 +92,41 @@ export function CasinoBetForm({ open, onOpenChange, editingBet }: CasinoBetFormP
   const onSubmit = async (data: CasinoBetFormData) => {
     const account = accounts.find((a) => a.conto === data.conto);
     
-    if (account) {
-      const newBalance = account.saldoAttuale - data.stake;
-      await updateAccount(account.id, { 
-        saldoAttuale: newBalance,
-        bilancioGiocate: account.bilancioGiocate - data.stake 
+    if (mode === 'edit' && editingBet) {
+      // Modalità modifica: aggiorna la scommessa esistente
+      await updateBet(editingBet.id, {
+        nomeGioco: data.nomeGioco,
+        dataEvento: data.dataEvento,
+        mercato: data.mercato,
+        quota: data.quota,
+        tipoBonus: data.tipoBonus,
+        bonus: data.bonus,
+        rimborso: data.rimborso,
+      });
+    } else {
+      // Modalità crea/clona: crea una nuova scommessa
+      if (account) {
+        const newBalance = account.saldoAttuale - data.stake;
+        await updateAccount(account.id, { 
+          saldoAttuale: newBalance,
+          bilancioGiocate: account.bilancioGiocate - data.stake 
+        });
+      }
+
+      await addBet({
+        tipo: 'Casino',
+        conto: data.conto,
+        stake: data.stake,
+        quota: data.quota,
+        nomeGioco: data.nomeGioco,
+        dataEvento: data.dataEvento,
+        tipoBonus: data.tipoBonus,
+        bonus: data.bonus,
+        rimborso: data.rimborso,
+        stato: 'In Corso',
+        mercato: data.mercato,
       });
     }
-
-    await addBet({
-      tipo: 'Casino',
-      conto: data.conto,
-      stake: data.stake,
-      quota: data.quota,
-      nomeGioco: data.nomeGioco,
-      dataEvento: data.dataEvento,
-      tipoBonus: data.tipoBonus,
-      bonus: data.bonus,
-      rimborso: data.rimborso,
-      stato: 'In Corso',
-    });
 
     form.reset();
     onOpenChange(false);
@@ -120,7 +136,9 @@ export function CasinoBetForm({ open, onOpenChange, editingBet }: CasinoBetFormP
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{editingBet ? 'Clona Puntata Casinò' : 'Nuova Puntata Casinò'}</DialogTitle>
+          <DialogTitle>
+            {mode === 'edit' ? 'Modifica Puntata Casinò' : mode === 'clone' ? 'Clona Puntata Casinò' : 'Nuova Puntata Casinò'}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
