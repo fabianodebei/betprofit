@@ -125,14 +125,17 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Wallet Collegato</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select 
+                    onValueChange={(value) => field.onChange(value === "none" ? undefined : value)} 
+                    value={field.value || "none"}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleziona wallet" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Nessuno</SelectItem>
+                      <SelectItem value="none">Nessuno</SelectItem>
                       {wallets
                         .filter((w) => w.stato === 'Abilitato')
                         .map((wallet) => (
