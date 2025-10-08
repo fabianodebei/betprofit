@@ -1,24 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { useSettings } from '@/contexts/SettingsContext';
 
 export default function GeneralSettings() {
   const navigate = useNavigate();
-  const [settings, setSettings] = useState({
-    standard: true,
-    promemoria: false,
-    singole: false,
-    multiple: false,
-    wallets: false,
-    tag: false,
-  });
+  const { settings: savedSettings, updateSettings } = useSettings();
+  const [settings, setSettings] = useState(savedSettings);
+
+  useEffect(() => {
+    setSettings(savedSettings);
+  }, [savedSettings]);
 
   const handleSave = () => {
-    // Qui salveresti le impostazioni nel database
+    updateSettings(settings);
     toast.success('Impostazioni salvate con successo');
   };
 

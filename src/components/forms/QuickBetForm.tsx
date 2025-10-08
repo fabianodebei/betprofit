@@ -17,18 +17,23 @@ import { cn } from '@/lib/utils';
 import { useBets } from '@/contexts/BetContext';
 import { useAccounts } from '@/contexts/AccountContext';
 import { useTags } from '@/contexts/TagContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import { QUICK_BET_METHODS } from '@/constants/markets';
 import { toast } from 'sonner';
-const quickBetSchema = z.object({
+
+const createQuickBetSchema = (tagRequired: boolean) => z.object({
   intestatario: z.string().trim().min(1, 'Intestatario è obbligatorio').max(100),
   conto: z.string().trim().min(1, 'Conto è obbligatorio').max(100),
   metodo: z.string().trim().min(1, 'Metodo è obbligatorio').max(100),
   movimento: z.number(),
   registrato: z.date(),
   note: z.string().trim().max(500).optional(),
-  tag: z.string().optional()
+  tag: tagRequired 
+    ? z.string().min(1, 'Tag è obbligatorio').refine(val => val !== 'none', 'Seleziona un tag valido')
+    : z.string().optional()
 });
-type QuickBetFormData = z.infer<typeof quickBetSchema>;
+
+type QuickBetFormData = z.infer<ReturnType<typeof createQuickBetSchema>>;
 interface QuickBetFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -48,7 +53,11 @@ export function QuickBetForm({
     updateAccount
   } = useAccounts();
   const { tags } = useTags();
+  const { settings } = useSettings();
   const [selectedIntestatario, setSelectedIntestatario] = useState<string>('');
+  
+  const quickBetSchema = createQuickBetSchema(settings.tag);
+
   const form = useForm<QuickBetFormData>({
     resolver: zodResolver(quickBetSchema),
     defaultValues: {
@@ -249,15 +258,15 @@ export function QuickBetForm({
             <FormField control={form.control} name="tag" render={({
             field
           }) => <FormItem>
-                  <FormLabel>Tag</FormLabel>
+                  <FormLabel>Tag{settings.tag && ' *'}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Seleziona tag (opzionale)" />
+                        <SelectValue placeholder={settings.tag ? "Seleziona tag" : "Seleziona tag (opzionale)"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="none">Nessuno</SelectItem>
+                      {!settings.tag && <SelectItem value="none">Nessuno</SelectItem>}
                       {tags.map((tag) => (
                         <SelectItem key={tag.id} value={tag.nome}>
                           {tag.nome}

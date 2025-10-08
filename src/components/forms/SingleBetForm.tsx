@@ -16,10 +16,11 @@ import { cn } from '@/lib/utils';
 import { useBets } from '@/contexts/BetContext';
 import { useAccounts } from '@/contexts/AccountContext';
 import { useTags } from '@/contexts/TagContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import { SPORT_MARKETS } from '@/constants/markets';
 import { Bet } from '@/types';
 
-const singleBetSchema = z.object({
+const createSingleBetSchema = (tagRequired: boolean) => z.object({
   metodo: z.enum(['Punta', 'Banca']),
   intestatario: z.string().min(1, 'Intestatario è obbligatorio'),
   evento: z.string().min(1, 'Evento è obbligatorio'),
@@ -33,10 +34,12 @@ const singleBetSchema = z.object({
   rimborso: z.number().optional(),
   urlEvento: z.string().optional(),
   competizione: z.string().optional(),
-  tag: z.string().optional(),
+  tag: tagRequired 
+    ? z.string().min(1, 'Tag è obbligatorio').refine(val => val !== 'none', 'Seleziona un tag valido')
+    : z.string().optional(),
 });
 
-type SingleBetFormData = z.infer<typeof singleBetSchema>;
+type SingleBetFormData = z.infer<ReturnType<typeof createSingleBetSchema>>;
 
 interface SingleBetFormProps {
   open: boolean;
@@ -49,8 +52,11 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
   const { addBet, updateBet } = useBets();
   const { accounts, updateAccount } = useAccounts();
   const { tags } = useTags();
+  const { settings } = useSettings();
   const [tipoBonus, setTipoBonus] = useState<'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet'>('Nessuno');
   const [selectedIntestatario, setSelectedIntestatario] = useState<string>('');
+
+  const singleBetSchema = createSingleBetSchema(settings.tag);
 
   const form = useForm<SingleBetFormData>({
     resolver: zodResolver(singleBetSchema),
@@ -493,15 +499,15 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
               name="tag"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tag</FormLabel>
+                  <FormLabel>Tag{settings.tag && ' *'}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Seleziona tag (opzionale)" />
+                        <SelectValue placeholder={settings.tag ? "Seleziona tag" : "Seleziona tag (opzionale)"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="none">Nessuno</SelectItem>
+                      {!settings.tag && <SelectItem value="none">Nessuno</SelectItem>}
                       {tags.map((tag) => (
                         <SelectItem key={tag.id} value={tag.nome}>
                           {tag.nome}
