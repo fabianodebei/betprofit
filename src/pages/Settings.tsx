@@ -1,10 +1,12 @@
-import { Wrench, List, Euro, FileText, Users, BookOpen, Tag, MessageSquare } from 'lucide-react';
+import { Wrench, List, Euro, FileText, Users, BookOpen, Tag, MessageSquare, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useUserRole } from '@/hooks/useUserRole';
 
 export default function Settings() {
   const navigate = useNavigate();
-
+  const { isAdmin } = useUserRole();
+  
   const settingsSections = [
     {
       icon: Wrench,
@@ -54,6 +56,12 @@ export default function Settings() {
       description: 'Gestisci i tag personalizzati',
       path: '/impostazioni/tags',
     },
+    ...(isAdmin ? [{
+      icon: Shield,
+      title: 'Admin Panel',
+      description: 'Gestisci utenti e permessi',
+      path: '/admin',
+    }] : []),
   ];
 
   const handleCardClick = (path?: string) => {

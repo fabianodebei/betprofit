@@ -8,6 +8,7 @@ import { TelegramConfigProvider } from "./contexts/TelegramConfigContext";
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
 import { ProtectedRoute } from "./components/layout/ProtectedRoute";
+import { AdminRoute } from "./components/layout/AdminRoute";
 import { WalletProvider } from "./contexts/WalletContext";
 import { AccountProvider } from "./contexts/AccountContext";
 import { BetProvider } from "./contexts/BetContext";
@@ -40,6 +41,7 @@ import Intestatari from "./pages/Intestatari";
 import Books from "./pages/Books";
 import Tags from "./pages/Tags";
 import NotFound from "./pages/NotFound";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +67,11 @@ const App = () => (
                                   <Routes>
                                     <Route path="/auth" element={<Auth />} />
                                     <Route path="/guida" element={<SetupGuide />} />
+                                    <Route path="/admin" element={
+                                      <AdminRoute>
+                                        <Admin />
+                                      </AdminRoute>
+                                    } />
                                     <Route
                                       path="/*"
                                       element={
