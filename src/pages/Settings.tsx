@@ -23,6 +23,7 @@ export default function Settings() {
       icon: Euro,
       title: 'Redditometro',
       description: 'Configura il redditometro e i calcoli fiscali',
+      path: '/impostazioni/redditometro',
     },
     {
       icon: FileText,
