@@ -68,7 +68,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
       rimborso: 0,
       urlEvento: '',
       competizione: '',
-      tag: '',
+      tag: 'none',
     },
   });
 
@@ -91,7 +91,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         rimborso: editingBet.rimborso || 0,
         urlEvento: editingBet.urlEvento || '',
         competizione: editingBet.competizione || '',
-        tag: editingBet.tag || '',
+        tag: editingBet.tag || 'none',
       });
       setSelectedIntestatario(intestatario);
       setTipoBonus(editingBet.tipoBonus || 'Nessuno');
@@ -110,7 +110,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         rimborso: 0,
         urlEvento: '',
         competizione: '',
-        tag: '',
+        tag: 'none',
       });
       setSelectedIntestatario('');
       setTipoBonus('Nessuno');
@@ -133,7 +133,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         rimborso: data.rimborso,
         urlEvento: data.urlEvento,
         competizione: data.competizione,
-        tag: data.tag,
+        tag: data.tag === 'none' ? '' : data.tag,
       });
     } else {
       // Modalità crea/clona: crea una nuova scommessa
@@ -160,7 +160,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         mercato: data.mercato,
         urlEvento: data.urlEvento,
         competizione: data.competizione,
-        tag: data.tag,
+        tag: data.tag === 'none' ? '' : data.tag,
       });
     }
 
@@ -501,7 +501,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Nessuno</SelectItem>
+                      <SelectItem value="none">Nessuno</SelectItem>
                       {tags.map((tag) => (
                         <SelectItem key={tag.id} value={tag.nome}>
                           {tag.nome}

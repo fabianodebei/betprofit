@@ -58,7 +58,7 @@ export function QuickBetForm({
       movimento: 0,
       registrato: new Date(),
       note: '',
-      tag: ''
+      tag: 'none'
     }
   });
 
@@ -75,7 +75,7 @@ export function QuickBetForm({
         movimento: editingBet.stake || 0,
         registrato: editingBet.dataEvento || new Date(),
         note: editingBet.note || '',
-        tag: editingBet.tag || ''
+        tag: editingBet.tag || 'none'
       });
       setSelectedIntestatario(intestatario);
     } else {
@@ -86,7 +86,7 @@ export function QuickBetForm({
         movimento: 0,
         registrato: new Date(),
         note: '',
-        tag: ''
+        tag: 'none'
       });
       setSelectedIntestatario('');
     }
@@ -101,7 +101,7 @@ export function QuickBetForm({
         metodo: data.metodo,
         dataEvento: data.registrato,
         note: data.note,
-        tag: data.tag
+        tag: data.tag === 'none' ? '' : data.tag
       });
       if (account) {
         const oldStake = editingBet.stake || 0;
@@ -125,7 +125,7 @@ export function QuickBetForm({
         stato: 'In Corso',
         dataEvento: data.registrato,
         note: data.note,
-        tag: data.tag
+        tag: data.tag === 'none' ? '' : data.tag
       });
     }
     form.reset();
@@ -257,7 +257,7 @@ export function QuickBetForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Nessuno</SelectItem>
+                      <SelectItem value="none">Nessuno</SelectItem>
                       {tags.map((tag) => (
                         <SelectItem key={tag.id} value={tag.nome}>
                           {tag.nome}
