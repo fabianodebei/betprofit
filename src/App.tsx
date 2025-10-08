@@ -23,6 +23,7 @@ import Settings from "./pages/Settings";
 import GeneralSettings from "./pages/GeneralSettings";
 import Transactions from "./pages/Transactions";
 import Redditometro from "./pages/Redditometro";
+import Report from "./pages/Report";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ const App = () => (
                         <Route path="/impostazioni/generali" element={<GeneralSettings />} />
                         <Route path="/impostazioni/transazioni" element={<Transactions />} />
                         <Route path="/impostazioni/redditometro" element={<Redditometro />} />
+                        <Route path="/impostazioni/report" element={<Report />} />
                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                         <Route path="*" element={<NotFound />} />
                       </Routes>

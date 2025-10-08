@@ -29,6 +29,7 @@ export default function Settings() {
       icon: FileText,
       title: 'Report',
       description: 'Personalizza i report e le statistiche',
+      path: '/impostazioni/report',
     },
     {
       icon: Users,
