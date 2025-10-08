@@ -170,7 +170,7 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
     if (now >= reportTime) {
       const isMultiple = bet.tipo === 'Multipla';
       
-      let message = `⚽ <b>PARTITA DA REFERTARE${isMultiple ? ' - MULTIPLA' : ''}</b>\n\n` +
+      let message = `⚽ <b>PARTITA CONCLUSA${isMultiple ? ' - MULTIPLA' : ''}</b>\n\n` +
         `🎯 Tipo: ${bet.tipo}\n`;
 
       if (bet.evento) {
@@ -197,7 +197,7 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
         message += `📝 Note: ${bet.note}\n`;
       }
 
-      message += `\n✅ Referta il risultato della scommessa`;
+      message += `\n✅ Archivia la scommessa`;
 
       if (isMultiple) {
         message += `\n⚠️ <b>Banca la prossima scommessa della multipla!</b>`;
