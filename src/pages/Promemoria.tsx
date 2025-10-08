@@ -9,56 +9,58 @@ import { formatDateTime } from '@/utils/dates';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
 export default function Promemoria() {
-  const { reminders, deleteReminder, updateReminder } = useReminders();
+  const {
+    reminders,
+    deleteReminder,
+    updateReminder
+  } = useReminders();
   const [showReminderForm, setShowReminderForm] = useState(false);
   const [filterMetodo, setFilterMetodo] = useState('all');
   const [filterConto, setFilterConto] = useState('all');
   const [filterStato, setFilterStato] = useState('all');
   const [testing, setTesting] = useState(false);
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const filteredReminders = reminders.filter(reminder => {
     if (filterMetodo !== 'all' && reminder.metodo !== filterMetodo) return false;
     if (filterConto !== 'all' && filterConto && reminder.conto && !reminder.conto.toLowerCase().includes(filterConto.toLowerCase())) return false;
     if (filterStato !== 'all' && reminder.stato !== filterStato) return false;
     return true;
   });
-
   const handleMarkAsRead = async (id: string) => {
-    await updateReminder(id, { stato: 'Letto' });
+    await updateReminder(id, {
+      stato: 'Letto'
+    });
   };
-
   const handleTestNotifications = async () => {
     setTesting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('test-notifications', {
-        body: {},
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('test-notifications', {
+        body: {}
       });
-
       if (error) throw error;
-
       toast({
         title: 'Test completato',
-        description: 'Controlla il tuo Telegram per le notifiche!',
+        description: 'Controlla il tuo Telegram per le notifiche!'
       });
-      
       console.log('Test result:', data);
     } catch (error: any) {
       toast({
         title: 'Errore',
         description: error.message || 'Errore durante il test delle notifiche',
-        variant: 'destructive',
+        variant: 'destructive'
       });
       console.error('Test error:', error);
     } finally {
       setTesting(false);
     }
   };
-
-  return (
-    <div className="container mx-auto px-4 py-8">
+  return <div className="container mx-auto px-4 py-8">
       <h1 className="mb-4 text-3xl font-bold text-foreground">Promemoria</h1>
       
       <div className="mb-6 flex gap-2">
@@ -66,34 +68,17 @@ export default function Promemoria() {
           <Plus className="mr-2 h-4 w-4" />
           Nuovo Promemoria
         </Button>
-        <Button 
-          onClick={handleTestNotifications} 
-          variant="outline"
-          disabled={testing}
-        >
-          <Bell className="mr-2 h-4 w-4" />
-          {testing ? 'Testing...' : 'Testa Notifiche'}
-        </Button>
+        
       </div>
 
       <Card>
         <CardContent className="p-0">
-          {reminders.length === 0 ? (
-            <div className="p-8">
-              <EmptyState
-                icon={Clock}
-                title="Nessun promemoria attivo"
-                description="Inizia a creare promemoria per le tue attività."
-                action={
-                  <Button onClick={() => setShowReminderForm(true)}>
+          {reminders.length === 0 ? <div className="p-8">
+              <EmptyState icon={Clock} title="Nessun promemoria attivo" description="Inizia a creare promemoria per le tue attività." action={<Button onClick={() => setShowReminderForm(true)}>
                     <Plus className="mr-2 h-4 w-4" />
                     Nuovo Promemoria
-                  </Button>
-                }
-              />
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
+                  </Button>} />
+            </div> : <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b">
@@ -147,59 +132,35 @@ export default function Promemoria() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredReminders.length === 0 ? (
-                    <tr>
+                  {filteredReminders.length === 0 ? <tr>
                       <td colSpan={6} className="p-8 text-center text-muted-foreground">
                         Nessun risultato trovato
                       </td>
-                    </tr>
-                  ) : (
-                    filteredReminders.map((reminder, idx) => (
-                      <tr key={reminder.id} className="border-b hover:bg-muted/20">
+                    </tr> : filteredReminders.map((reminder, idx) => <tr key={reminder.id} className="border-b hover:bg-muted/20">
                         <td className="p-3 text-sm">{idx + 1}</td>
                         <td className="p-3 text-sm">{formatDateTime(reminder.dataScadenza)}</td>
                         <td className="p-3 text-sm">{reminder.metodo}</td>
                         <td className="p-3 text-sm">{reminder.conto || '-'}</td>
                         <td className="p-3">
-                          <span
-                            className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                              reminder.stato === 'Nuovo'
-                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-                            }`}
-                          >
+                          <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${reminder.stato === 'Nuovo' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'}`}>
                             {reminder.stato}
                           </span>
                         </td>
                         <td className="p-3 space-x-2">
-                          {reminder.stato === 'Nuovo' && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleMarkAsRead(reminder.id)}
-                            >
+                          {reminder.stato === 'Nuovo' && <Button size="sm" variant="outline" onClick={() => handleMarkAsRead(reminder.id)}>
                               Segna come letto
-                            </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => deleteReminder(reminder.id)}
-                          >
+                            </Button>}
+                          <Button size="sm" variant="destructive" onClick={() => deleteReminder(reminder.id)}>
                             Elimina
                           </Button>
                         </td>
-                      </tr>
-                    ))
-                  )}
+                      </tr>)}
                 </tbody>
               </table>
-            </div>
-          )}
+            </div>}
         </CardContent>
       </Card>
 
       <ReminderForm open={showReminderForm} onOpenChange={setShowReminderForm} />
-    </div>
-  );
+    </div>;
 }
