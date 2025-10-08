@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -31,10 +31,13 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
   const { addAccount, updateAccount, accounts } = useAccounts();
   const { books } = useBooks();
 
-  // Lista book dalla tabella, solo abilitati, ordinati alfabeticamente
-  const availableBooks = books
-    .filter(book => book.stato === 'Abilitato')
-    .sort((a, b) => a.nome.localeCompare(b.nome, 'it', { sensitivity: 'base' }));
+  // Lista book dalla tabella, solo abilitati, ordinati alfabeticamente - si aggiorna automaticamente
+  const availableBooks = useMemo(() => 
+    books
+      .filter(book => book.stato === 'Abilitato')
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'it', { sensitivity: 'base' })),
+    [books]
+  );
 
   const form = useForm<AccountFormData>({
     resolver: zodResolver(accountSchema),
