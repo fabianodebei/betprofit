@@ -161,7 +161,7 @@ export default function Deposits() {
                       <td className="p-3 text-sm">{idx + 1}</td>
                       <td className="p-3 text-sm">{transaction.metodo}</td>
                       <td className="p-3 text-sm">{formatDateTime(transaction.registrato)}</td>
-                      <td className="p-3 text-sm">{transaction.conto}</td>
+                      <td className="p-3 text-sm">{transaction.conto}{transaction.intestatario && ` - ${transaction.intestatario}`}</td>
                       <td className="p-3 text-sm font-semibold" style={{ color: transaction.addebito && transaction.addebito < 0 ? '#ef4444' : transaction.addebito ? '#22c55e' : undefined }}>
                         {transaction.addebito ? formatCurrency(transaction.addebito) : ''}
                       </td>

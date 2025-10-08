@@ -25,6 +25,7 @@ export interface Transaction {
   id: string;
   metodo: 'Deposito' | 'Spesa' | 'Prelievo' | 'Riconciliazione';
   conto: string;
+  intestatario?: string;
   wallet?: string;
   addebito?: number;
   accredito?: number;
