@@ -20,6 +20,7 @@ import Deposits from "./pages/Deposits";
 import Balance from "./pages/Balance";
 import Promemoria from "./pages/Promemoria";
 import Settings from "./pages/Settings";
+import GeneralSettings from "./pages/GeneralSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ const App = () => (
                         <Route path="/bilancio" element={<Balance />} />
                         <Route path="/promemoria" element={<Promemoria />} />
                         <Route path="/impostazioni" element={<Settings />} />
+                        <Route path="/impostazioni/generali" element={<GeneralSettings />} />
                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                         <Route path="*" element={<NotFound />} />
                       </Routes>

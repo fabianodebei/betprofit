@@ -1,13 +1,17 @@
 import { Wrench, List, Euro, FileText, Users, BookOpen, Tag } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 
 export default function Settings() {
+  const navigate = useNavigate();
+
   const settingsSections = [
     {
       icon: Wrench,
       title: 'Impostazioni Generali',
       description: 'Configura le impostazioni generali dell\'applicazione',
+      path: '/impostazioni/generali',
     },
     {
       icon: List,
@@ -41,6 +45,12 @@ export default function Settings() {
     },
   ];
 
+  const handleCardClick = (path?: string) => {
+    if (path) {
+      navigate(path);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="mb-6 text-3xl font-bold text-foreground">Impostazioni</h1>
@@ -52,6 +62,7 @@ export default function Settings() {
             <Card 
               key={index} 
               className="cursor-pointer transition-all hover:shadow-lg hover:scale-105"
+              onClick={() => handleCardClick(section.path)}
             >
               <CardHeader>
                 <div className="flex items-center gap-3">
