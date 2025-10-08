@@ -161,119 +161,128 @@ export default function Redditometro() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-6 flex items-center gap-4">
-        <div className="rounded-full bg-yellow-500 p-3">
-          <Scale className="h-6 w-6 text-white" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Redditometro</h1>
-          <div className="flex gap-4 mt-2 text-sm">
-            <p className="text-muted-foreground">
-              Entrate: <span className="font-bold text-green-500">{formatCurrency(totalRedditometro.entrate)}</span>
-            </p>
-            <p className="text-muted-foreground">
-              Uscite: <span className="font-bold text-red-500">{formatCurrency(totalRedditometro.uscite)}</span>
-            </p>
-            <p className="text-muted-foreground">
-              Netto: <span className="font-bold text-foreground">{formatCurrency(totalRedditometro.netto)}</span>
-            </p>
-          </div>
+    <div className="container mx-auto px-4 py-8 max-w-[1600px]">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-foreground mb-4">Redditometro</h1>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-900">
+            <CardContent className="p-6">
+              <p className="text-sm text-muted-foreground mb-1">Entrate Totali</p>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{formatCurrency(totalRedditometro.entrate)}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-900">
+            <CardContent className="p-6">
+              <p className="text-sm text-muted-foreground mb-1">Uscite Totali</p>
+              <p className="text-2xl font-bold text-red-600 dark:text-red-400">{formatCurrency(totalRedditometro.uscite)}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-900">
+            <CardContent className="p-6">
+              <p className="text-sm text-muted-foreground mb-1">Netto</p>
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{formatCurrency(totalRedditometro.netto)}</p>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
       <Tabs defaultValue="sommario" className="w-full">
-        <TabsList>
+        <TabsList className="grid w-full max-w-md grid-cols-2">
           <TabsTrigger value="sommario">Sommario</TabsTrigger>
           <TabsTrigger value="dettaglio">Dettaglio</TabsTrigger>
         </TabsList>
 
         <TabsContent value="sommario" className="mt-6">
-          <Card>
-            <CardContent className="p-0">
-              <div className="p-4 text-sm text-muted-foreground">
-                Visualizzo 1-{filteredSommario.length} di {redditometroData.length} elementi.
+          <Card className="border-2">
+            <CardHeader className="border-b bg-muted/30">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Sommario per Conto</CardTitle>
+                <span className="text-sm text-muted-foreground">
+                  {filteredSommario.length} di {redditometroData.length} elementi
+                </span>
               </div>
+            </CardHeader>
+            <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="border-b bg-muted/30">
-                      <th className="p-3 text-left text-xs font-semibold sticky left-0 bg-muted/30 z-10" rowSpan={2}>Intestatario</th>
-                      <th className="p-3 text-left text-xs font-semibold sticky left-[150px] bg-muted/30 z-10" rowSpan={2}>Conto</th>
+                    <tr className="border-b bg-muted/20">
+                      <th className="p-4 text-left text-sm font-semibold sticky left-0 bg-muted/20 z-10" rowSpan={2}>Intestatario</th>
+                      <th className="p-4 text-left text-sm font-semibold sticky left-[180px] bg-muted/20 z-10" rowSpan={2}>Conto</th>
                       {months.map(month => (
-                        <th key={month} colSpan={3} className="p-3 text-center text-xs font-semibold whitespace-nowrap border-r">{month}</th>
+                        <th key={month} colSpan={3} className="p-4 text-center text-sm font-semibold whitespace-nowrap border-l">{month}</th>
                       ))}
-                      <th colSpan={3} className="p-3 text-center text-xs font-semibold whitespace-nowrap">Totale Anno</th>
+                      <th colSpan={3} className="p-4 text-center text-sm font-semibold whitespace-nowrap border-l bg-muted/30">Totale Anno</th>
                     </tr>
-                    <tr className="border-b bg-muted/30">
+                    <tr className="border-b bg-muted/10">
                       {months.map((_, idx) => (
                         <>
-                          <th key={`${idx}-e`} className="p-2 text-center text-xs font-semibold">E</th>
-                          <th key={`${idx}-u`} className="p-2 text-center text-xs font-semibold">U</th>
-                          <th key={`${idx}-n`} className="p-2 text-center text-xs font-semibold border-r">N</th>
+                          <th key={`${idx}-e`} className="p-3 text-center text-xs font-medium text-green-600 border-l">E</th>
+                          <th key={`${idx}-u`} className="p-3 text-center text-xs font-medium text-red-600">U</th>
+                          <th key={`${idx}-n`} className="p-3 text-center text-xs font-medium text-blue-600">N</th>
                         </>
                       ))}
-                      <th className="p-2 text-center text-xs font-semibold">E</th>
-                      <th className="p-2 text-center text-xs font-semibold">U</th>
-                      <th className="p-2 text-center text-xs font-semibold">N</th>
+                      <th className="p-3 text-center text-xs font-medium text-green-600 border-l bg-muted/30">E</th>
+                      <th className="p-3 text-center text-xs font-medium text-red-600 bg-muted/30">U</th>
+                      <th className="p-3 text-center text-xs font-medium text-blue-600 bg-muted/30">N</th>
                     </tr>
-                    <tr className="border-b bg-muted/50">
-                      <th className="p-2 sticky left-0 bg-muted/50 z-10">
+                    <tr className="border-b">
+                      <th className="p-3 sticky left-0 bg-background z-10">
                         <Input
-                          placeholder="Filtra Intestatario"
+                          placeholder="Cerca intestatario..."
                           value={filterIntestatario}
                           onChange={(e) => setFilterIntestatario(e.target.value)}
-                          className="h-8 text-xs"
+                          className="h-10 rounded-lg"
                         />
                       </th>
-                      <th className="p-2 sticky left-[150px] bg-muted/50 z-10">
+                      <th className="p-3 sticky left-[180px] bg-background z-10">
                         <Input
-                          placeholder="Filtra Conto"
+                          placeholder="Cerca conto..."
                           value={filterConto}
                           onChange={(e) => setFilterConto(e.target.value)}
-                          className="h-8 text-xs"
+                          className="h-10 rounded-lg"
                         />
                       </th>
                       {months.map((_, idx) => (
                         <>
-                          <th key={`${idx}-e`} className="p-2"></th>
+                          <th key={`${idx}-e`} className="p-2 border-l"></th>
                           <th key={`${idx}-u`} className="p-2"></th>
-                          <th key={`${idx}-n`} className="p-2 border-r"></th>
+                          <th key={`${idx}-n`} className="p-2"></th>
                         </>
                       ))}
-                      <th className="p-2"></th>
+                      <th className="p-2 border-l"></th>
                       <th className="p-2"></th>
                       <th className="p-2"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredSommario.map((entry, idx) => (
-                      <tr key={`${entry.intestatario}-${entry.conto}-${idx}`} className="border-b hover:bg-muted/20">
-                        <td className="p-3 text-sm sticky left-0 bg-background">{entry.intestatario}</td>
-                        <td className="p-3 text-sm sticky left-[150px] bg-background">{entry.conto}</td>
+                      <tr key={`${entry.intestatario}-${entry.conto}-${idx}`} className="border-b hover:bg-muted/10 transition-colors">
+                        <td className="p-4 text-sm font-medium sticky left-0 bg-background">{entry.intestatario}</td>
+                        <td className="p-4 text-sm sticky left-[180px] bg-background">{entry.conto}</td>
                         {months.map((_, monthIdx) => {
                           const data = entry.monthly[monthIdx] || { entrate: 0, uscite: 0, netto: 0 };
                           return (
                             <>
-                              <td key={`${monthIdx}-e`} className="p-2 text-sm text-center whitespace-nowrap">
+                              <td key={`${monthIdx}-e`} className="p-3 text-sm text-center whitespace-nowrap border-l">
                                 {renderValue(data.entrate)}
                               </td>
-                              <td key={`${monthIdx}-u`} className="p-2 text-sm text-center whitespace-nowrap">
+                              <td key={`${monthIdx}-u`} className="p-3 text-sm text-center whitespace-nowrap">
                                 {renderValue(-data.uscite)}
                               </td>
-                              <td key={`${monthIdx}-n`} className="p-2 text-sm text-center whitespace-nowrap border-r">
+                              <td key={`${monthIdx}-n`} className="p-3 text-sm text-center whitespace-nowrap">
                                 {renderValue(data.netto)}
                               </td>
                             </>
                           );
                         })}
-                        <td className="p-2 text-sm font-semibold text-center whitespace-nowrap">
+                        <td className="p-3 text-sm font-bold text-center whitespace-nowrap border-l bg-muted/20">
                           {renderValue(entry.totalEntrate)}
                         </td>
-                        <td className="p-2 text-sm font-semibold text-center whitespace-nowrap">
+                        <td className="p-3 text-sm font-bold text-center whitespace-nowrap bg-muted/20">
                           {renderValue(-entry.totalUscite)}
                         </td>
-                        <td className="p-2 text-sm font-semibold text-center whitespace-nowrap">
+                        <td className="p-3 text-sm font-bold text-center whitespace-nowrap bg-muted/20">
                           {renderValue(entry.totalNetto)}
                         </td>
                       </tr>
@@ -286,84 +295,86 @@ export default function Redditometro() {
         </TabsContent>
 
         <TabsContent value="dettaglio" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Redditometro</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4 text-sm text-muted-foreground">
-                Visualizzo 1-{filteredDettaglio.length} di {intestatarioSummary.length} elementi.
+          <Card className="border-2">
+            <CardHeader className="border-b bg-muted/30">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Dettaglio per Intestatario</CardTitle>
+                <span className="text-sm text-muted-foreground">
+                  {filteredDettaglio.length} di {intestatarioSummary.length} elementi
+                </span>
               </div>
+            </CardHeader>
+            <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="border-b bg-muted/30">
-                      <th className="p-3 text-left text-xs font-semibold" rowSpan={2}>Intestatario</th>
+                    <tr className="border-b bg-muted/20">
+                      <th className="p-4 text-left text-sm font-semibold" rowSpan={2}>Intestatario</th>
                       {months.map(month => (
-                        <th key={month} colSpan={3} className="p-3 text-center text-xs font-semibold whitespace-nowrap border-r">{month}</th>
+                        <th key={month} colSpan={3} className="p-4 text-center text-sm font-semibold whitespace-nowrap border-l">{month}</th>
                       ))}
-                      <th colSpan={3} className="p-3 text-center text-xs font-semibold whitespace-nowrap">Totale Anno</th>
+                      <th colSpan={3} className="p-4 text-center text-sm font-semibold whitespace-nowrap border-l bg-muted/30">Totale Anno</th>
                     </tr>
-                    <tr className="border-b bg-muted/30">
+                    <tr className="border-b bg-muted/10">
                       {months.map((_, idx) => (
                         <>
-                          <th key={`${idx}-e`} className="p-2 text-center text-xs font-semibold">E</th>
-                          <th key={`${idx}-u`} className="p-2 text-center text-xs font-semibold">U</th>
-                          <th key={`${idx}-n`} className="p-2 text-center text-xs font-semibold border-r">N</th>
+                          <th key={`${idx}-e`} className="p-3 text-center text-xs font-medium text-green-600 border-l">E</th>
+                          <th key={`${idx}-u`} className="p-3 text-center text-xs font-medium text-red-600">U</th>
+                          <th key={`${idx}-n`} className="p-3 text-center text-xs font-medium text-blue-600">N</th>
                         </>
                       ))}
-                      <th className="p-2 text-center text-xs font-semibold">E</th>
-                      <th className="p-2 text-center text-xs font-semibold">U</th>
-                      <th className="p-2 text-center text-xs font-semibold">N</th>
+                      <th className="p-3 text-center text-xs font-medium text-green-600 border-l bg-muted/30">E</th>
+                      <th className="p-3 text-center text-xs font-medium text-red-600 bg-muted/30">U</th>
+                      <th className="p-3 text-center text-xs font-medium text-blue-600 bg-muted/30">N</th>
                     </tr>
-                    <tr className="border-b bg-muted/50">
-                      <th className="p-2">
+                    <tr className="border-b">
+                      <th className="p-3">
                         <Input
-                          placeholder="Filtra Intestatario"
+                          placeholder="Cerca intestatario..."
                           value={filterIntestatarioDetail}
                           onChange={(e) => setFilterIntestatarioDetail(e.target.value)}
-                          className="h-8 text-xs"
+                          className="h-10 rounded-lg"
                         />
                       </th>
                       {months.map((_, idx) => (
                         <>
-                          <th key={`${idx}-e`} className="p-2"></th>
+                          <th key={`${idx}-e`} className="p-2 border-l"></th>
                           <th key={`${idx}-u`} className="p-2"></th>
-                          <th key={`${idx}-n`} className="p-2 border-r"></th>
+                          <th key={`${idx}-n`} className="p-2"></th>
                         </>
                       ))}
-                      <th className="p-2"></th>
+                      <th className="p-2 border-l"></th>
                       <th className="p-2"></th>
                       <th className="p-2"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredDettaglio.map((entry, idx) => (
-                      <tr key={`${entry.intestatario}-${idx}`} className="border-b hover:bg-muted/20">
-                        <td className="p-3 text-sm">{entry.intestatario}</td>
+                      <tr key={`${entry.intestatario}-${idx}`} className="border-b hover:bg-muted/10 transition-colors">
+                        <td className="p-4 text-sm font-medium">{entry.intestatario}</td>
                         {months.map((_, monthIdx) => {
                           const data = entry.monthly[monthIdx] || { entrate: 0, uscite: 0, netto: 0 };
                           return (
                             <>
-                              <td key={`${monthIdx}-e`} className="p-2 text-sm text-center whitespace-nowrap">
+                              <td key={`${monthIdx}-e`} className="p-3 text-sm text-center whitespace-nowrap border-l">
                                 {renderValue(data.entrate)}
                               </td>
-                              <td key={`${monthIdx}-u`} className="p-2 text-sm text-center whitespace-nowrap">
+                              <td key={`${monthIdx}-u`} className="p-3 text-sm text-center whitespace-nowrap">
                                 {renderValue(-data.uscite)}
                               </td>
-                              <td key={`${monthIdx}-n`} className="p-2 text-sm text-center whitespace-nowrap border-r">
+                              <td key={`${monthIdx}-n`} className="p-3 text-sm text-center whitespace-nowrap">
                                 {renderValue(data.netto)}
                               </td>
                             </>
                           );
                         })}
-                        <td className="p-2 text-sm font-semibold text-center whitespace-nowrap">
+                        <td className="p-3 text-sm font-bold text-center whitespace-nowrap border-l bg-muted/20">
                           {renderValue(entry.totalEntrate)}
                         </td>
-                        <td className="p-2 text-sm font-semibold text-center whitespace-nowrap">
+                        <td className="p-3 text-sm font-bold text-center whitespace-nowrap bg-muted/20">
                           {renderValue(-entry.totalUscite)}
                         </td>
-                        <td className="p-2 text-sm font-semibold text-center whitespace-nowrap">
+                        <td className="p-3 text-sm font-bold text-center whitespace-nowrap bg-muted/20">
                           {renderValue(entry.totalNetto)}
                         </td>
                       </tr>
