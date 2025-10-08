@@ -234,7 +234,7 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
                       <SelectContent position="popper" className="z-[70] bg-popover">
                         {filteredWallets.map((wallet) => (
                           <SelectItem key={wallet.id} value={wallet.nome}>
-                            {wallet.nome}
+                            {wallet.nome} - {wallet.intestatario}
                           </SelectItem>
                         ))}
                       </SelectContent>
