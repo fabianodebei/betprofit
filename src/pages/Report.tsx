@@ -36,20 +36,22 @@ export default function Report() {
   // Calculate report data for aggregated view (by intestatario only)
   const reportDataAggregated = useMemo(() => {
     const data: ReportEntry[] = [];
-    console.log('All bets:', bets.length);
-    console.log('Selected year:', selectedYear);
-    console.log('Active tab:', activeTab);
     
     const relevantBets = bets.filter(bet => {
-      const hasRisultato = bet.risultato !== undefined;
-      const matchesStato = bet.stato === 'Archiviata'; // consider only archived bets for final results
       const isRapideTab = activeTab === 'giocate-rapide';
       const matchesTipo = isRapideTab ? bet.tipo === 'Rapida' : bet.tipo !== 'Rapida';
       const matchesYear = bet.dataEvento.getFullYear() === selectedYear;
-      return matchesStato && hasRisultato && matchesTipo && matchesYear;
+      
+      // For regular bets, only include archived ones with results
+      // For quick bets (Rapida), include all as they represent transactions
+      if (isRapideTab) {
+        return matchesTipo && matchesYear;
+      } else {
+        const hasRisultato = bet.risultato !== undefined;
+        const matchesStato = bet.stato === 'Archiviata';
+        return matchesStato && hasRisultato && matchesTipo && matchesYear;
+      }
     });
-    
-    console.log('Relevant bets for report:', relevantBets.length);
     
     const grouped = new Map<string, ReportEntry>();
     
@@ -68,8 +70,10 @@ export default function Report() {
       
       const entry = grouped.get(key)!;
       const month = bet.dataEvento.getMonth();
-      entry.monthly[month] = (entry.monthly[month] || 0) + (bet.risultato || 0);
-      entry.total += bet.risultato || 0;
+      // For quick bets, use stake as the result (negative as it's a loss)
+      const amount = bet.tipo === 'Rapida' ? -bet.stake : (bet.risultato || 0);
+      entry.monthly[month] = (entry.monthly[month] || 0) + amount;
+      entry.total += amount;
     });
     
     return Array.from(grouped.values());
@@ -79,12 +83,19 @@ export default function Report() {
   const reportDataDetailed = useMemo(() => {
     const data: ReportEntry[] = [];
     const relevantBets = bets.filter(bet => {
-      const hasRisultato = bet.risultato !== undefined;
-      const matchesStato = bet.stato === 'Archiviata';
       const isRapideTab = activeTab === 'giocate-rapide';
       const matchesTipo = isRapideTab ? bet.tipo === 'Rapida' : bet.tipo !== 'Rapida';
       const matchesYear = bet.dataEvento.getFullYear() === selectedYear;
-      return matchesStato && hasRisultato && matchesTipo && matchesYear;
+      
+      // For regular bets, only include archived ones with results
+      // For quick bets (Rapida), include all as they represent transactions
+      if (isRapideTab) {
+        return matchesTipo && matchesYear;
+      } else {
+        const hasRisultato = bet.risultato !== undefined;
+        const matchesStato = bet.stato === 'Archiviata';
+        return matchesStato && hasRisultato && matchesTipo && matchesYear;
+      }
     });
     
     const grouped = new Map<string, ReportEntry>();
@@ -95,8 +106,8 @@ export default function Report() {
       
       // Determine tipo based on bet type
       let tipo = bet.mercato || 'Altro';
-      if (activeTab === 'giocate-rapide' && bet.nomeGioco) {
-        tipo = bet.nomeGioco;
+      if (activeTab === 'giocate-rapide') {
+        tipo = bet.metodo || 'Altro';
       }
       
       const key = `${accountInfo.intestatario}|${tipo}`;
@@ -111,8 +122,10 @@ export default function Report() {
       
       const entry = grouped.get(key)!;
       const month = bet.dataEvento.getMonth();
-      entry.monthly[month] = (entry.monthly[month] || 0) + (bet.risultato || 0);
-      entry.total += bet.risultato || 0;
+      // For quick bets, use stake as the result (negative as it's a loss)
+      const amount = bet.tipo === 'Rapida' ? -bet.stake : (bet.risultato || 0);
+      entry.monthly[month] = (entry.monthly[month] || 0) + amount;
+      entry.total += amount;
     });
     
     return Array.from(grouped.values());
