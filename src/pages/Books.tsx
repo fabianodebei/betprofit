@@ -27,7 +27,7 @@ export default function Books() {
     return books.filter((book) => {
       const matchesNome = !nomeFilter || book.nome.toLowerCase().includes(nomeFilter.toLowerCase());
       const matchesMetodo = !metodoFilter || book.metodo.toLowerCase().includes(metodoFilter.toLowerCase());
-      const matchesStato = !statoFilter || book.stato === statoFilter;
+      const matchesStato = !statoFilter || statoFilter === 'all' || book.stato === statoFilter;
       return matchesNome && matchesMetodo && matchesStato;
     });
   }, [books, nomeFilter, metodoFilter, statoFilter]);
@@ -104,7 +104,7 @@ export default function Books() {
               <SelectValue placeholder="Tutti" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Tutti</SelectItem>
+              <SelectItem value="all">Tutti</SelectItem>
               <SelectItem value="Abilitato">Abilitato</SelectItem>
               <SelectItem value="Disabilitato">Disabilitato</SelectItem>
             </SelectContent>
