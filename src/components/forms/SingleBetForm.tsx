@@ -17,10 +17,11 @@ import { useBets } from '@/contexts/BetContext';
 import { useAccounts } from '@/contexts/AccountContext';
 import { useTags } from '@/contexts/TagContext';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useWallets } from '@/contexts/WalletContext';
 import { SPORT_MARKETS } from '@/constants/markets';
 import { Bet } from '@/types';
 
-const createSingleBetSchema = (tagRequired: boolean) => z.object({
+const createSingleBetSchema = (tagRequired: boolean, walletRequired: boolean) => z.object({
   metodo: z.enum(['Punta', 'Banca']),
   intestatario: z.string().min(1, 'Intestatario è obbligatorio'),
   evento: z.string().min(1, 'Evento è obbligatorio'),
@@ -34,6 +35,9 @@ const createSingleBetSchema = (tagRequired: boolean) => z.object({
   rimborso: z.number().optional(),
   urlEvento: z.string().optional(),
   competizione: z.string().optional(),
+  walletId: walletRequired
+    ? z.string().min(1, 'Wallet è obbligatorio').refine(val => val !== 'none', 'Seleziona un wallet valido')
+    : z.string().optional(),
   tag: tagRequired 
     ? z.string().min(1, 'Tag è obbligatorio').refine(val => val !== 'none', 'Seleziona un tag valido')
     : z.string().optional(),
@@ -53,10 +57,11 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
   const { accounts, updateAccount } = useAccounts();
   const { tags } = useTags();
   const { settings } = useSettings();
+  const { wallets } = useWallets();
   const [tipoBonus, setTipoBonus] = useState<'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet'>('Nessuno');
   const [selectedIntestatario, setSelectedIntestatario] = useState<string>('');
 
-  const singleBetSchema = createSingleBetSchema(settings.tag);
+  const singleBetSchema = createSingleBetSchema(settings.tag, settings.wallets);
 
   const form = useForm<SingleBetFormData>({
     resolver: zodResolver(singleBetSchema),
@@ -74,6 +79,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
       rimborso: 0,
       urlEvento: '',
       competizione: '',
+      walletId: 'none',
       tag: 'none',
     },
   });
@@ -97,6 +103,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         rimborso: editingBet.rimborso || 0,
         urlEvento: editingBet.urlEvento || '',
         competizione: editingBet.competizione || '',
+        walletId: editingBet.walletId || 'none',
         tag: editingBet.tag || 'none',
       });
       setSelectedIntestatario(intestatario);
@@ -116,6 +123,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         rimborso: 0,
         urlEvento: '',
         competizione: '',
+        walletId: 'none',
         tag: 'none',
       });
       setSelectedIntestatario('');
@@ -139,6 +147,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         rimborso: data.rimborso,
         urlEvento: data.urlEvento,
         competizione: data.competizione,
+        walletId: data.walletId === 'none' ? undefined : data.walletId,
         tag: data.tag === 'none' ? '' : data.tag,
       });
     } else {
@@ -166,6 +175,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         mercato: data.mercato,
         urlEvento: data.urlEvento,
         competizione: data.competizione,
+        walletId: data.walletId === 'none' ? undefined : data.walletId,
         tag: data.tag === 'none' ? '' : data.tag,
       });
     }
@@ -490,6 +500,33 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                   <FormControl>
                     <Input placeholder="Es: Serie A" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="walletId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Wallet{settings.wallets && ' *'}</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={settings.wallets ? "Seleziona wallet" : "Seleziona wallet (opzionale)"} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {!settings.wallets && <SelectItem value="none">Nessuno</SelectItem>}
+                      {wallets
+                        .filter(w => w.stato === 'Abilitato')
+                        .map((wallet) => (
+                          <SelectItem key={wallet.id} value={wallet.id}>
+                            {wallet.nome}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

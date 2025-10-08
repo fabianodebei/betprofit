@@ -71,6 +71,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
         stato: b.stato as 'In Corso' | 'Archiviata',
         risultato: b.risultato ? Number(b.risultato) : undefined,
         tag: b.tag || undefined,
+        walletId: b.wallet_id || undefined,
         note: b.note || undefined,
         mercato: b.mercato || undefined,
         competizione: b.competizione || undefined,
@@ -107,6 +108,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
           stato: bet.stato,
           risultato: bet.risultato || null,
           tag: bet.tag || null,
+          wallet_id: bet.walletId || null,
           note: bet.note || null,
           mercato: bet.mercato || null,
           competizione: bet.competizione || null,
@@ -134,6 +136,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
         stato: data.stato as 'In Corso' | 'Archiviata',
         risultato: data.risultato ? Number(data.risultato) : undefined,
         tag: data.tag || undefined,
+        walletId: data.wallet_id || undefined,
         note: data.note || undefined,
         mercato: data.mercato || undefined,
         competizione: data.competizione || undefined,
@@ -167,6 +170,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
       if (updates.stato !== undefined) dbUpdates.stato = updates.stato;
       if (updates.risultato !== undefined) dbUpdates.risultato = updates.risultato;
       if (updates.tag !== undefined) dbUpdates.tag = updates.tag;
+      if (updates.walletId !== undefined) dbUpdates.wallet_id = updates.walletId;
       if (updates.note !== undefined) dbUpdates.note = updates.note;
       if (updates.mercato !== undefined) dbUpdates.mercato = updates.mercato;
       if (updates.competizione !== undefined) dbUpdates.competizione = updates.competizione;

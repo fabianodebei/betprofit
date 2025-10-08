@@ -48,6 +48,7 @@ export interface Bet {
   stato: 'In Corso' | 'Archiviata';
   risultato?: number;
   tag?: string;
+  walletId?: string;
   note?: string;
   mercato?: string;
   competizione?: string;

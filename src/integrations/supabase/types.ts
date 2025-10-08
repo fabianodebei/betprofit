@@ -84,6 +84,7 @@ export type Database = {
           tipo: string
           tipo_bonus: string | null
           url_evento: string | null
+          wallet_id: string | null
         }
         Insert: {
           bonus?: number | null
@@ -107,6 +108,7 @@ export type Database = {
           tipo: string
           tipo_bonus?: string | null
           url_evento?: string | null
+          wallet_id?: string | null
         }
         Update: {
           bonus?: number | null
@@ -130,8 +132,17 @@ export type Database = {
           tipo?: string
           tipo_bonus?: string | null
           url_evento?: string | null
+          wallet_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "bets_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       books: {
         Row: {
