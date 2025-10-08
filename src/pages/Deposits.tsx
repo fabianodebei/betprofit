@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { Badge } from '@/components/common/Badge';
 import { useTransactions } from '@/contexts/TransactionContext';
 import { useAccounts } from '@/contexts/AccountContext';
+import { useWallets } from '@/contexts/WalletContext';
 import { formatCurrency } from '@/utils/currency';
 import { formatDateTime } from '@/utils/dates';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 export default function Deposits() {
   const { transactions, deleteTransaction } = useTransactions();
   const { accounts } = useAccounts();
+  const { wallets } = useWallets();
   const [showTransactionForm, setShowTransactionForm] = useState(false);
   
   // Filter states
@@ -175,6 +177,7 @@ export default function Deposits() {
                 <tbody>
                   {filteredTransactions.map((transaction, idx) => {
                     const account = accounts.find(acc => acc.conto === transaction.conto);
+                    const wallet = wallets.find(w => w.nome === transaction.wallet);
                     return (
                       <tr key={transaction.id} className="border-b hover:bg-muted/20">
                         <td className="p-3 text-sm">{idx + 1}</td>
@@ -187,7 +190,7 @@ export default function Deposits() {
                         <td className="p-3 text-sm font-semibold" style={{ color: transaction.accredito && transaction.accredito < 0 ? '#ef4444' : transaction.accredito ? '#22c55e' : undefined }}>
                           {transaction.accredito ? formatCurrency(transaction.accredito) : ''}
                         </td>
-                        <td className="p-3 text-sm">{transaction.wallet || ''}</td>
+                        <td className="p-3 text-sm">{transaction.wallet ? (wallet ? `${wallet.nome} - ${wallet.intestatario}` : transaction.wallet) : ''}</td>
                         <td className="p-3 text-sm font-semibold" style={{ color: transaction.addebito && transaction.addebito < 0 ? '#ef4444' : transaction.addebito ? '#22c55e' : undefined }}>
                           {transaction.addebito ? formatCurrency(-transaction.addebito) : ''}
                         </td>
