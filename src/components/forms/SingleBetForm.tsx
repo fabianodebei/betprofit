@@ -20,6 +20,7 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useWallets } from '@/contexts/WalletContext';
 import { useIntestatari } from '@/contexts/IntestatariContext';
 import { SPORT_MARKETS } from '@/constants/markets';
+import { PREDEFINED_TAGS } from '@/constants/predefinedTags';
 import { Bet } from '@/types';
 
 const createSingleBetSchema = (tagRequired: boolean) => z.object({
@@ -543,11 +544,26 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                     </FormControl>
                     <SelectContent>
                       {!settings.tag && <SelectItem value="none">Nessuno</SelectItem>}
-                      {tags.map((tag) => (
-                        <SelectItem key={tag.id} value={tag.nome}>
-                          {tag.nome}
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase">
+                        Predefinito
+                      </div>
+                      {PREDEFINED_TAGS.map((tag) => (
+                        <SelectItem key={tag} value={tag}>
+                          {tag}
                         </SelectItem>
                       ))}
+                      {tags.length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase mt-2">
+                            Tag Personali
+                          </div>
+                          {tags.map((tag) => (
+                            <SelectItem key={tag.id} value={tag.nome}>
+                              {tag.nome}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />

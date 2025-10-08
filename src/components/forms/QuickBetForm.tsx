@@ -21,6 +21,7 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useWallets } from '@/contexts/WalletContext';
 import { useIntestatari } from '@/contexts/IntestatariContext';
 import { QUICK_BET_METHODS } from '@/constants/markets';
+import { PREDEFINED_TAGS } from '@/constants/predefinedTags';
 import { toast } from 'sonner';
 
 const createQuickBetSchema = (tagRequired: boolean) => z.object({
@@ -304,11 +305,26 @@ export function QuickBetForm({
                     </FormControl>
                     <SelectContent>
                       {!settings.tag && <SelectItem value="none">Nessuno</SelectItem>}
-                      {tags.map((tag) => (
-                        <SelectItem key={tag.id} value={tag.nome}>
-                          {tag.nome}
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase">
+                        Predefinito
+                      </div>
+                      {PREDEFINED_TAGS.map((tag) => (
+                        <SelectItem key={tag} value={tag}>
+                          {tag}
                         </SelectItem>
                       ))}
+                      {tags.length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase mt-2">
+                            Tag Personali
+                          </div>
+                          {tags.map((tag) => (
+                            <SelectItem key={tag.id} value={tag.nome}>
+                              {tag.nome}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
