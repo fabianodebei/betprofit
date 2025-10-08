@@ -11,18 +11,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { TimePicker } from '@/components/ui/time-picker';
-import { CalendarIcon } from 'lucide-react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { CalendarIcon, Check, ChevronsUpDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useTransactions } from '@/contexts/TransactionContext';
 import { useAccounts } from '@/contexts/AccountContext';
 import { useWallets } from '@/contexts/WalletContext';
-import { useIntestatari } from '@/contexts/IntestatariContext';
 import { toast } from 'sonner';
 
 const transactionSchema = z.object({
   metodo: z.enum(['Deposito', 'Spesa', 'Prelievo', 'Riconciliazione']),
-  intestatario: z.string().min(1, 'Intestatario è obbligatorio'),
   conto: z.string().min(1, 'Conto è obbligatorio'),
   wallet: z.string().optional(),
   movimento: z.number().positive('Il movimento deve essere positivo'),
@@ -41,17 +40,13 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
   const { addTransaction } = useTransactions();
   const { accounts, updateAccount } = useAccounts();
   const { wallets, updateWallet } = useWallets();
-  const { intestatari } = useIntestatari();
+  const [openContoCombobox, setOpenContoCombobox] = useState(false);
   const [selectedIntestatario, setSelectedIntestatario] = useState<string>('');
-
-  // Get available intestatari (abilitati)
-  const availableIntestatari = intestatari.filter(int => int.stato === 'Abilitato');
 
   const form = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
       metodo: 'Deposito',
-      intestatario: '',
       conto: '',
       wallet: '',
       movimento: 0,
@@ -59,6 +54,11 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
       descrizione: '',
     },
   });
+
+  // Get filtered wallets based on selected intestatario
+  const filteredWallets = selectedIntestatario 
+    ? wallets.filter(w => w.intestatario === selectedIntestatario && w.stato === 'Abilitato')
+    : [];
 
   const onSubmit = async (data: TransactionFormData) => {
     const metodo = data.metodo;
@@ -104,13 +104,14 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
       metodo: data.metodo,
       conto: data.conto,
       wallet: data.wallet,
-      addebito: metodo === 'Deposito' || metodo === 'Riconciliazione' ? data.movimento : undefined,
-      accredito: metodo === 'Prelievo' || metodo === 'Spesa' ? data.movimento : undefined,
+      addebito: metodo === 'Prelievo' || metodo === 'Spesa' ? data.movimento : undefined,
+      accredito: metodo === 'Deposito' || metodo === 'Riconciliazione' ? data.movimento : undefined,
       descrizione: data.descrizione,
       registrato: data.registrato,
     });
 
     form.reset();
+    setSelectedIntestatario('');
     onOpenChange(false);
   };
 
@@ -146,96 +147,93 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
             />
             <FormField
               control={form.control}
-              name="intestatario"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Intestatario *</FormLabel>
-                  <Select 
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                      setSelectedIntestatario(value);
-                      form.setValue('conto', '');
-                    }} 
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleziona intestatario" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent position="popper" className="z-[70] bg-popover">
-                      {availableIntestatari.map((intestatario) => (
-                        <SelectItem key={intestatario.id} value={intestatario.nome}>
-                          {intestatario.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
               name="conto"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col">
                   <FormLabel>Conto *</FormLabel>
-                  <Select 
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                      const acc = accounts.find(a => a.conto === value);
-                      if (acc) {
-                        setSelectedIntestatario(acc.intestatario);
-                        form.setValue('intestatario', acc.intestatario);
-                      }
-                    }} 
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleziona conto" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent position="popper" className="z-[70] bg-popover max-h-[240px] overflow-auto">
-                      {accounts
-                        .slice()
-                        .sort((a, b) => a.conto.localeCompare(b.conto, 'it', { sensitivity: 'base' }))
-                        .map((account) => (
-                          <SelectItem key={account.id} value={account.conto}>
-                            {account.conto} ({account.intestatario})
+                  <Popover open={openContoCombobox} onOpenChange={setOpenContoCombobox}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            "w-full justify-between",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value
+                            ? accounts.find((account) => account.conto === field.value)?.conto + 
+                              " (" + accounts.find((account) => account.conto === field.value)?.intestatario + ")"
+                            : "Seleziona Conto"}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-[70]" align="start">
+                      <Command>
+                        <CommandInput placeholder="Cerca conto..." />
+                        <CommandEmpty>Nessun conto trovato.</CommandEmpty>
+                        <CommandGroup className="max-h-[240px] overflow-auto">
+                          {accounts
+                            .filter(a => a.stato === 'Abilitato')
+                            .sort((a, b) => a.conto.localeCompare(b.conto, 'it', { sensitivity: 'base' }))
+                            .map((account) => (
+                              <CommandItem
+                                value={`${account.conto} ${account.intestatario}`}
+                                key={account.id}
+                                onSelect={() => {
+                                  field.onChange(account.conto);
+                                  setSelectedIntestatario(account.intestatario);
+                                  form.setValue('wallet', '');
+                                  setOpenContoCombobox(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    account.conto === field.value
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                {account.conto} ({account.intestatario})
+                              </CommandItem>
+                            ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {selectedIntestatario && filteredWallets.length > 0 && (
+              <FormField
+                control={form.control}
+                name="wallet"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Wallet</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Wallet" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent position="popper" className="z-[70] bg-popover">
+                        {filteredWallets.map((wallet) => (
+                          <SelectItem key={wallet.id} value={wallet.nome}>
+                            {wallet.nome}
                           </SelectItem>
                         ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="wallet"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Wallet</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleziona wallet" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent position="popper" className="z-[70] bg-popover">
-                      {wallets.map((wallet) => (
-                        <SelectItem key={wallet.id} value={wallet.nome}>
-                          {wallet.nome} - {wallet.intestatario}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="movimento"
