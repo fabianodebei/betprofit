@@ -198,6 +198,27 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_logs: {
+        Row: {
+          id: string
+          reference_id: string
+          sent_at: string | null
+          type: string
+        }
+        Insert: {
+          id?: string
+          reference_id: string
+          sent_at?: string | null
+          type: string
+        }
+        Update: {
+          id?: string
+          reference_id?: string
+          sent_at?: string | null
+          type?: string
+        }
+        Relationships: []
+      }
       reminders: {
         Row: {
           conto: string
