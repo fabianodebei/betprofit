@@ -56,9 +56,18 @@ async function checkReminders(supabase: any, supabaseUrl: string, serviceKey: st
     return;
   }
 
+  console.log(`Found ${reminders?.length || 0} reminders to check`);
+
   const now = new Date();
+  console.log('Current time:', now.toISOString());
 
   for (const reminder of reminders || []) {
+    console.log(`\nChecking reminder ${reminder.id}:`, {
+      scadenza: reminder.data_di_scadenza,
+      periodo: reminder.notifica_periodo,
+      metodo: reminder.metodo,
+      conto: reminder.conto,
+    });
     // Check if already notified
     const { data: existingLog } = await supabase
       .from('notification_logs')
@@ -93,6 +102,9 @@ async function checkReminders(supabase: any, supabaseUrl: string, serviceKey: st
         notificationTime.setDate(notificationTime.getDate() - 7);
         break;
     }
+
+    console.log('Notification time:', notificationTime.toISOString());
+    console.log('Should notify:', now >= notificationTime);
 
     // Send notification if time has arrived
     if (now >= notificationTime) {
