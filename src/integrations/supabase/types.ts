@@ -133,6 +133,30 @@ export type Database = {
         }
         Relationships: []
       }
+      books: {
+        Row: {
+          created_at: string
+          id: string
+          metodo: string
+          nome: string
+          stato: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metodo?: string
+          nome: string
+          stato?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metodo?: string
+          nome?: string
+          stato?: string
+        }
+        Relationships: []
+      }
       intestatari: {
         Row: {
           created_at: string

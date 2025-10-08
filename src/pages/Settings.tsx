@@ -41,6 +41,7 @@ export default function Settings() {
       icon: BookOpen,
       title: 'Book Personali',
       description: 'Configura i tuoi book personali',
+      path: '/impostazioni/books',
     },
     {
       icon: Tag,

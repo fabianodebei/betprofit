@@ -11,6 +11,7 @@ import { BetProvider } from "./contexts/BetContext";
 import { TransactionProvider } from "./contexts/TransactionContext";
 import { ReminderProvider } from "./contexts/ReminderContext";
 import { IntestatariProvider } from "./contexts/IntestatariContext";
+import { BookProvider } from "./contexts/BookContext";
 import Dashboard from "./pages/Dashboard";
 import Wallets from "./pages/Wallets";
 import Accounts from "./pages/Accounts";
@@ -26,6 +27,7 @@ import Transactions from "./pages/Transactions";
 import Redditometro from "./pages/Redditometro";
 import Report from "./pages/Report";
 import Intestatari from "./pages/Intestatari";
+import Books from "./pages/Books";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,45 +36,48 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <IntestatariProvider>
-        <WalletProvider>
-          <AccountProvider>
-            <BetProvider>
-              <TransactionProvider>
-                <ReminderProvider>
-                  <Toaster />
-                  <Sonner />
-                  <BrowserRouter>
-                  <div className="flex min-h-screen flex-col">
-                    <Header />
-                    <main className="flex-1">
-                      <Routes>
-                        <Route path="/" element={<Dashboard />} />
-                        <Route path="/wallets" element={<Wallets />} />
-                        <Route path="/conti" element={<Accounts />} />
-                        <Route path="/puntate" element={<OngoingBets />} />
-                        <Route path="/rapide" element={<QuickBets />} />
-                        <Route path="/archiviate" element={<ArchivedBets />} />
-                        <Route path="/depositi" element={<Deposits />} />
-                        <Route path="/bilancio" element={<Balance />} />
-                        <Route path="/promemoria" element={<Promemoria />} />
-                        <Route path="/impostazioni" element={<Settings />} />
-                        <Route path="/impostazioni/generali" element={<GeneralSettings />} />
-                        <Route path="/impostazioni/transazioni" element={<Transactions />} />
-                        <Route path="/impostazioni/redditometro" element={<Redditometro />} />
-                        <Route path="/impostazioni/report" element={<Report />} />
-                        <Route path="/impostazioni/intestatari" element={<Intestatari />} />
-                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </main>
-                    <Footer />
-                  </div>
-                </BrowserRouter>
-              </ReminderProvider>
-            </TransactionProvider>
-          </BetProvider>
-        </AccountProvider>
-      </WalletProvider>
+        <BookProvider>
+          <WalletProvider>
+            <AccountProvider>
+              <BetProvider>
+                <TransactionProvider>
+                  <ReminderProvider>
+                    <Toaster />
+                    <Sonner />
+                    <BrowserRouter>
+                    <div className="flex min-h-screen flex-col">
+                      <Header />
+                      <main className="flex-1">
+                        <Routes>
+                          <Route path="/" element={<Dashboard />} />
+                          <Route path="/wallets" element={<Wallets />} />
+                          <Route path="/conti" element={<Accounts />} />
+                          <Route path="/puntate" element={<OngoingBets />} />
+                          <Route path="/rapide" element={<QuickBets />} />
+                          <Route path="/archiviate" element={<ArchivedBets />} />
+                          <Route path="/depositi" element={<Deposits />} />
+                          <Route path="/bilancio" element={<Balance />} />
+                          <Route path="/promemoria" element={<Promemoria />} />
+                          <Route path="/impostazioni" element={<Settings />} />
+                          <Route path="/impostazioni/generali" element={<GeneralSettings />} />
+                          <Route path="/impostazioni/transazioni" element={<Transactions />} />
+                          <Route path="/impostazioni/redditometro" element={<Redditometro />} />
+                          <Route path="/impostazioni/report" element={<Report />} />
+                          <Route path="/impostazioni/intestatari" element={<Intestatari />} />
+                          <Route path="/impostazioni/books" element={<Books />} />
+                          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </main>
+                      <Footer />
+                    </div>
+                  </BrowserRouter>
+                </ReminderProvider>
+              </TransactionProvider>
+            </BetProvider>
+          </AccountProvider>
+        </WalletProvider>
+        </BookProvider>
       </IntestatariProvider>
     </TooltipProvider>
   </QueryClientProvider>
