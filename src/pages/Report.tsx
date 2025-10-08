@@ -42,21 +42,10 @@ export default function Report() {
     
     const relevantBets = bets.filter(bet => {
       const hasRisultato = bet.risultato !== undefined;
-      const matchesStato = bet.stato === 'Archiviata' || bet.stato === 'In Corso';
-      const matchesTipo = bet.tipo === (activeTab === 'scommesse' ? 'Scommessa' : 'Rapida');
+      const matchesStato = bet.stato === 'Archiviata'; // consider only archived bets for final results
+      const isRapideTab = activeTab === 'giocate-rapide';
+      const matchesTipo = isRapideTab ? bet.tipo === 'Rapida' : bet.tipo !== 'Rapida';
       const matchesYear = bet.dataEvento.getFullYear() === selectedYear;
-      
-      console.log('Bet:', bet.id, {
-        stato: bet.stato,
-        tipo: bet.tipo,
-        risultato: bet.risultato,
-        year: bet.dataEvento.getFullYear(),
-        matchesStato,
-        matchesTipo,
-        hasRisultato,
-        matchesYear
-      });
-      
       return matchesStato && hasRisultato && matchesTipo && matchesYear;
     });
     
@@ -89,12 +78,14 @@ export default function Report() {
   // Calculate report data for detailed view (by intestatario and tipo)
   const reportDataDetailed = useMemo(() => {
     const data: ReportEntry[] = [];
-    const relevantBets = bets.filter(bet => 
-      (bet.stato === 'Archiviata' || bet.stato === 'In Corso') && 
-      bet.risultato !== undefined &&
-      bet.tipo === (activeTab === 'scommesse' ? 'Scommessa' : 'Rapida') &&
-      bet.dataEvento.getFullYear() === selectedYear
-    );
+    const relevantBets = bets.filter(bet => {
+      const hasRisultato = bet.risultato !== undefined;
+      const matchesStato = bet.stato === 'Archiviata';
+      const isRapideTab = activeTab === 'giocate-rapide';
+      const matchesTipo = isRapideTab ? bet.tipo === 'Rapida' : bet.tipo !== 'Rapida';
+      const matchesYear = bet.dataEvento.getFullYear() === selectedYear;
+      return matchesStato && hasRisultato && matchesTipo && matchesYear;
+    });
     
     const grouped = new Map<string, ReportEntry>();
     
