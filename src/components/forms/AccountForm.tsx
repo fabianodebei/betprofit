@@ -9,28 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { useAccounts } from '@/contexts/AccountContext';
+import { useBooks } from '@/contexts/BookContext';
 import { Account } from '@/types';
-
-const BOOKMAKERS = [
-  'Betfair.it',
-  'Planetwin365.it',
-  'Lottomatica.it',
-  'WilliamHill.it',
-  'Bet365.it',
-  'BetFlag.it',
-  'Snai.it',
-  'GoldBet.it',
-  'Sisal.it',
-  'Eurobet.it',
-  'LeoVegas.it',
-  'Stanleybet.it',
-  'Unibet.it',
-  'StarCasino.it',
-  'E-Play24.it',
-  'Eplay24',
-  'Vincitu',
-  '888 casino',
-];
 
 const accountSchema = z.object({
   intestatario: z.string().min(1, 'Intestatario è obbligatorio'),
@@ -49,9 +29,12 @@ interface AccountFormProps {
 
 export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormProps) {
   const { addAccount, updateAccount, accounts } = useAccounts();
+  const { books } = useBooks();
 
-  // Lista bookmaker statica dalla richiesta, ordinata alfabeticamente (case-insensitive, locale IT)
-  const bookmakers = [...BOOKMAKERS].sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }));
+  // Lista book dalla tabella, solo abilitati, ordinati alfabeticamente
+  const availableBooks = books
+    .filter(book => book.stato === 'Abilitato')
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'it', { sensitivity: 'base' }));
 
   const form = useForm<AccountFormData>({
     resolver: zodResolver(accountSchema),
@@ -149,9 +132,9 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent position="popper" className="z-[70] max-h-[240px] bg-popover">
-                      {bookmakers.map((bookmaker) => (
-                        <SelectItem key={bookmaker} value={bookmaker}>
-                          {bookmaker}
+                      {availableBooks.map((book) => (
+                        <SelectItem key={book.id} value={book.nome}>
+                          {book.nome}
                         </SelectItem>
                       ))}
                     </SelectContent>
