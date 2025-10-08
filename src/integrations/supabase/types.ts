@@ -198,6 +198,62 @@ export type Database = {
         }
         Relationships: []
       }
+      lay_bets: {
+        Row: {
+          conto: string
+          created_at: string
+          data_evento: string
+          evento: string
+          id: string
+          mercato: string
+          metodo: string
+          parent_bet_id: string
+          quota_banca: number
+          quota_punta: number
+          stake: number
+          tasse_percentuale: number
+          url_evento: string | null
+        }
+        Insert: {
+          conto: string
+          created_at?: string
+          data_evento: string
+          evento: string
+          id?: string
+          mercato: string
+          metodo: string
+          parent_bet_id: string
+          quota_banca: number
+          quota_punta: number
+          stake: number
+          tasse_percentuale?: number
+          url_evento?: string | null
+        }
+        Update: {
+          conto?: string
+          created_at?: string
+          data_evento?: string
+          evento?: string
+          id?: string
+          mercato?: string
+          metodo?: string
+          parent_bet_id?: string
+          quota_banca?: number
+          quota_punta?: number
+          stake?: number
+          tasse_percentuale?: number
+          url_evento?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lay_bets_parent_bet_id_fkey"
+            columns: ["parent_bet_id"]
+            isOneToOne: false
+            referencedRelation: "bets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_logs: {
         Row: {
           id: string

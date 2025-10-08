@@ -8,6 +8,7 @@ import { Footer } from "./components/layout/Footer";
 import { WalletProvider } from "./contexts/WalletContext";
 import { AccountProvider } from "./contexts/AccountContext";
 import { BetProvider } from "./contexts/BetContext";
+import { LayBetProvider } from "./contexts/LayBetContext";
 import { TransactionProvider } from "./contexts/TransactionContext";
 import { ReminderProvider } from "./contexts/ReminderContext";
 import { IntestatariProvider } from "./contexts/IntestatariContext";
@@ -47,11 +48,12 @@ const App = () => (
               <WalletProvider>
                 <AccountProvider>
                   <BetProvider>
-                    <TransactionProvider>
-                      <ReminderProvider>
-                        <Toaster />
-                        <Sonner />
-                        <BrowserRouter>
+                    <LayBetProvider>
+                      <TransactionProvider>
+                        <ReminderProvider>
+                          <Toaster />
+                          <Sonner />
+                          <BrowserRouter>
                         <div className="flex min-h-screen flex-col">
                           <Header />
                           <main className="flex-1">
@@ -79,12 +81,13 @@ const App = () => (
                           </main>
                           <Footer />
                         </div>
-                      </BrowserRouter>
+                       </BrowserRouter>
                     </ReminderProvider>
                   </TransactionProvider>
-                </BetProvider>
-              </AccountProvider>
-            </WalletProvider>
+                </LayBetProvider>
+              </BetProvider>
+            </AccountProvider>
+          </WalletProvider>
             </TagProvider>
           </BookProvider>
           </IntestatariProvider>

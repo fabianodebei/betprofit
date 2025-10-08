@@ -3,6 +3,7 @@ import { Plus, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SingleBetForm } from '@/components/forms/SingleBetForm';
 import { CasinoBetForm } from '@/components/forms/CasinoBetForm';
+import { MultiplaBetForm } from '@/components/forms/MultiplaBetForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Badge } from '@/components/common/Badge';
@@ -10,8 +11,8 @@ import { useBets } from '@/contexts/BetContext';
 import { useYear } from '@/contexts/YearContext';
 import { formatDate } from '@/utils/dates';
 import { ArchiveBetDialog } from '@/components/dialogs/ArchiveBetDialog';
+import { MultiplaDetailDialog } from '@/components/dialogs/MultiplaDetailDialog';
 import { Bet } from '@/types';
-import { toast } from 'sonner';
 
 export default function OngoingBets() {
   const { getOngoingBets, deleteBet, archiveBet } = useBets();
@@ -21,6 +22,8 @@ export default function OngoingBets() {
   const [activeTab, setActiveTab] = useState<'singola' | 'multipla' | 'casino'>('singola');
   const [showSingleBetForm, setShowSingleBetForm] = useState(false);
   const [showCasinoBetForm, setShowCasinoBetForm] = useState(false);
+  const [showMultiplaBetForm, setShowMultiplaBetForm] = useState(false);
+  const [showMultiplaDetailDialog, setShowMultiplaDetailDialog] = useState(false);
   const [selectedBet, setSelectedBet] = useState<Bet | null>(null);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [editingBet, setEditingBet] = useState<Bet | null>(null);
@@ -42,6 +45,8 @@ export default function OngoingBets() {
     setFormMode('edit');
     if (bet.tipo === 'Casino') {
       setShowCasinoBetForm(true);
+    } else if (bet.tipo === 'Multipla') {
+      setShowMultiplaBetForm(true);
     } else {
       setShowSingleBetForm(true);
     }
@@ -52,13 +57,22 @@ export default function OngoingBets() {
     setFormMode('clone');
     if (bet.tipo === 'Casino') {
       setShowCasinoBetForm(true);
+    } else if (bet.tipo === 'Multipla') {
+      setShowMultiplaBetForm(true);
     } else {
       setShowSingleBetForm(true);
     }
   };
 
   const handleNewMultipla = () => {
-    toast.info('Funzionalità multipla in arrivo');
+    setEditingBet(null);
+    setFormMode('create');
+    setShowMultiplaBetForm(true);
+  };
+
+  const handleShowMultiplaDetail = (bet: Bet) => {
+    setSelectedBet(bet);
+    setShowMultiplaDetailDialog(true);
   };
 
   return (
@@ -153,6 +167,9 @@ export default function OngoingBets() {
                       <td className="p-3 text-sm">{bet.note || '-'}</td>
                       <td className="p-3">
                         <div className="flex gap-1">
+                          {bet.tipo === 'Multipla' && (
+                            <Button size="sm" variant="outline" onClick={() => handleShowMultiplaDetail(bet)}>Dettagli</Button>
+                          )}
                           <Button size="sm" variant="outline" onClick={() => handleDetail(bet)}>Modifica</Button>
                           <Button size="sm" variant="outline" onClick={() => handleArchive(bet)}>Archivia</Button>
                           <Button size="sm" variant="outline" onClick={() => handleClone(bet)}>Clona</Button>
@@ -194,6 +211,23 @@ export default function OngoingBets() {
         }}
         editingBet={editingBet}
         mode={formMode}
+      />
+      <MultiplaBetForm 
+        open={showMultiplaBetForm} 
+        onOpenChange={(open) => {
+          setShowMultiplaBetForm(open);
+          if (!open) {
+            setEditingBet(null);
+            setFormMode('create');
+          }
+        }}
+        editingBet={editingBet}
+        mode={formMode}
+      />
+      <MultiplaDetailDialog
+        open={showMultiplaDetailDialog}
+        onOpenChange={setShowMultiplaDetailDialog}
+        bet={selectedBet}
       />
       <ArchiveBetDialog
         bet={selectedBet}

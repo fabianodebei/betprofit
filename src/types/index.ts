@@ -84,3 +84,19 @@ export interface Reminder {
   stato: 'Nuovo' | 'Letto';
   createdAt: Date;
 }
+
+export interface LayBet {
+  id: string;
+  parentBetId: string;
+  metodo: 'Punta' | 'Banca';
+  evento: string;
+  dataEvento: Date;
+  mercato: string;
+  conto: string;
+  stake: number;
+  quotaBanca: number;
+  quotaPunta: number;
+  tassePercentuale: number;
+  urlEvento?: string;
+  createdAt: Date;
+}
