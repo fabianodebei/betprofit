@@ -22,16 +22,13 @@ import { useWallets } from '@/contexts/WalletContext';
 import { QUICK_BET_METHODS } from '@/constants/markets';
 import { toast } from 'sonner';
 
-const createQuickBetSchema = (tagRequired: boolean, walletRequired: boolean) => z.object({
+const createQuickBetSchema = (tagRequired: boolean) => z.object({
   intestatario: z.string().trim().min(1, 'Intestatario è obbligatorio').max(100),
   conto: z.string().trim().min(1, 'Conto è obbligatorio').max(100),
   metodo: z.string().trim().min(1, 'Metodo è obbligatorio').max(100),
   movimento: z.number(),
   registrato: z.date(),
   note: z.string().trim().max(500).optional(),
-  walletId: walletRequired
-    ? z.string().min(1, 'Wallet è obbligatorio').refine(val => val !== 'none', 'Seleziona un wallet valido')
-    : z.string().optional(),
   tag: tagRequired 
     ? z.string().min(1, 'Tag è obbligatorio').refine(val => val !== 'none', 'Seleziona un tag valido')
     : z.string().optional()
@@ -60,8 +57,9 @@ export function QuickBetForm({
   const { settings } = useSettings();
   const { wallets } = useWallets();
   const [selectedIntestatario, setSelectedIntestatario] = useState<string>('');
+  const [selectedConto, setSelectedConto] = useState<string>('');
   
-  const quickBetSchema = createQuickBetSchema(settings.tag, settings.wallets);
+  const quickBetSchema = createQuickBetSchema(settings.tag);
 
   const form = useForm<QuickBetFormData>({
     resolver: zodResolver(quickBetSchema),
@@ -72,10 +70,15 @@ export function QuickBetForm({
       movimento: 0,
       registrato: new Date(),
       note: '',
-      walletId: 'none',
       tag: 'none'
     }
   });
+
+  // Get the selected account's wallet info
+  const selectedAccount = accounts.find(a => a.conto === selectedConto);
+  const selectedWallet = selectedAccount?.walletId 
+    ? wallets.find(w => w.id === selectedAccount.walletId) 
+    : null;
 
   // Reset form with editing bet data when it changes
   useEffect(() => {
@@ -90,10 +93,10 @@ export function QuickBetForm({
         movimento: editingBet.stake || 0,
         registrato: editingBet.dataEvento || new Date(),
         note: editingBet.note || '',
-        walletId: editingBet.walletId || 'none',
         tag: editingBet.tag || 'none'
       });
       setSelectedIntestatario(intestatario);
+      setSelectedConto(editingBet.conto || '');
     } else {
       form.reset({
         intestatario: '',
@@ -102,10 +105,10 @@ export function QuickBetForm({
         movimento: 0,
         registrato: new Date(),
         note: '',
-        walletId: 'none',
         tag: 'none'
       });
       setSelectedIntestatario('');
+      setSelectedConto('');
     }
   }, [editingBet, form, accounts]);
   const onSubmit = async (data: QuickBetFormData) => {
@@ -118,7 +121,7 @@ export function QuickBetForm({
         metodo: data.metodo,
         dataEvento: data.registrato,
         note: data.note,
-        walletId: data.walletId === 'none' ? undefined : data.walletId,
+        walletId: account?.walletId || undefined,
         tag: data.tag === 'none' ? '' : data.tag
       });
       if (account) {
@@ -143,7 +146,7 @@ export function QuickBetForm({
         stato: 'In Corso',
         dataEvento: data.registrato,
         note: data.note,
-        walletId: data.walletId === 'none' ? undefined : data.walletId,
+        walletId: account?.walletId || undefined,
         tag: data.tag === 'none' ? '' : data.tag
       });
     }
@@ -186,7 +189,13 @@ export function QuickBetForm({
             field
           }) => <FormItem>
                   <FormLabel>Conto *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select 
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      setSelectedConto(value);
+                    }} 
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleziona conto" />
@@ -195,11 +204,24 @@ export function QuickBetForm({
                     <SelectContent>
                       {accounts
                         .filter(account => account.intestatario === selectedIntestatario)
-                        .map(account => <SelectItem key={account.id} value={account.conto}>
-                          {account.conto}
-                        </SelectItem>)}
+                        .map(account => {
+                          const wallet = account.walletId 
+                            ? wallets.find(w => w.id === account.walletId)
+                            : null;
+                          return (
+                            <SelectItem key={account.id} value={account.conto}>
+                              {account.conto}
+                              {wallet && <span className="text-muted-foreground text-xs ml-1">({wallet.nome})</span>}
+                            </SelectItem>
+                          );
+                        })}
                     </SelectContent>
                   </Select>
+                  {selectedWallet && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Wallet: {selectedWallet.nome}
+                    </p>
+                  )}
                   <FormDescription>Questo conto non è modificabile dopo l'inserimento</FormDescription>
                   <FormMessage />
                 </FormItem>} />
@@ -263,29 +285,6 @@ export function QuickBetForm({
                   <FormControl>
                     <Textarea placeholder="Note aggiuntive..." {...field} />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>} />
-            <FormField control={form.control} name="walletId" render={({
-            field
-          }) => <FormItem>
-                  <FormLabel>Wallet{settings.wallets && ' *'}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={settings.wallets ? "Seleziona wallet" : "Seleziona wallet (opzionale)"} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {!settings.wallets && <SelectItem value="none">Nessuno</SelectItem>}
-                      {wallets
-                        .filter(w => w.stato === 'Abilitato')
-                        .map((wallet) => (
-                          <SelectItem key={wallet.id} value={wallet.id}>
-                            {wallet.nome}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
                   <FormMessage />
                 </FormItem>} />
             <FormField control={form.control} name="tag" render={({
