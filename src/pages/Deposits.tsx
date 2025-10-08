@@ -173,33 +173,36 @@ export default function Deposits() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTransactions.map((transaction, idx) => (
-                    <tr key={transaction.id} className="border-b hover:bg-muted/20">
-                      <td className="p-3 text-sm">{idx + 1}</td>
-                      <td className="p-3 text-sm">{transaction.metodo}</td>
-                      <td className="p-3 text-sm">{formatDateTime(transaction.registrato)}</td>
-                      <td className="p-3 text-sm">{transaction.conto}{transaction.intestatario && ` - ${transaction.intestatario}`}</td>
-                      <td className="p-3 text-sm font-semibold" style={{ color: transaction.addebito && transaction.addebito < 0 ? '#ef4444' : transaction.addebito ? '#22c55e' : undefined }}>
-                        {transaction.addebito ? formatCurrency(transaction.addebito) : ''}
-                      </td>
-                      <td className="p-3 text-sm font-semibold" style={{ color: transaction.accredito && transaction.accredito < 0 ? '#ef4444' : transaction.accredito ? '#22c55e' : undefined }}>
-                        {transaction.accredito ? formatCurrency(transaction.accredito) : ''}
-                      </td>
-                      <td className="p-3 text-sm">{transaction.wallet || ''}</td>
-                      <td className="p-3 text-sm font-semibold" style={{ color: transaction.addebito && transaction.addebito < 0 ? '#ef4444' : transaction.addebito ? '#22c55e' : undefined }}>
-                        {transaction.addebito ? formatCurrency(-transaction.addebito) : ''}
-                      </td>
-                      <td className="p-3 text-sm font-semibold" style={{ color: transaction.accredito && transaction.accredito < 0 ? '#ef4444' : transaction.accredito ? '#22c55e' : undefined }}>
-                        {transaction.accredito ? formatCurrency(-transaction.accredito) : ''}
-                      </td>
-                      <td className="p-3 text-sm">{transaction.descrizione || ''}</td>
-                      <td className="p-3">
-                        <Button size="sm" variant="destructive" onClick={() => deleteTransaction(transaction.id)}>
-                          Elimina
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
+                  {filteredTransactions.map((transaction, idx) => {
+                    const account = accounts.find(acc => acc.conto === transaction.conto);
+                    return (
+                      <tr key={transaction.id} className="border-b hover:bg-muted/20">
+                        <td className="p-3 text-sm">{idx + 1}</td>
+                        <td className="p-3 text-sm">{transaction.metodo}</td>
+                        <td className="p-3 text-sm">{formatDateTime(transaction.registrato)}</td>
+                        <td className="p-3 text-sm">{transaction.conto}{account && ` - ${account.intestatario}`}</td>
+                        <td className="p-3 text-sm font-semibold" style={{ color: transaction.addebito && transaction.addebito < 0 ? '#ef4444' : transaction.addebito ? '#22c55e' : undefined }}>
+                          {transaction.addebito ? formatCurrency(transaction.addebito) : ''}
+                        </td>
+                        <td className="p-3 text-sm font-semibold" style={{ color: transaction.accredito && transaction.accredito < 0 ? '#ef4444' : transaction.accredito ? '#22c55e' : undefined }}>
+                          {transaction.accredito ? formatCurrency(transaction.accredito) : ''}
+                        </td>
+                        <td className="p-3 text-sm">{transaction.wallet || ''}</td>
+                        <td className="p-3 text-sm font-semibold" style={{ color: transaction.addebito && transaction.addebito < 0 ? '#ef4444' : transaction.addebito ? '#22c55e' : undefined }}>
+                          {transaction.addebito ? formatCurrency(-transaction.addebito) : ''}
+                        </td>
+                        <td className="p-3 text-sm font-semibold" style={{ color: transaction.accredito && transaction.accredito < 0 ? '#ef4444' : transaction.accredito ? '#22c55e' : undefined }}>
+                          {transaction.accredito ? formatCurrency(-transaction.accredito) : ''}
+                        </td>
+                        <td className="p-3 text-sm">{transaction.descrizione || ''}</td>
+                        <td className="p-3">
+                          <Button size="sm" variant="destructive" onClick={() => deleteTransaction(transaction.id)}>
+                            Elimina
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
