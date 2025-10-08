@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Clock } from 'lucide-react';
+import { Plus, Clock, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -7,6 +7,8 @@ import { useReminders } from '@/contexts/ReminderContext';
 import { ReminderForm } from '@/components/forms/ReminderForm';
 import { formatDateTime } from '@/utils/dates';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Promemoria() {
   const { reminders, deleteReminder, updateReminder } = useReminders();
@@ -14,6 +16,8 @@ export default function Promemoria() {
   const [filterMetodo, setFilterMetodo] = useState('all');
   const [filterConto, setFilterConto] = useState('all');
   const [filterStato, setFilterStato] = useState('all');
+  const [testing, setTesting] = useState(false);
+  const { toast } = useToast();
 
   const filteredReminders = reminders.filter(reminder => {
     if (filterMetodo !== 'all' && reminder.metodo !== filterMetodo) return false;
@@ -26,14 +30,51 @@ export default function Promemoria() {
     await updateReminder(id, { stato: 'Letto' });
   };
 
+  const handleTestNotifications = async () => {
+    setTesting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('test-notifications', {
+        body: {},
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Test completato',
+        description: 'Controlla il tuo Telegram per le notifiche!',
+      });
+      
+      console.log('Test result:', data);
+    } catch (error: any) {
+      toast({
+        title: 'Errore',
+        description: error.message || 'Errore durante il test delle notifiche',
+        variant: 'destructive',
+      });
+      console.error('Test error:', error);
+    } finally {
+      setTesting(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="mb-4 text-3xl font-bold text-foreground">Promemoria</h1>
       
-      <Button onClick={() => setShowReminderForm(true)} className="mb-6">
-        <Plus className="mr-2 h-4 w-4" />
-        Nuovo Promemoria
-      </Button>
+      <div className="mb-6 flex gap-2">
+        <Button onClick={() => setShowReminderForm(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Nuovo Promemoria
+        </Button>
+        <Button 
+          onClick={handleTestNotifications} 
+          variant="outline"
+          disabled={testing}
+        >
+          <Bell className="mr-2 h-4 w-4" />
+          {testing ? 'Testing...' : 'Testa Notifiche'}
+        </Button>
+      </div>
 
       <Card>
         <CardContent className="p-0">

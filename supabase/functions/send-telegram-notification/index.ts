@@ -16,7 +16,20 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { message }: TelegramMessageRequest = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON body' }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+
+    const { message } = body as TelegramMessageRequest;
 
     // TODO: Replace with secret when available
     // Use Deno.env.get('TELEGRAM_BOT_TOKEN') and Deno.env.get('TELEGRAM_CHAT_ID')
