@@ -72,3 +72,14 @@ export interface ChartData {
   month: string;
   earnings: number;
 }
+
+export interface Reminder {
+  id: string;
+  metodo: string;
+  conto: string;
+  descrizione: string;
+  dataScadenza: Date;
+  notificaPeriodo: string;
+  stato: 'Nuovo' | 'Letto';
+  createdAt: Date;
+}

@@ -9,6 +9,7 @@ import { WalletProvider } from "./contexts/WalletContext";
 import { AccountProvider } from "./contexts/AccountContext";
 import { BetProvider } from "./contexts/BetContext";
 import { TransactionProvider } from "./contexts/TransactionContext";
+import { ReminderProvider } from "./contexts/ReminderContext";
 import Dashboard from "./pages/Dashboard";
 import Wallets from "./pages/Wallets";
 import Accounts from "./pages/Accounts";
@@ -29,29 +30,31 @@ const App = () => (
         <AccountProvider>
           <BetProvider>
             <TransactionProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <div className="flex min-h-screen flex-col">
-                  <Header />
-                  <main className="flex-1">
-                    <Routes>
-                      <Route path="/" element={<Dashboard />} />
-                      <Route path="/wallets" element={<Wallets />} />
-                      <Route path="/conti" element={<Accounts />} />
-                      <Route path="/puntate" element={<OngoingBets />} />
-                      <Route path="/rapide" element={<QuickBets />} />
-                      <Route path="/archiviate" element={<ArchivedBets />} />
-                      <Route path="/depositi" element={<Deposits />} />
-                      <Route path="/bilancio" element={<Balance />} />
-                      <Route path="/promemoria" element={<Promemoria />} />
-                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </main>
-                  <Footer />
-                </div>
-              </BrowserRouter>
+              <ReminderProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <div className="flex min-h-screen flex-col">
+                    <Header />
+                    <main className="flex-1">
+                      <Routes>
+                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/wallets" element={<Wallets />} />
+                        <Route path="/conti" element={<Accounts />} />
+                        <Route path="/puntate" element={<OngoingBets />} />
+                        <Route path="/rapide" element={<QuickBets />} />
+                        <Route path="/archiviate" element={<ArchivedBets />} />
+                        <Route path="/depositi" element={<Deposits />} />
+                        <Route path="/bilancio" element={<Balance />} />
+                        <Route path="/promemoria" element={<Promemoria />} />
+                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </main>
+                    <Footer />
+                  </div>
+                </BrowserRouter>
+              </ReminderProvider>
             </TransactionProvider>
           </BetProvider>
         </AccountProvider>

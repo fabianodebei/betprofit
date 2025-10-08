@@ -7,12 +7,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAccounts } from '@/contexts/AccountContext';
 import { useWallets } from '@/contexts/WalletContext';
 import { useBets } from '@/contexts/BetContext';
+import { useReminders } from '@/contexts/ReminderContext';
 import { supabase } from '@/integrations/supabase/client';
+import { formatDateTime } from '@/utils/dates';
+import { Button } from '@/components/ui/button';
 
 export default function Dashboard() {
   const { accounts, loading: accountsLoading } = useAccounts();
   const { wallets, loading: walletsLoading } = useWallets();
   const { bets, getArchivedBets, loading: betsLoading } = useBets();
+  const { reminders, updateReminder, loading: remindersLoading } = useReminders();
 
   const archivedBets = getArchivedBets();
   const quickBets = bets.filter(bet => bet.tipo === 'Rapida');
@@ -104,7 +108,14 @@ export default function Dashboard() {
     { month: 'Dic', earnings: monthlyEarnings[11] },
   ];
 
-  const loading = accountsLoading || walletsLoading || betsLoading;
+  const newReminders = reminders.filter(r => r.stato === 'Nuovo');
+  const readReminders = reminders.filter(r => r.stato === 'Letto');
+
+  const handleMarkAsRead = async (id: string) => {
+    await updateReminder(id, { stato: 'Letto' });
+  };
+
+  const loading = accountsLoading || walletsLoading || betsLoading || remindersLoading;
 
   if (loading) {
     return (
@@ -166,18 +177,74 @@ export default function Dashboard() {
           <CardContent>
             <Tabs defaultValue="nuovi" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="nuovi">Nuovi</TabsTrigger>
-                <TabsTrigger value="letti">Letti</TabsTrigger>
+                <TabsTrigger value="nuovi">
+                  Nuovi {newReminders.length > 0 && `(${newReminders.length})`}
+                </TabsTrigger>
+                <TabsTrigger value="letti">
+                  Letti {readReminders.length > 0 && `(${readReminders.length})`}
+                </TabsTrigger>
               </TabsList>
-              <TabsContent value="nuovi" className="mt-4">
-                <p className="text-center text-sm text-muted-foreground py-8">
-                  Nessun messaggio nuovo
-                </p>
+              <TabsContent value="nuovi" className="mt-4 space-y-3">
+                {newReminders.length === 0 ? (
+                  <p className="text-center text-sm text-muted-foreground py-8">
+                    Nessun messaggio nuovo
+                  </p>
+                ) : (
+                  newReminders.map(reminder => (
+                    <div key={reminder.id} className="rounded-lg border p-3 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <div className="font-semibold text-sm">{reminder.metodo}</div>
+                          {reminder.conto && (
+                            <div className="text-xs text-muted-foreground">{reminder.conto}</div>
+                          )}
+                        </div>
+                        <span className="inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800 dark:bg-green-900 dark:text-green-200">
+                          Nuovo
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{reminder.descrizione}</p>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>Scadenza: {formatDateTime(reminder.dataScadenza)}</span>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => handleMarkAsRead(reminder.id)}
+                      >
+                        Segna come letto
+                      </Button>
+                    </div>
+                  ))
+                )}
               </TabsContent>
-              <TabsContent value="letti" className="mt-4">
-                <p className="text-center text-sm text-muted-foreground py-8">
-                  Nessun messaggio letto
-                </p>
+              <TabsContent value="letti" className="mt-4 space-y-3">
+                {readReminders.length === 0 ? (
+                  <p className="text-center text-sm text-muted-foreground py-8">
+                    Nessun messaggio letto
+                  </p>
+                ) : (
+                  readReminders.map(reminder => (
+                    <div key={reminder.id} className="rounded-lg border p-3 space-y-2 opacity-60">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <div className="font-semibold text-sm">{reminder.metodo}</div>
+                          {reminder.conto && (
+                            <div className="text-xs text-muted-foreground">{reminder.conto}</div>
+                          )}
+                        </div>
+                        <span className="inline-flex rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                          Letto
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{reminder.descrizione}</p>
+                      <div className="text-xs text-muted-foreground">
+                        Scadenza: {formatDateTime(reminder.dataScadenza)}
+                      </div>
+                    </div>
+                  ))
+                )}
               </TabsContent>
             </Tabs>
           </CardContent>

@@ -133,6 +133,39 @@ export type Database = {
         }
         Relationships: []
       }
+      reminders: {
+        Row: {
+          conto: string
+          created_at: string
+          data_di_scadenza: string
+          descrizione: string
+          id: string
+          metodo: string
+          notifica_periodo: string
+          stato: string
+        }
+        Insert: {
+          conto: string
+          created_at?: string
+          data_di_scadenza: string
+          descrizione: string
+          id?: string
+          metodo: string
+          notifica_periodo: string
+          stato?: string
+        }
+        Update: {
+          conto?: string
+          created_at?: string
+          data_di_scadenza?: string
+          descrizione?: string
+          id?: string
+          metodo?: string
+          notifica_periodo?: string
+          stato?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           accredito: number | null
