@@ -10,20 +10,28 @@ import { useYear } from '@/contexts/YearContext';
 import { formatCurrency } from '@/utils/currency';
 
 type MonthlyData = {
-  [key: number]: number; // month (0-11) => amount
+  [key: number]: {
+    entrate: number;
+    uscite: number;
+    netto: number;
+  };
 };
 
 type RedditometroEntry = {
   intestatario: string;
   conto: string;
   monthly: MonthlyData;
-  total: number;
+  totalEntrate: number;
+  totalUscite: number;
+  totalNetto: number;
 };
 
 type IntestatarioSummary = {
   intestatario: string;
   monthly: MonthlyData;
-  total: number;
+  totalEntrate: number;
+  totalUscite: number;
+  totalNetto: number;
 };
 
 export default function Redditometro() {
@@ -57,14 +65,30 @@ export default function Redditometro() {
           intestatario: accountInfo.intestatario,
           conto: bet.conto,
           monthly: {},
-          total: 0,
+          totalEntrate: 0,
+          totalUscite: 0,
+          totalNetto: 0,
         });
       }
       
       const entry = grouped.get(key)!;
       const month = bet.dataEvento.getMonth();
-      entry.monthly[month] = (entry.monthly[month] || 0) + (bet.risultato || 0);
-      entry.total += bet.risultato || 0;
+      
+      if (!entry.monthly[month]) {
+        entry.monthly[month] = { entrate: 0, uscite: 0, netto: 0 };
+      }
+      
+      const stake = bet.stake;
+      const risultato = bet.risultato || 0;
+      const vincita = risultato > 0 ? stake + risultato : 0;
+      
+      entry.monthly[month].entrate += vincita;
+      entry.monthly[month].uscite += stake;
+      entry.monthly[month].netto += risultato;
+      
+      entry.totalEntrate += vincita;
+      entry.totalUscite += stake;
+      entry.totalNetto += risultato;
     });
     
     return Array.from(grouped.values());
@@ -79,16 +103,25 @@ export default function Redditometro() {
         summary.set(entry.intestatario, {
           intestatario: entry.intestatario,
           monthly: {},
-          total: 0,
+          totalEntrate: 0,
+          totalUscite: 0,
+          totalNetto: 0,
         });
       }
       
       const sum = summary.get(entry.intestatario)!;
-      Object.entries(entry.monthly).forEach(([month, value]) => {
+      Object.entries(entry.monthly).forEach(([month, data]) => {
         const m = parseInt(month);
-        sum.monthly[m] = (sum.monthly[m] || 0) + value;
+        if (!sum.monthly[m]) {
+          sum.monthly[m] = { entrate: 0, uscite: 0, netto: 0 };
+        }
+        sum.monthly[m].entrate += data.entrate;
+        sum.monthly[m].uscite += data.uscite;
+        sum.monthly[m].netto += data.netto;
       });
-      sum.total += entry.total;
+      sum.totalEntrate += entry.totalEntrate;
+      sum.totalUscite += entry.totalUscite;
+      sum.totalNetto += entry.totalNetto;
     });
     
     return Array.from(summary.values());
@@ -96,7 +129,11 @@ export default function Redditometro() {
 
   // Calculate total redditometro
   const totalRedditometro = useMemo(() => {
-    return redditometroData.reduce((sum, entry) => sum + entry.total, 0);
+    return {
+      entrate: redditometroData.reduce((sum, entry) => sum + entry.totalEntrate, 0),
+      uscite: redditometroData.reduce((sum, entry) => sum + entry.totalUscite, 0),
+      netto: redditometroData.reduce((sum, entry) => sum + entry.totalNetto, 0),
+    };
   }, [redditometroData]);
 
   // Filter data for sommario
@@ -135,9 +172,17 @@ export default function Redditometro() {
         </div>
         <div>
           <h1 className="text-3xl font-bold text-foreground">Redditometro</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            TOTALE REDDITOMETRO: <span className="font-bold text-foreground">{formatCurrency(totalRedditometro)}</span>
-          </p>
+          <div className="flex gap-4 mt-2 text-sm">
+            <p className="text-muted-foreground">
+              Entrate: <span className="font-bold text-green-500">{formatCurrency(totalRedditometro.entrate)}</span>
+            </p>
+            <p className="text-muted-foreground">
+              Uscite: <span className="font-bold text-red-500">{formatCurrency(totalRedditometro.uscite)}</span>
+            </p>
+            <p className="text-muted-foreground">
+              Netto: <span className="font-bold text-foreground">{formatCurrency(totalRedditometro.netto)}</span>
+            </p>
+          </div>
         </div>
       </div>
 
@@ -157,12 +202,24 @@ export default function Redditometro() {
                 <table className="w-full border-collapse">
                   <thead>
                     <tr className="border-b bg-muted/30">
-                      <th className="p-3 text-left text-xs font-semibold sticky left-0 bg-muted/30 z-10">Intestatario</th>
-                      <th className="p-3 text-left text-xs font-semibold sticky left-[150px] bg-muted/30 z-10">Conto</th>
+                      <th className="p-3 text-left text-xs font-semibold sticky left-0 bg-muted/30 z-10" rowSpan={2}>Intestatario</th>
+                      <th className="p-3 text-left text-xs font-semibold sticky left-[150px] bg-muted/30 z-10" rowSpan={2}>Conto</th>
                       {months.map(month => (
-                        <th key={month} className="p-3 text-left text-xs font-semibold whitespace-nowrap">{month}</th>
+                        <th key={month} colSpan={3} className="p-3 text-center text-xs font-semibold whitespace-nowrap border-r">{month}</th>
                       ))}
-                      <th className="p-3 text-left text-xs font-semibold whitespace-nowrap">Totale Anno</th>
+                      <th colSpan={3} className="p-3 text-center text-xs font-semibold whitespace-nowrap">Totale Anno</th>
+                    </tr>
+                    <tr className="border-b bg-muted/30">
+                      {months.map((_, idx) => (
+                        <>
+                          <th key={`${idx}-e`} className="p-2 text-center text-xs font-semibold">E</th>
+                          <th key={`${idx}-u`} className="p-2 text-center text-xs font-semibold">U</th>
+                          <th key={`${idx}-n`} className="p-2 text-center text-xs font-semibold border-r">N</th>
+                        </>
+                      ))}
+                      <th className="p-2 text-center text-xs font-semibold">E</th>
+                      <th className="p-2 text-center text-xs font-semibold">U</th>
+                      <th className="p-2 text-center text-xs font-semibold">N</th>
                     </tr>
                     <tr className="border-b bg-muted/50">
                       <th className="p-2 sticky left-0 bg-muted/50 z-10">
@@ -182,8 +239,14 @@ export default function Redditometro() {
                         />
                       </th>
                       {months.map((_, idx) => (
-                        <th key={idx} className="p-2"></th>
+                        <>
+                          <th key={`${idx}-e`} className="p-2"></th>
+                          <th key={`${idx}-u`} className="p-2"></th>
+                          <th key={`${idx}-n`} className="p-2 border-r"></th>
+                        </>
                       ))}
+                      <th className="p-2"></th>
+                      <th className="p-2"></th>
                       <th className="p-2"></th>
                     </tr>
                   </thead>
@@ -192,13 +255,30 @@ export default function Redditometro() {
                       <tr key={`${entry.intestatario}-${entry.conto}-${idx}`} className="border-b hover:bg-muted/20">
                         <td className="p-3 text-sm sticky left-0 bg-background">{entry.intestatario}</td>
                         <td className="p-3 text-sm sticky left-[150px] bg-background">{entry.conto}</td>
-                        {months.map((_, monthIdx) => (
-                          <td key={monthIdx} className="p-3 text-sm whitespace-nowrap">
-                            {renderValue(entry.monthly[monthIdx] || 0)}
-                          </td>
-                        ))}
-                        <td className="p-3 text-sm font-semibold whitespace-nowrap">
-                          {renderValue(entry.total)}
+                        {months.map((_, monthIdx) => {
+                          const data = entry.monthly[monthIdx] || { entrate: 0, uscite: 0, netto: 0 };
+                          return (
+                            <>
+                              <td key={`${monthIdx}-e`} className="p-2 text-sm text-center whitespace-nowrap">
+                                {renderValue(data.entrate)}
+                              </td>
+                              <td key={`${monthIdx}-u`} className="p-2 text-sm text-center whitespace-nowrap">
+                                {renderValue(-data.uscite)}
+                              </td>
+                              <td key={`${monthIdx}-n`} className="p-2 text-sm text-center whitespace-nowrap border-r">
+                                {renderValue(data.netto)}
+                              </td>
+                            </>
+                          );
+                        })}
+                        <td className="p-2 text-sm font-semibold text-center whitespace-nowrap">
+                          {renderValue(entry.totalEntrate)}
+                        </td>
+                        <td className="p-2 text-sm font-semibold text-center whitespace-nowrap">
+                          {renderValue(-entry.totalUscite)}
+                        </td>
+                        <td className="p-2 text-sm font-semibold text-center whitespace-nowrap">
+                          {renderValue(entry.totalNetto)}
                         </td>
                       </tr>
                     ))}
@@ -222,11 +302,23 @@ export default function Redditometro() {
                 <table className="w-full border-collapse">
                   <thead>
                     <tr className="border-b bg-muted/30">
-                      <th className="p-3 text-left text-xs font-semibold">Intestatario</th>
+                      <th className="p-3 text-left text-xs font-semibold" rowSpan={2}>Intestatario</th>
                       {months.map(month => (
-                        <th key={month} className="p-3 text-left text-xs font-semibold whitespace-nowrap">{month}</th>
+                        <th key={month} colSpan={3} className="p-3 text-center text-xs font-semibold whitespace-nowrap border-r">{month}</th>
                       ))}
-                      <th className="p-3 text-left text-xs font-semibold whitespace-nowrap">Totale Anno</th>
+                      <th colSpan={3} className="p-3 text-center text-xs font-semibold whitespace-nowrap">Totale Anno</th>
+                    </tr>
+                    <tr className="border-b bg-muted/30">
+                      {months.map((_, idx) => (
+                        <>
+                          <th key={`${idx}-e`} className="p-2 text-center text-xs font-semibold">E</th>
+                          <th key={`${idx}-u`} className="p-2 text-center text-xs font-semibold">U</th>
+                          <th key={`${idx}-n`} className="p-2 text-center text-xs font-semibold border-r">N</th>
+                        </>
+                      ))}
+                      <th className="p-2 text-center text-xs font-semibold">E</th>
+                      <th className="p-2 text-center text-xs font-semibold">U</th>
+                      <th className="p-2 text-center text-xs font-semibold">N</th>
                     </tr>
                     <tr className="border-b bg-muted/50">
                       <th className="p-2">
@@ -238,8 +330,14 @@ export default function Redditometro() {
                         />
                       </th>
                       {months.map((_, idx) => (
-                        <th key={idx} className="p-2"></th>
+                        <>
+                          <th key={`${idx}-e`} className="p-2"></th>
+                          <th key={`${idx}-u`} className="p-2"></th>
+                          <th key={`${idx}-n`} className="p-2 border-r"></th>
+                        </>
                       ))}
+                      <th className="p-2"></th>
+                      <th className="p-2"></th>
                       <th className="p-2"></th>
                     </tr>
                   </thead>
@@ -247,13 +345,30 @@ export default function Redditometro() {
                     {filteredDettaglio.map((entry, idx) => (
                       <tr key={`${entry.intestatario}-${idx}`} className="border-b hover:bg-muted/20">
                         <td className="p-3 text-sm">{entry.intestatario}</td>
-                        {months.map((_, monthIdx) => (
-                          <td key={monthIdx} className="p-3 text-sm whitespace-nowrap">
-                            {renderValue(entry.monthly[monthIdx] || 0)}
-                          </td>
-                        ))}
-                        <td className="p-3 text-sm font-semibold whitespace-nowrap">
-                          {renderValue(entry.total)}
+                        {months.map((_, monthIdx) => {
+                          const data = entry.monthly[monthIdx] || { entrate: 0, uscite: 0, netto: 0 };
+                          return (
+                            <>
+                              <td key={`${monthIdx}-e`} className="p-2 text-sm text-center whitespace-nowrap">
+                                {renderValue(data.entrate)}
+                              </td>
+                              <td key={`${monthIdx}-u`} className="p-2 text-sm text-center whitespace-nowrap">
+                                {renderValue(-data.uscite)}
+                              </td>
+                              <td key={`${monthIdx}-n`} className="p-2 text-sm text-center whitespace-nowrap border-r">
+                                {renderValue(data.netto)}
+                              </td>
+                            </>
+                          );
+                        })}
+                        <td className="p-2 text-sm font-semibold text-center whitespace-nowrap">
+                          {renderValue(entry.totalEntrate)}
+                        </td>
+                        <td className="p-2 text-sm font-semibold text-center whitespace-nowrap">
+                          {renderValue(-entry.totalUscite)}
+                        </td>
+                        <td className="p-2 text-sm font-semibold text-center whitespace-nowrap">
+                          {renderValue(entry.totalNetto)}
                         </td>
                       </tr>
                     ))}
