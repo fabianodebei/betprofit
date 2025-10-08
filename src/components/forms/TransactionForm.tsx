@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { TimePicker } from '@/components/ui/time-picker';
@@ -42,6 +42,7 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
   const { wallets, updateWallet } = useWallets();
   const [openContoCombobox, setOpenContoCombobox] = useState(false);
   const [selectedIntestatario, setSelectedIntestatario] = useState<string>('');
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
   const form = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
@@ -59,6 +60,16 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
   const filteredWallets = selectedIntestatario 
     ? wallets.filter(w => w.intestatario === selectedIntestatario && w.stato === 'Abilitato')
     : [];
+
+  const contoValue = form.watch('conto');
+
+  const selectedAccount = useMemo(() => {
+    if (selectedAccountId) return accounts.find(a => a.id === selectedAccountId) || null;
+    if (!contoValue) return null;
+    const both = accounts.find(a => a.conto === contoValue && a.intestatario === selectedIntestatario);
+    if (both) return both;
+    return accounts.find(a => a.conto === contoValue) || null;
+  }, [selectedAccountId, accounts, selectedIntestatario, contoValue]);
 
   const onSubmit = async (data: TransactionFormData) => {
     const metodo = data.metodo;
@@ -112,6 +123,7 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
 
     form.reset();
     setSelectedIntestatario('');
+    setSelectedAccountId(null);
     onOpenChange(false);
   };
 
@@ -120,6 +132,7 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Nuovo Movimento</DialogTitle>
+          <DialogDescription>Compila i dettagli del movimento</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -162,10 +175,7 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
                             !field.value && "text-muted-foreground"
                           )}
                         >
-                          {field.value
-                            ? accounts.find((account) => account.conto === field.value)?.conto + 
-                              " (" + accounts.find((account) => account.conto === field.value)?.intestatario + ")"
-                            : "Seleziona Conto"}
+                          {selectedAccount ? `${selectedAccount.conto} (${selectedAccount.intestatario})` : "Seleziona Conto"}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </FormControl>
@@ -186,6 +196,7 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
                                 onSelect={() => {
                                   field.onChange(account.conto);
                                   setSelectedIntestatario(account.intestatario);
+                                  setSelectedAccountId(account.id);
                                   form.setValue('wallet', '');
                                   setOpenContoCombobox(false);
                                 }}
@@ -193,9 +204,7 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
                                 <Check
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    account.conto === field.value
-                                      ? "opacity-100"
-                                      : "opacity-0"
+                                    account.id === selectedAccountId ? "opacity-100" : "opacity-0"
                                   )}
                                 />
                                 {account.conto} ({account.intestatario})
