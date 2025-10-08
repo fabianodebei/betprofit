@@ -8,6 +8,8 @@ import { useAccounts } from '@/contexts/AccountContext';
 import { useWallets } from '@/contexts/WalletContext';
 import { formatCurrency } from '@/utils/currency';
 import { formatDate } from '@/utils/dates';
+import { MovementDetailDialog } from '@/components/dialogs/MovementDetailDialog';
+import { Bet, Transaction } from '@/types';
 
 type Movement = {
   id: string;
@@ -17,6 +19,7 @@ type Movement = {
   metodo: string;
   movimento: number;
   type: 'bet' | 'transaction';
+  originalData: Bet | Transaction;
 };
 
 export default function Transactions() {
@@ -28,6 +31,19 @@ export default function Transactions() {
   const [filterConto, setFilterConto] = useState('all');
   const [filterWallet, setFilterWallet] = useState('all');
   const [filterMetodo, setFilterMetodo] = useState('all');
+  const [selectedMovement, setSelectedMovement] = useState<{
+    data: Bet | Transaction;
+    type: 'bet' | 'transaction';
+  } | null>(null);
+  const [showDetail, setShowDetail] = useState(false);
+
+  const handleShowDetail = (movement: Movement) => {
+    setSelectedMovement({
+      data: movement.originalData,
+      type: movement.type,
+    });
+    setShowDetail(true);
+  };
 
   // Combine bets and transactions into movements
   const allMovements = useMemo(() => {
@@ -44,6 +60,7 @@ export default function Transactions() {
         metodo: bet.tipo === 'Rapida' ? 'Giocata Rapida' : 'Giocata',
         movimento: -bet.stake,
         type: 'bet',
+        originalData: bet,
       });
 
       // If archived, add result as separate movement
@@ -56,6 +73,7 @@ export default function Transactions() {
           metodo: bet.tipo === 'Rapida' ? 'Giocata Rapida' : 'Giocata',
           movimento: bet.risultato,
           type: 'bet',
+          originalData: bet,
         });
       }
     });
@@ -77,6 +95,7 @@ export default function Transactions() {
             ? Math.abs(transaction.accredito) 
             : 0,
         type: 'transaction',
+        originalData: transaction,
       });
     });
 
@@ -190,6 +209,7 @@ export default function Transactions() {
                         size="sm" 
                         variant="link" 
                         className="text-teal-600 hover:text-teal-700"
+                        onClick={() => handleShowDetail(movement)}
                       >
                         Dettaglio
                       </Button>
@@ -201,6 +221,12 @@ export default function Transactions() {
           </div>
         </CardContent>
       </Card>
+
+      <MovementDetailDialog 
+        open={showDetail} 
+        onOpenChange={setShowDetail}
+        movement={selectedMovement}
+      />
     </div>
   );
 }
