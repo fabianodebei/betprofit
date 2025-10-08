@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { useAccounts } from '@/contexts/AccountContext';
 import { useBooks } from '@/contexts/BookContext';
+import { useIntestatari } from '@/contexts/IntestatariContext';
 import { Account } from '@/types';
 
 const accountSchema = z.object({
@@ -28,8 +29,9 @@ interface AccountFormProps {
 }
 
 export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormProps) {
-  const { addAccount, updateAccount, accounts } = useAccounts();
+  const { addAccount, updateAccount } = useAccounts();
   const { books } = useBooks();
+  const { intestatari } = useIntestatari();
 
   // Lista book dalla tabella, solo abilitati, ordinati alfabeticamente - si aggiorna automaticamente
   const availableBooks = useMemo(() => 
@@ -37,6 +39,14 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
       .filter(book => book.stato === 'Abilitato')
       .sort((a, b) => a.nome.localeCompare(b.nome, 'it', { sensitivity: 'base' })),
     [books]
+  );
+
+  // Lista intestatari abilitati, ordinati alfabeticamente
+  const availableIntestatari = useMemo(() =>
+    intestatari
+      .filter(int => int.stato === 'Abilitato')
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'it', { sensitivity: 'base' })),
+    [intestatari]
   );
 
   const form = useForm<AccountFormData>({
@@ -110,11 +120,9 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
                         {...field}
                       />
                       <datalist id="intestatari-list">
-                        {[...new Set(accounts.map(a => a.intestatario))]
-                          .sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }))
-                          .map((intestatario) => (
-                            <option key={intestatario} value={intestatario} />
-                          ))}
+                        {availableIntestatari.map((intestatario) => (
+                          <option key={intestatario.id} value={intestatario.nome} />
+                        ))}
                       </datalist>
                     </div>
                   </FormControl>

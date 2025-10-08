@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useBets } from '@/contexts/BetContext';
 import { useAccounts } from '@/contexts/AccountContext';
+import { useIntestatari } from '@/contexts/IntestatariContext';
 import { CASINO_MARKETS } from '@/constants/markets';
 import { Bet } from '@/types';
 const casinoBetSchema = z.object({
@@ -50,8 +51,12 @@ export function CasinoBetForm({
     accounts,
     updateAccount
   } = useAccounts();
+  const { intestatari } = useIntestatari();
   const [tipoBonus, setTipoBonus] = useState<'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet'>('Nessuno');
   const [selectedIntestatario, setSelectedIntestatario] = useState<string>('');
+
+  // Get available intestatari (abilitati)
+  const availableIntestatari = intestatari.filter(int => int.stato === 'Abilitato');
   const form = useForm<CasinoBetFormData>({
     resolver: zodResolver(casinoBetSchema),
     defaultValues: {
@@ -221,8 +226,8 @@ export function CasinoBetForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {[...new Set(accounts.map(a => a.intestatario))].map(intestatario => <SelectItem key={intestatario} value={intestatario}>
-                          {intestatario}
+                      {availableIntestatari.map(intestatario => <SelectItem key={intestatario.id} value={intestatario.nome}>
+                          {intestatario.nome}
                         </SelectItem>)}
                     </SelectContent>
                   </Select>

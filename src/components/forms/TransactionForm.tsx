@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { useTransactions } from '@/contexts/TransactionContext';
 import { useAccounts } from '@/contexts/AccountContext';
 import { useWallets } from '@/contexts/WalletContext';
+import { useIntestatari } from '@/contexts/IntestatariContext';
 import { toast } from 'sonner';
 
 const transactionSchema = z.object({
@@ -40,7 +41,11 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
   const { addTransaction } = useTransactions();
   const { accounts, updateAccount } = useAccounts();
   const { wallets, updateWallet } = useWallets();
+  const { intestatari } = useIntestatari();
   const [selectedIntestatario, setSelectedIntestatario] = useState<string>('');
+
+  // Get available intestatari (abilitati)
+  const availableIntestatari = intestatari.filter(int => int.stato === 'Abilitato');
 
   const form = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
@@ -159,9 +164,9 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent position="popper" className="z-[70] bg-popover">
-                      {[...new Set(accounts.map(a => a.intestatario))].map((intestatario) => (
-                        <SelectItem key={intestatario} value={intestatario}>
-                          {intestatario}
+                      {availableIntestatari.map((intestatario) => (
+                        <SelectItem key={intestatario.id} value={intestatario.nome}>
+                          {intestatario.nome}
                         </SelectItem>
                       ))}
                     </SelectContent>

@@ -18,6 +18,7 @@ import { useAccounts } from '@/contexts/AccountContext';
 import { useTags } from '@/contexts/TagContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useWallets } from '@/contexts/WalletContext';
+import { useIntestatari } from '@/contexts/IntestatariContext';
 import { SPORT_MARKETS } from '@/constants/markets';
 import { Bet } from '@/types';
 
@@ -55,6 +56,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
   const { tags } = useTags();
   const { settings } = useSettings();
   const { wallets } = useWallets();
+  const { intestatari } = useIntestatari();
   const [tipoBonus, setTipoBonus] = useState<'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet'>('Nessuno');
   const [selectedIntestatario, setSelectedIntestatario] = useState<string>('');
   const [selectedConto, setSelectedConto] = useState<string>('');
@@ -86,6 +88,9 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
   const selectedWallet = selectedAccount?.walletId 
     ? wallets.find(w => w.id === selectedAccount.walletId) 
     : null;
+
+  // Get available intestatari (abilitati)
+  const availableIntestatari = intestatari.filter(int => int.stato === 'Abilitato');
 
   useEffect(() => {
     if (editingBet && open) {
@@ -327,9 +332,9 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {[...new Set(accounts.map(a => a.intestatario))].map((intestatario) => (
-                        <SelectItem key={intestatario} value={intestatario}>
-                          {intestatario}
+                      {availableIntestatari.map((intestatario) => (
+                        <SelectItem key={intestatario.id} value={intestatario.nome}>
+                          {intestatario.nome}
                         </SelectItem>
                       ))}
                     </SelectContent>

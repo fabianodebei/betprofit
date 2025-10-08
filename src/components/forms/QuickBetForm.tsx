@@ -19,6 +19,7 @@ import { useAccounts } from '@/contexts/AccountContext';
 import { useTags } from '@/contexts/TagContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useWallets } from '@/contexts/WalletContext';
+import { useIntestatari } from '@/contexts/IntestatariContext';
 import { QUICK_BET_METHODS } from '@/constants/markets';
 import { toast } from 'sonner';
 
@@ -56,6 +57,7 @@ export function QuickBetForm({
   const { tags } = useTags();
   const { settings } = useSettings();
   const { wallets } = useWallets();
+  const { intestatari } = useIntestatari();
   const [selectedIntestatario, setSelectedIntestatario] = useState<string>('');
   const [selectedConto, setSelectedConto] = useState<string>('');
   
@@ -79,6 +81,9 @@ export function QuickBetForm({
   const selectedWallet = selectedAccount?.walletId 
     ? wallets.find(w => w.id === selectedAccount.walletId) 
     : null;
+
+  // Get available intestatari (abilitati)
+  const availableIntestatari = intestatari.filter(int => int.stato === 'Abilitato');
 
   // Reset form with editing bet data when it changes
   useEffect(() => {
@@ -178,8 +183,8 @@ export function QuickBetForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {[...new Set(accounts.map(a => a.intestatario))].map(intestatario => <SelectItem key={intestatario} value={intestatario}>
-                          {intestatario}
+                      {availableIntestatari.map(intestatario => <SelectItem key={intestatario.id} value={intestatario.nome}>
+                          {intestatario.nome}
                         </SelectItem>)}
                     </SelectContent>
                   </Select>
