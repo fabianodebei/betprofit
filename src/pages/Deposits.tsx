@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, ArrowRightLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TransactionForm } from '@/components/forms/TransactionForm';
@@ -8,81 +8,174 @@ import { Badge } from '@/components/common/Badge';
 import { useTransactions } from '@/contexts/TransactionContext';
 import { formatCurrency } from '@/utils/currency';
 import { formatDateTime } from '@/utils/dates';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function Deposits() {
   const { transactions, deleteTransaction } = useTransactions();
   const [showTransactionForm, setShowTransactionForm] = useState(false);
+  
+  // Filter states
+  const [filterMetodo, setFilterMetodo] = useState('');
+  const [filterConto, setFilterConto] = useState('');
+  const [filterAddebito, setFilterAddebito] = useState('');
+  const [filterAccredito, setFilterAccredito] = useState('');
+  const [filterWallet, setFilterWallet] = useState('');
+  const [filterDescrizione, setFilterDescrizione] = useState('');
+
+  // Filtered transactions
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter(transaction => {
+      if (filterMetodo && transaction.metodo !== filterMetodo) return false;
+      if (filterConto && !transaction.conto.toLowerCase().includes(filterConto.toLowerCase())) return false;
+      if (filterAddebito && transaction.addebito && !transaction.addebito.toString().includes(filterAddebito)) return false;
+      if (filterAccredito && transaction.accredito && !transaction.accredito.toString().includes(filterAccredito)) return false;
+      if (filterWallet && transaction.wallet && !transaction.wallet.toLowerCase().includes(filterWallet.toLowerCase())) return false;
+      if (filterDescrizione && transaction.descrizione && !transaction.descrizione.toLowerCase().includes(filterDescrizione.toLowerCase())) return false;
+      return true;
+    });
+  }, [transactions, filterMetodo, filterConto, filterAddebito, filterAccredito, filterWallet, filterDescrizione]);
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-foreground">Depositi/Prelievi</h1>
-        <Button onClick={() => setShowTransactionForm(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Nuovo Movimento
-        </Button>
+      <h1 className="mb-4 text-3xl font-bold text-foreground">Depositi/Prelievi</h1>
+      
+      <Button onClick={() => setShowTransactionForm(true)} className="mb-6">
+        <Plus className="mr-2 h-4 w-4" />
+        Nuovo Movimento
+      </Button>
+
+      <div className="mb-4 text-sm text-muted-foreground">
+        Visualizzo 1-{filteredTransactions.length} di {transactions.length} elementi.
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Movimenti Registrati</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {transactions.length === 0 ? (
-            <EmptyState
-              icon={ArrowRightLeft}
-              title="Nessun movimento registrato"
-              description="Inizia a tracciare i tuoi depositi, prelievi e spese."
-              action={
-                <Button onClick={() => setShowTransactionForm(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Nuovo Movimento
-                </Button>
-              }
-            />
+            <div className="p-8">
+              <EmptyState
+                icon={ArrowRightLeft}
+                title="Nessun movimento registrato"
+                description="Inizia a tracciare i tuoi depositi, prelievi e spese."
+                action={
+                  <Button onClick={() => setShowTransactionForm(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Nuovo Movimento
+                  </Button>
+                }
+              />
+            </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full border-collapse">
                 <thead>
-                  <tr className="border-b bg-muted/50">
-                    <th className="p-3 text-left text-xs font-semibold uppercase">#</th>
-                    <th className="p-3 text-left text-xs font-semibold uppercase">Metodo</th>
-                    <th className="p-3 text-left text-xs font-semibold uppercase">Registrato</th>
-                    <th className="p-3 text-left text-xs font-semibold uppercase">Conto</th>
-                    <th className="p-3 text-left text-xs font-semibold uppercase">Addebito</th>
-                    <th className="p-3 text-left text-xs font-semibold uppercase">Accredito</th>
-                    <th className="p-3 text-left text-xs font-semibold uppercase">Wallet</th>
-                    <th className="p-3 text-left text-xs font-semibold uppercase">Descrizione</th>
-                    <th className="p-3 text-left text-xs font-semibold uppercase">Azioni</th>
+                  <tr className="border-b">
+                    <th className="p-3 text-left text-xs font-semibold">#</th>
+                    <th className="p-3 text-left text-xs font-semibold">Metodo</th>
+                    <th className="p-3 text-left text-xs font-semibold">Registrato</th>
+                    <th className="p-3 text-left text-xs font-semibold">Conto</th>
+                    <th className="p-3 text-left text-xs font-semibold">Addebito</th>
+                    <th className="p-3 text-left text-xs font-semibold">Accredito</th>
+                    <th className="p-3 text-left text-xs font-semibold">Wallet</th>
+                    <th className="p-3 text-left text-xs font-semibold">Addebito</th>
+                    <th className="p-3 text-left text-xs font-semibold">Accredito</th>
+                    <th className="p-3 text-left text-xs font-semibold">Descrizione</th>
+                    <th className="p-3 text-left text-xs font-semibold">Opzioni</th>
+                  </tr>
+                  <tr className="border-b bg-muted/30">
+                    <th className="p-2"></th>
+                    <th className="p-2">
+                      <Select value={filterMetodo} onValueChange={setFilterMetodo}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue placeholder="Seleziona Metodo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Tutti</SelectItem>
+                          <SelectItem value="Deposito">Deposito</SelectItem>
+                          <SelectItem value="Prelievo">Prelievo</SelectItem>
+                          <SelectItem value="Spesa">Spesa</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </th>
+                    <th className="p-2"></th>
+                    <th className="p-2">
+                      <Input
+                        placeholder="Filtra Conto"
+                        value={filterConto}
+                        onChange={(e) => setFilterConto(e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                    </th>
+                    <th className="p-2">
+                      <Input
+                        placeholder=""
+                        value={filterAddebito}
+                        onChange={(e) => setFilterAddebito(e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                    </th>
+                    <th className="p-2">
+                      <Input
+                        placeholder=""
+                        value={filterAccredito}
+                        onChange={(e) => setFilterAccredito(e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                    </th>
+                    <th className="p-2">
+                      <Input
+                        placeholder="Filtra"
+                        value={filterWallet}
+                        onChange={(e) => setFilterWallet(e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                    </th>
+                    <th className="p-2">
+                      <Input
+                        placeholder=""
+                        className="h-8 text-xs"
+                        disabled
+                      />
+                    </th>
+                    <th className="p-2">
+                      <Input
+                        placeholder=""
+                        className="h-8 text-xs"
+                        disabled
+                      />
+                    </th>
+                    <th className="p-2">
+                      <Input
+                        placeholder=""
+                        value={filterDescrizione}
+                        onChange={(e) => setFilterDescrizione(e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                    </th>
+                    <th className="p-2"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.map((transaction, idx) => (
-                    <tr key={transaction.id} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
+                  {filteredTransactions.map((transaction, idx) => (
+                    <tr key={transaction.id} className="border-b hover:bg-muted/20">
                       <td className="p-3 text-sm">{idx + 1}</td>
-                      <td className="p-3">
-                        <Badge
-                          variant={
-                            transaction.metodo === 'Deposito'
-                              ? 'success'
-                              : transaction.metodo === 'Prelievo'
-                              ? 'info'
-                              : 'warning'
-                          }
-                        >
-                          {transaction.metodo}
-                        </Badge>
-                      </td>
+                      <td className="p-3 text-sm">{transaction.metodo}</td>
                       <td className="p-3 text-sm">{formatDateTime(transaction.registrato)}</td>
                       <td className="p-3 text-sm">{transaction.conto}</td>
-                      <td className="p-3 text-sm font-semibold text-success">
-                        {transaction.addebito ? formatCurrency(transaction.addebito) : '-'}
+                      <td className="p-3 text-sm font-semibold" style={{ color: transaction.addebito && transaction.addebito < 0 ? '#ef4444' : transaction.addebito ? '#22c55e' : undefined }}>
+                        {transaction.addebito ? formatCurrency(transaction.addebito) : ''}
                       </td>
-                      <td className="p-3 text-sm font-semibold text-destructive">
-                        {transaction.accredito ? formatCurrency(transaction.accredito) : '-'}
+                      <td className="p-3 text-sm font-semibold" style={{ color: transaction.accredito && transaction.accredito < 0 ? '#ef4444' : transaction.accredito ? '#22c55e' : undefined }}>
+                        {transaction.accredito ? formatCurrency(transaction.accredito) : ''}
                       </td>
-                      <td className="p-3 text-sm">{transaction.wallet || '-'}</td>
-                      <td className="p-3 text-sm">{transaction.descrizione || '-'}</td>
+                      <td className="p-3 text-sm">{transaction.wallet || ''}</td>
+                      <td className="p-3 text-sm font-semibold" style={{ color: transaction.addebito && transaction.addebito < 0 ? '#ef4444' : transaction.addebito ? '#22c55e' : undefined }}>
+                        {transaction.addebito ? formatCurrency(-transaction.addebito) : ''}
+                      </td>
+                      <td className="p-3 text-sm font-semibold" style={{ color: transaction.accredito && transaction.accredito < 0 ? '#ef4444' : transaction.accredito ? '#22c55e' : undefined }}>
+                        {transaction.accredito ? formatCurrency(-transaction.accredito) : ''}
+                      </td>
+                      <td className="p-3 text-sm">{transaction.descrizione || ''}</td>
                       <td className="p-3">
                         <Button size="sm" variant="destructive" onClick={() => deleteTransaction(transaction.id)}>
                           Elimina
@@ -92,9 +185,6 @@ export default function Deposits() {
                   ))}
                 </tbody>
               </table>
-              <div className="mt-4 text-sm text-muted-foreground">
-                Visualizzo 1-{transactions.length} di {transactions.length} elementi
-              </div>
             </div>
           )}
         </CardContent>
