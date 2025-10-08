@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useBets } from '@/contexts/BetContext';
 import { useAccounts } from '@/contexts/AccountContext';
+import { useTags } from '@/contexts/TagContext';
 import { QUICK_BET_METHODS } from '@/constants/markets';
 import { toast } from 'sonner';
 const quickBetSchema = z.object({
@@ -24,7 +25,8 @@ const quickBetSchema = z.object({
   metodo: z.string().trim().min(1, 'Metodo è obbligatorio').max(100),
   movimento: z.number(),
   registrato: z.date(),
-  note: z.string().trim().max(500).optional()
+  note: z.string().trim().max(500).optional(),
+  tag: z.string().optional()
 });
 type QuickBetFormData = z.infer<typeof quickBetSchema>;
 interface QuickBetFormProps {
@@ -45,6 +47,7 @@ export function QuickBetForm({
     accounts,
     updateAccount
   } = useAccounts();
+  const { tags } = useTags();
   const [selectedIntestatario, setSelectedIntestatario] = useState<string>('');
   const form = useForm<QuickBetFormData>({
     resolver: zodResolver(quickBetSchema),
@@ -54,7 +57,8 @@ export function QuickBetForm({
       metodo: '',
       movimento: 0,
       registrato: new Date(),
-      note: ''
+      note: '',
+      tag: ''
     }
   });
 
@@ -70,7 +74,8 @@ export function QuickBetForm({
         metodo: editingBet.metodo || '',
         movimento: editingBet.stake || 0,
         registrato: editingBet.dataEvento || new Date(),
-        note: editingBet.note || ''
+        note: editingBet.note || '',
+        tag: editingBet.tag || ''
       });
       setSelectedIntestatario(intestatario);
     } else {
@@ -80,7 +85,8 @@ export function QuickBetForm({
         metodo: '',
         movimento: 0,
         registrato: new Date(),
-        note: ''
+        note: '',
+        tag: ''
       });
       setSelectedIntestatario('');
     }
@@ -94,7 +100,8 @@ export function QuickBetForm({
         stake: data.movimento,
         metodo: data.metodo,
         dataEvento: data.registrato,
-        note: data.note
+        note: data.note,
+        tag: data.tag
       });
       if (account) {
         const oldStake = editingBet.stake || 0;
@@ -117,7 +124,8 @@ export function QuickBetForm({
         metodo: data.metodo,
         stato: 'In Corso',
         dataEvento: data.registrato,
-        note: data.note
+        note: data.note,
+        tag: data.tag
       });
     }
     form.reset();
@@ -236,6 +244,27 @@ export function QuickBetForm({
                   <FormControl>
                     <Textarea placeholder="Note aggiuntive..." {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>} />
+            <FormField control={form.control} name="tag" render={({
+            field
+          }) => <FormItem>
+                  <FormLabel>Tag</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleziona tag (opzionale)" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="">Nessuno</SelectItem>
+                      {tags.map((tag) => (
+                        <SelectItem key={tag.id} value={tag.nome}>
+                          {tag.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>} />
             <DialogFooter>

@@ -47,6 +47,7 @@ export default function Settings() {
       icon: Tag,
       title: 'Tag Personali',
       description: 'Gestisci i tag personalizzati',
+      path: '/impostazioni/tags',
     },
   ];
 

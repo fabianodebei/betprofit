@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useBets } from '@/contexts/BetContext';
 import { useAccounts } from '@/contexts/AccountContext';
+import { useTags } from '@/contexts/TagContext';
 import { SPORT_MARKETS } from '@/constants/markets';
 import { Bet } from '@/types';
 
@@ -32,6 +33,7 @@ const singleBetSchema = z.object({
   rimborso: z.number().optional(),
   urlEvento: z.string().optional(),
   competizione: z.string().optional(),
+  tag: z.string().optional(),
 });
 
 type SingleBetFormData = z.infer<typeof singleBetSchema>;
@@ -46,6 +48,7 @@ interface SingleBetFormProps {
 export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' }: SingleBetFormProps) {
   const { addBet, updateBet } = useBets();
   const { accounts, updateAccount } = useAccounts();
+  const { tags } = useTags();
   const [tipoBonus, setTipoBonus] = useState<'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet'>('Nessuno');
   const [selectedIntestatario, setSelectedIntestatario] = useState<string>('');
 
@@ -65,6 +68,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
       rimborso: 0,
       urlEvento: '',
       competizione: '',
+      tag: '',
     },
   });
 
@@ -87,6 +91,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         rimborso: editingBet.rimborso || 0,
         urlEvento: editingBet.urlEvento || '',
         competizione: editingBet.competizione || '',
+        tag: editingBet.tag || '',
       });
       setSelectedIntestatario(intestatario);
       setTipoBonus(editingBet.tipoBonus || 'Nessuno');
@@ -105,6 +110,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         rimborso: 0,
         urlEvento: '',
         competizione: '',
+        tag: '',
       });
       setSelectedIntestatario('');
       setTipoBonus('Nessuno');
@@ -127,6 +133,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         rimborso: data.rimborso,
         urlEvento: data.urlEvento,
         competizione: data.competizione,
+        tag: data.tag,
       });
     } else {
       // Modalità crea/clona: crea una nuova scommessa
@@ -153,6 +160,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         mercato: data.mercato,
         urlEvento: data.urlEvento,
         competizione: data.competizione,
+        tag: data.tag,
       });
     }
 
@@ -476,6 +484,31 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                   <FormControl>
                     <Input placeholder="Es: Serie A" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="tag"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tag</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleziona tag (opzionale)" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="">Nessuno</SelectItem>
+                      {tags.map((tag) => (
+                        <SelectItem key={tag.id} value={tag.nome}>
+                          {tag.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
