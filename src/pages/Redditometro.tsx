@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useBets } from '@/contexts/BetContext';
+import { useTransactions } from '@/contexts/TransactionContext';
 import { useAccounts } from '@/contexts/AccountContext';
 import { useYear } from '@/contexts/YearContext';
 import { formatCurrency } from '@/utils/currency';
@@ -35,7 +35,7 @@ type IntestatarioSummary = {
 };
 
 export default function Redditometro() {
-  const { bets } = useBets();
+  const { transactions } = useTransactions();
   const { accounts } = useAccounts();
   const { selectedYear } = useYear();
   
@@ -43,27 +43,24 @@ export default function Redditometro() {
   const [filterConto, setFilterConto] = useState('');
   const [filterIntestatarioDetail, setFilterIntestatarioDetail] = useState('');
 
-  // Calculate redditometro data from archived bets
+  // Calculate redditometro data from transactions
   const redditometroData = useMemo(() => {
-    const data: RedditometroEntry[] = [];
-    const archivedBets = bets.filter(bet => 
-      bet.stato === 'Archiviata' && 
-      bet.risultato !== undefined &&
-      bet.dataEvento.getFullYear() === selectedYear
+    const filteredTransactions = transactions.filter(transaction => 
+      transaction.registrato.getFullYear() === selectedYear
     );
     
     // Group by intestatario and conto
     const grouped = new Map<string, RedditometroEntry>();
     
-    archivedBets.forEach(bet => {
-      const accountInfo = accounts.find(acc => acc.conto === bet.conto);
+    filteredTransactions.forEach(transaction => {
+      const accountInfo = accounts.find(acc => acc.conto === transaction.conto);
       if (!accountInfo) return;
       
-      const key = `${accountInfo.intestatario}|${bet.conto}`;
+      const key = `${accountInfo.intestatario}|${transaction.conto}`;
       if (!grouped.has(key)) {
         grouped.set(key, {
           intestatario: accountInfo.intestatario,
-          conto: bet.conto,
+          conto: transaction.conto,
           monthly: {},
           totalEntrate: 0,
           totalUscite: 0,
@@ -72,27 +69,26 @@ export default function Redditometro() {
       }
       
       const entry = grouped.get(key)!;
-      const month = bet.dataEvento.getMonth();
+      const month = transaction.registrato.getMonth();
       
       if (!entry.monthly[month]) {
         entry.monthly[month] = { entrate: 0, uscite: 0, netto: 0 };
       }
       
-      const stake = bet.stake;
-      const risultato = bet.risultato || 0;
-      const vincita = risultato > 0 ? stake + risultato : 0;
+      const accredito = transaction.accredito || 0;
+      const addebito = transaction.addebito || 0;
       
-      entry.monthly[month].entrate += vincita;
-      entry.monthly[month].uscite += stake;
-      entry.monthly[month].netto += risultato;
+      entry.monthly[month].entrate += accredito;
+      entry.monthly[month].uscite += addebito;
+      entry.monthly[month].netto += (accredito - addebito);
       
-      entry.totalEntrate += vincita;
-      entry.totalUscite += stake;
-      entry.totalNetto += risultato;
+      entry.totalEntrate += accredito;
+      entry.totalUscite += addebito;
+      entry.totalNetto += (accredito - addebito);
     });
     
     return Array.from(grouped.values());
-  }, [bets, accounts, selectedYear]);
+  }, [transactions, accounts, selectedYear]);
 
   // Calculate intestatario summary
   const intestatarioSummary = useMemo(() => {
