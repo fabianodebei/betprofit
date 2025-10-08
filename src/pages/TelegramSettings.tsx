@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -26,16 +26,21 @@ const TelegramSettings = () => {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      telegram_bot_token: config?.telegram_bot_token || '',
-      telegram_chat_id: config?.telegram_chat_id || '',
-      notifications_enabled: config?.notifications_enabled ?? true,
-    },
-    values: {
-      telegram_bot_token: config?.telegram_bot_token || '',
-      telegram_chat_id: config?.telegram_chat_id || '',
-      notifications_enabled: config?.notifications_enabled ?? true,
+      telegram_bot_token: '',
+      telegram_chat_id: '',
+      notifications_enabled: true,
     },
   });
+
+  useEffect(() => {
+    if (config) {
+      form.reset({
+        telegram_bot_token: config.telegram_bot_token || '',
+        telegram_chat_id: config.telegram_chat_id || '',
+        notifications_enabled: config.notifications_enabled ?? true,
+      });
+    }
+  }, [config, form]);
 
   const handleSubmit = async (data: FormData) => {
     setIsSubmitting(true);
