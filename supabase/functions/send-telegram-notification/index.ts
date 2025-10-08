@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,6 +8,7 @@ const corsHeaders = {
 
 interface TelegramMessageRequest {
   message: string;
+  user_id: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -29,16 +31,76 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { message } = body as TelegramMessageRequest;
+    const { message, user_id } = body as TelegramMessageRequest;
 
-    // TODO: Replace with secret when available
-    // Use Deno.env.get('TELEGRAM_BOT_TOKEN') and Deno.env.get('TELEGRAM_CHAT_ID')
-    const TELEGRAM_BOT_TOKEN = '8060304129:AAGKW7jxpQsw8fwRbZjWLBUd7MD4dLLolp8';
-    const TELEGRAM_CHAT_ID = '77204387';
+    if (!user_id) {
+      return new Response(
+        JSON.stringify({ error: 'user_id is required' }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
 
-    const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    // Get user's Telegram configuration
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log('Sending Telegram notification...');
+    const { data: config, error: configError } = await supabase
+      .from('user_telegram_config')
+      .select('*')
+      .eq('user_id', user_id)
+      .single();
+
+    if (configError || !config) {
+      console.log('No Telegram configuration found for user:', user_id);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'User has no Telegram configuration' 
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+
+    // Check if notifications are enabled
+    if (!config.notifications_enabled) {
+      console.log('Notifications disabled for user:', user_id);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'Notifications are disabled for this user' 
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+
+    // Check if user has configured Telegram credentials
+    if (!config.telegram_bot_token || !config.telegram_chat_id) {
+      console.log('User has not configured Telegram credentials:', user_id);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'User has not configured Telegram credentials' 
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+
+    const telegramUrl = `https://api.telegram.org/bot${config.telegram_bot_token}/sendMessage`;
+
+    console.log('Sending Telegram notification to user:', user_id);
 
     const response = await fetch(telegramUrl, {
       method: 'POST',
@@ -46,7 +108,7 @@ const handler = async (req: Request): Promise<Response> => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        chat_id: TELEGRAM_CHAT_ID,
+        chat_id: config.telegram_chat_id,
         text: message,
         parse_mode: 'HTML',
       }),
@@ -59,7 +121,7 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`Telegram API error: ${JSON.stringify(data)}`);
     }
 
-    console.log('Telegram notification sent successfully:', data);
+    console.log('Telegram notification sent successfully to user:', user_id);
 
     return new Response(
       JSON.stringify({ success: true, data }),

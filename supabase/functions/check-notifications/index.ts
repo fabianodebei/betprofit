@@ -48,7 +48,7 @@ async function checkReminders(supabase: any, supabaseUrl: string, serviceKey: st
 
   const { data: reminders, error } = await supabase
     .from('reminders')
-    .select('*')
+    .select('*, user_id')
     .eq('stato', 'Nuovo');
 
   if (error) {
@@ -122,7 +122,10 @@ async function checkReminders(supabase: any, supabaseUrl: string, serviceKey: st
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${serviceKey}`,
         },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ 
+          message,
+          user_id: reminder.user_id 
+        }),
       });
 
       // Log notification
@@ -149,7 +152,7 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
 
   const { data: bets, error } = await supabase
     .from('bets')
-    .select('*')
+    .select('*, user_id')
     .eq('stato', 'In Corso')
     .neq('tipo', 'Rapida');
 
@@ -236,7 +239,10 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${serviceKey}`,
         },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ 
+          message,
+          user_id: bet.user_id 
+        }),
       });
 
       // Log notification

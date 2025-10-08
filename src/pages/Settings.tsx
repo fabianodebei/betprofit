@@ -1,4 +1,4 @@
-import { Wrench, List, Euro, FileText, Users, BookOpen, Tag } from 'lucide-react';
+import { Wrench, List, Euro, FileText, Users, BookOpen, Tag, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -11,6 +11,12 @@ export default function Settings() {
       title: 'Impostazioni Generali',
       description: 'Configura le impostazioni generali dell\'applicazione',
       path: '/impostazioni/generali',
+    },
+    {
+      icon: MessageSquare,
+      title: 'Telegram',
+      description: 'Configura il tuo BOT Telegram per ricevere notifiche',
+      path: '/impostazioni/telegram',
     },
     {
       icon: List,
