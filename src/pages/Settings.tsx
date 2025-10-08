@@ -35,6 +35,7 @@ export default function Settings() {
       icon: Users,
       title: 'Intestatari',
       description: 'Gestisci gli intestatari dei conti',
+      path: '/impostazioni/intestatari',
     },
     {
       icon: BookOpen,

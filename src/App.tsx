@@ -10,6 +10,7 @@ import { AccountProvider } from "./contexts/AccountContext";
 import { BetProvider } from "./contexts/BetContext";
 import { TransactionProvider } from "./contexts/TransactionContext";
 import { ReminderProvider } from "./contexts/ReminderContext";
+import { IntestatariProvider } from "./contexts/IntestatariContext";
 import Dashboard from "./pages/Dashboard";
 import Wallets from "./pages/Wallets";
 import Accounts from "./pages/Accounts";
@@ -24,6 +25,7 @@ import GeneralSettings from "./pages/GeneralSettings";
 import Transactions from "./pages/Transactions";
 import Redditometro from "./pages/Redditometro";
 import Report from "./pages/Report";
+import Intestatari from "./pages/Intestatari";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,14 +33,15 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <WalletProvider>
-        <AccountProvider>
-          <BetProvider>
-            <TransactionProvider>
-              <ReminderProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
+      <IntestatariProvider>
+        <WalletProvider>
+          <AccountProvider>
+            <BetProvider>
+              <TransactionProvider>
+                <ReminderProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
                   <div className="flex min-h-screen flex-col">
                     <Header />
                     <main className="flex-1">
@@ -57,6 +60,7 @@ const App = () => (
                         <Route path="/impostazioni/transazioni" element={<Transactions />} />
                         <Route path="/impostazioni/redditometro" element={<Redditometro />} />
                         <Route path="/impostazioni/report" element={<Report />} />
+                        <Route path="/impostazioni/intestatari" element={<Intestatari />} />
                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                         <Route path="*" element={<NotFound />} />
                       </Routes>
@@ -69,6 +73,7 @@ const App = () => (
           </BetProvider>
         </AccountProvider>
       </WalletProvider>
+      </IntestatariProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
