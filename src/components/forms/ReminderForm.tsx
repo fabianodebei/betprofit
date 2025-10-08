@@ -84,12 +84,10 @@ export function ReminderForm({ open, onOpenChange }: ReminderFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Deposito">Deposito</SelectItem>
-                      <SelectItem value="Prelievo">Prelievo</SelectItem>
-                      <SelectItem value="Ricarica">Ricarica</SelectItem>
-                      <SelectItem value="Riconciliazione">Riconciliazione</SelectItem>
-                      <SelectItem value="Spesa">Spesa</SelectItem>
-                      <SelectItem value="Trasferimenti">Trasferimenti</SelectItem>
+                      <SelectItem value="Bonus Benvenuto">Bonus Benvenuto</SelectItem>
+                      <SelectItem value="Bonus Personale">Bonus Personale</SelectItem>
+                      <SelectItem value="Bonus Ricorrente">Bonus Ricorrente</SelectItem>
+                      <SelectItem value="Promemoria Generico">Promemoria Generico</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
