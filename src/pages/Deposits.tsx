@@ -100,7 +100,10 @@ export default function Deposits() {
                           <SelectItem value="all">Tutti</SelectItem>
                           <SelectItem value="Deposito">Deposito</SelectItem>
                           <SelectItem value="Prelievo">Prelievo</SelectItem>
+                          <SelectItem value="Ricarica">Ricarica</SelectItem>
+                          <SelectItem value="Riconciliazione">Riconciliazione</SelectItem>
                           <SelectItem value="Spesa">Spesa</SelectItem>
+                          <SelectItem value="Trasferimenti">Trasferimenti</SelectItem>
                         </SelectContent>
                       </Select>
                     </th>
