@@ -36,8 +36,8 @@ export default function Report() {
   // Calculate report data for aggregated view (by intestatario only)
   const reportDataAggregated = useMemo(() => {
     const data: ReportEntry[] = [];
-    const archivedBets = bets.filter(bet => 
-      bet.stato === 'Archiviata' && 
+    const relevantBets = bets.filter(bet => 
+      (bet.stato === 'Archiviata' || bet.stato === 'In Corso') && 
       bet.risultato !== undefined &&
       bet.tipo === (activeTab === 'scommesse' ? 'Scommessa' : 'Rapida') &&
       bet.dataEvento.getFullYear() === selectedYear
@@ -45,7 +45,7 @@ export default function Report() {
     
     const grouped = new Map<string, ReportEntry>();
     
-    archivedBets.forEach(bet => {
+    relevantBets.forEach(bet => {
       const accountInfo = accounts.find(acc => acc.conto === bet.conto);
       if (!accountInfo) return;
       
@@ -70,8 +70,8 @@ export default function Report() {
   // Calculate report data for detailed view (by intestatario and tipo)
   const reportDataDetailed = useMemo(() => {
     const data: ReportEntry[] = [];
-    const archivedBets = bets.filter(bet => 
-      bet.stato === 'Archiviata' && 
+    const relevantBets = bets.filter(bet => 
+      (bet.stato === 'Archiviata' || bet.stato === 'In Corso') && 
       bet.risultato !== undefined &&
       bet.tipo === (activeTab === 'scommesse' ? 'Scommessa' : 'Rapida') &&
       bet.dataEvento.getFullYear() === selectedYear
@@ -79,7 +79,7 @@ export default function Report() {
     
     const grouped = new Map<string, ReportEntry>();
     
-    archivedBets.forEach(bet => {
+    relevantBets.forEach(bet => {
       const accountInfo = accounts.find(acc => acc.conto === bet.conto);
       if (!accountInfo) return;
       
