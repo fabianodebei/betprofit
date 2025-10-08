@@ -16,6 +16,7 @@ type Movement = {
   date: Date;
   conto: string;
   wallet?: string;
+  intestatario?: string;
   metodo: string;
   movimento: number;
   type: 'bet' | 'transaction';
@@ -57,6 +58,7 @@ export default function Transactions() {
         date: bet.createdAt,
         conto: accountInfo ? `${bet.conto} ${accountInfo.intestatario}` : bet.conto,
         wallet: undefined,
+        intestatario: accountInfo?.intestatario,
         metodo: bet.tipo === 'Rapida' ? 'Giocata Rapida' : 'Giocata',
         movimento: -bet.stake,
         type: 'bet',
@@ -70,6 +72,7 @@ export default function Transactions() {
           date: bet.dataEvento,
           conto: accountInfo ? `${bet.conto} ${accountInfo.intestatario}` : bet.conto,
           wallet: undefined,
+          intestatario: accountInfo?.intestatario,
           metodo: bet.tipo === 'Rapida' ? 'Giocata Rapida' : 'Giocata',
           movimento: bet.risultato,
           type: 'bet',
@@ -86,6 +89,7 @@ export default function Transactions() {
         date: transaction.registrato,
         conto: accountInfo ? `${transaction.conto} ${accountInfo.intestatario}` : transaction.conto,
         wallet: transaction.wallet,
+        intestatario: accountInfo?.intestatario,
         metodo: transaction.metodo === 'Deposito' || transaction.metodo === 'Prelievo' 
           ? 'Conto Movimento' 
           : transaction.metodo,
@@ -107,7 +111,11 @@ export default function Transactions() {
   const filteredMovements = useMemo(() => {
     return allMovements.filter(movement => {
       if (filterConto !== 'all' && !movement.conto.includes(filterConto)) return false;
-      if (filterWallet !== 'all' && movement.wallet !== filterWallet) return false;
+      if (filterWallet !== 'all') {
+        const matchesWallet = movement.wallet === filterWallet;
+        const matchesIntestatario = movement.intestatario === filterWallet;
+        if (!matchesWallet && !matchesIntestatario) return false;
+      }
       if (filterMetodo !== 'all' && movement.metodo !== filterMetodo) return false;
       return true;
     });
@@ -115,6 +123,11 @@ export default function Transactions() {
 
   const activeAccounts = accounts.filter(acc => acc.stato === 'Abilitato');
   const activeWallets = wallets.filter(w => w.stato === 'Abilitato');
+  
+  // Get unique intestatari from accounts
+  const uniqueIntestatari = Array.from(
+    new Set(accounts.map(acc => acc.intestatario))
+  ).filter(Boolean);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -163,8 +176,13 @@ export default function Transactions() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Tutti</SelectItem>
+                        {uniqueIntestatari.map(intestatario => (
+                          <SelectItem key={`int-${intestatario}`} value={intestatario}>
+                            {intestatario}
+                          </SelectItem>
+                        ))}
                         {activeWallets.map(wallet => (
-                          <SelectItem key={wallet.id} value={wallet.nome}>
+                          <SelectItem key={`wallet-${wallet.id}`} value={wallet.nome}>
                             {wallet.nome}
                           </SelectItem>
                         ))}
