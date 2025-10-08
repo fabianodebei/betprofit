@@ -1,7 +1,6 @@
 import { Wrench, List, Euro, FileText, Users, BookOpen, Tag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -87,24 +86,6 @@ export default function Settings() {
           );
         })}
       </div>
-
-      <Separator className="my-8" />
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Informazioni Sistema</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Versione:</span>
-            <span className="font-semibold">1.0.0</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Ultimo aggiornamento:</span>
-            <span className="font-semibold">Ottobre 2025</span>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
