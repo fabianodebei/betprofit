@@ -4,8 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { useSettings } from '@/contexts/SettingsContext';
+import { MessageSquare, Info } from 'lucide-react';
 
 export default function GeneralSettings() {
   const navigate = useNavigate();
@@ -28,6 +30,22 @@ export default function GeneralSettings() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="mb-6 text-3xl font-bold text-foreground">Modifica le impostazioni</h1>
+
+      <Alert className="mb-6">
+        <Info className="h-4 w-4" />
+        <AlertDescription className="flex items-center justify-between">
+          <span>Le notifiche Telegram richiedono la configurazione del tuo BOT personale.</span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/impostazioni/telegram')}
+            className="ml-4"
+          >
+            <MessageSquare className="h-4 w-4 mr-2" />
+            Configura Telegram
+          </Button>
+        </AlertDescription>
+      </Alert>
 
       <Card>
         <CardContent className="pt-6 space-y-6">
