@@ -4,12 +4,15 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/ui/button';
 import { useBets } from '@/contexts/BetContext';
+import { useYear } from '@/contexts/YearContext';
 import { formatCurrency } from '@/utils/currency';
 import { formatDate } from '@/utils/dates';
 
 export default function ArchivedBets() {
   const { getArchivedBets, reopenBet, deleteBet } = useBets();
-  const archivedBets = getArchivedBets();
+  const { selectedYear } = useYear();
+  const allArchivedBets = getArchivedBets();
+  const archivedBets = allArchivedBets.filter(bet => bet.dataEvento.getFullYear() === selectedYear);
 
   const totalArchived = archivedBets.reduce((sum, bet) => sum + (bet.risultato || 0), 0);
 

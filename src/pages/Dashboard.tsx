@@ -8,6 +8,7 @@ import { useAccounts } from '@/contexts/AccountContext';
 import { useWallets } from '@/contexts/WalletContext';
 import { useBets } from '@/contexts/BetContext';
 import { useReminders } from '@/contexts/ReminderContext';
+import { useYear } from '@/contexts/YearContext';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDateTime } from '@/utils/dates';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ export default function Dashboard() {
   const { wallets, loading: walletsLoading } = useWallets();
   const { bets, getArchivedBets, loading: betsLoading } = useBets();
   const { reminders, updateReminder, loading: remindersLoading } = useReminders();
+  const { selectedYear } = useYear();
 
   const archivedBets = getArchivedBets();
   const quickBets = bets.filter(bet => bet.tipo === 'Rapida');
@@ -51,11 +53,12 @@ export default function Dashboard() {
   // Calculate stats from archived bets AND quick bets
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
+  const isCurrentYear = selectedYear === currentYear;
   
   // Archived bets
   const currentMonthArchivedBets = archivedBets.filter(
     bet => bet.createdAt.getMonth() === currentMonth && 
-           bet.createdAt.getFullYear() === currentYear
+           bet.createdAt.getFullYear() === selectedYear
   );
   
   const currentMonthArchivedEarnings = currentMonthArchivedBets.reduce((sum, bet) => sum + (bet.risultato || 0), 0);
@@ -63,17 +66,17 @@ export default function Dashboard() {
   // Quick bets for current month
   const currentMonthQuickBets = quickBets.filter(
     bet => bet.createdAt.getMonth() === currentMonth && 
-           bet.createdAt.getFullYear() === currentYear
+           bet.createdAt.getFullYear() === selectedYear
   );
   
   const currentMonthQuickEarnings = currentMonthQuickBets.reduce((sum, bet) => sum + bet.stake, 0);
   
   // Total current month earnings (archived + quick)
-  const currentMonthEarnings = currentMonthArchivedEarnings + currentMonthQuickEarnings;
+  const currentMonthEarnings = isCurrentYear ? currentMonthArchivedEarnings + currentMonthQuickEarnings : 0;
   
   // Year totals
-  const yearArchivedBets = archivedBets.filter(bet => bet.createdAt.getFullYear() === currentYear);
-  const yearQuickBets = quickBets.filter(bet => bet.createdAt.getFullYear() === currentYear);
+  const yearArchivedBets = archivedBets.filter(bet => bet.createdAt.getFullYear() === selectedYear);
+  const yearQuickBets = quickBets.filter(bet => bet.createdAt.getFullYear() === selectedYear);
   
   const totalYearArchived = yearArchivedBets.reduce((sum, bet) => sum + (bet.risultato || 0), 0);
   const totalYearQuick = yearQuickBets.reduce((sum, bet) => sum + bet.stake, 0);
@@ -148,7 +151,7 @@ export default function Dashboard() {
           subtitle="vs media"
         />
         <KPICard
-          title="Totale Anno 2025"
+          title={`Totale Anno ${selectedYear}`}
           value={totalYear}
           icon={Wallet}
         />
@@ -157,7 +160,7 @@ export default function Dashboard() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Trend Chart */}
         <div className="lg:col-span-2">
-          <TrendChart data={chartData} title="Trend Guadagni 2025" />
+          <TrendChart data={chartData} title={`Trend Guadagni ${selectedYear}`} />
           {accounts.length === 0 && wallets.length === 0 && (
             <Card className="mt-6">
               <CardContent className="p-6">

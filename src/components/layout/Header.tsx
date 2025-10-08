@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Zap, FileText, ArrowRightLeft, Scale, Archive, Wallet, Clock, Settings, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useYear } from '@/contexts/YearContext';
 const navigation = [{
   name: 'Dashboard',
   href: '/',
@@ -41,7 +42,7 @@ const navigation = [{
 }];
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [year, setYear] = useState(2025);
+  const { selectedYear, setSelectedYear } = useYear();
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
   return <header className="sticky top-0 z-50 w-full border-b bg-gradient-to-r from-primary to-accent shadow-sm bg-indigo-950 rounded-none">
@@ -69,13 +70,13 @@ export function Header() {
 
           {/* Year Selector */}
           <div className="hidden lg:flex items-center gap-2 rounded-md bg-primary-foreground/10 px-3 py-1.5">
-            <Button variant="ghost" size="icon" className="h-6 w-6 text-primary-foreground hover:bg-primary-foreground/20" onClick={() => setYear(y => y - 1)}>
+            <Button variant="ghost" size="icon" className="h-6 w-6 text-primary-foreground hover:bg-primary-foreground/20" onClick={() => setSelectedYear(selectedYear - 1)}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <span className="min-w-[60px] text-center font-semibold text-primary-foreground">
-              {year}
+              {selectedYear}
             </span>
-            <Button variant="ghost" size="icon" className="h-6 w-6 text-primary-foreground hover:bg-primary-foreground/20" onClick={() => setYear(y => y + 1)}>
+            <Button variant="ghost" size="icon" className="h-6 w-6 text-primary-foreground hover:bg-primary-foreground/20" onClick={() => setSelectedYear(selectedYear + 1)}>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -103,13 +104,13 @@ export function Header() {
               <div className="mt-2 flex items-center justify-between rounded-md bg-primary-foreground/10 px-3 py-2">
                 <span className="text-sm font-medium text-primary-foreground">Anno:</span>
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon" className="h-6 w-6 text-primary-foreground" onClick={() => setYear(y => y - 1)}>
+                  <Button variant="ghost" size="icon" className="h-6 w-6 text-primary-foreground" onClick={() => setSelectedYear(selectedYear - 1)}>
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   <span className="min-w-[60px] text-center font-semibold text-primary-foreground">
-                    {year}
+                    {selectedYear}
                   </span>
-                  <Button variant="ghost" size="icon" className="h-6 w-6 text-primary-foreground" onClick={() => setYear(y => y + 1)}>
+                  <Button variant="ghost" size="icon" className="h-6 w-6 text-primary-foreground" onClick={() => setSelectedYear(selectedYear + 1)}>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>

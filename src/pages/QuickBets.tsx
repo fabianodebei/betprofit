@@ -5,13 +5,16 @@ import { QuickBetForm } from '@/components/forms/QuickBetForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
 import { useBets } from '@/contexts/BetContext';
+import { useYear } from '@/contexts/YearContext';
 import { formatCurrency } from '@/utils/currency';
 import { formatDateTime } from '@/utils/dates';
 import { Bet } from '@/types';
 
 export default function QuickBets() {
   const { getQuickBets, deleteBet } = useBets();
-  const quickBets = getQuickBets();
+  const { selectedYear } = useYear();
+  const allQuickBets = getQuickBets();
+  const quickBets = allQuickBets.filter(bet => bet.createdAt.getFullYear() === selectedYear);
   const [showQuickBetForm, setShowQuickBetForm] = useState(false);
   const [editingBet, setEditingBet] = useState<Bet | null>(null);
 

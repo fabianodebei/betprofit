@@ -14,6 +14,7 @@ import { IntestatariProvider } from "./contexts/IntestatariContext";
 import { BookProvider } from "./contexts/BookContext";
 import { TagProvider } from "./contexts/TagContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
+import { YearProvider } from "./contexts/YearContext";
 import Dashboard from "./pages/Dashboard";
 import Wallets from "./pages/Wallets";
 import Accounts from "./pages/Accounts";
@@ -38,8 +39,9 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <SettingsProvider>
-        <IntestatariProvider>
+      <YearProvider>
+        <SettingsProvider>
+          <IntestatariProvider>
           <BookProvider>
             <TagProvider>
               <WalletProvider>
@@ -85,8 +87,9 @@ const App = () => (
             </WalletProvider>
             </TagProvider>
           </BookProvider>
-        </IntestatariProvider>
-      </SettingsProvider>
+          </IntestatariProvider>
+        </SettingsProvider>
+      </YearProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

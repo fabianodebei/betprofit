@@ -6,6 +6,7 @@ import { useBets } from '@/contexts/BetContext';
 import { useTransactions } from '@/contexts/TransactionContext';
 import { useAccounts } from '@/contexts/AccountContext';
 import { useWallets } from '@/contexts/WalletContext';
+import { useYear } from '@/contexts/YearContext';
 import { formatCurrency } from '@/utils/currency';
 import { formatDate } from '@/utils/dates';
 import { MovementDetailDialog } from '@/components/dialogs/MovementDetailDialog';
@@ -29,6 +30,7 @@ export default function Transactions() {
   const { transactions } = useTransactions();
   const { accounts } = useAccounts();
   const { wallets } = useWallets();
+  const { selectedYear } = useYear();
 
   const [filterConto, setFilterConto] = useState('all');
   const [filterWallet, setFilterWallet] = useState('all');
@@ -52,7 +54,9 @@ export default function Transactions() {
     const movements: Movement[] = [];
 
     // Add bets as movements
-    bets.forEach(bet => {
+    bets
+      .filter(bet => bet.createdAt.getFullYear() === selectedYear)
+      .forEach(bet => {
       const accountInfo = accounts.find(acc => acc.conto === bet.conto);
       movements.push({
         id: bet.id,
@@ -83,7 +87,9 @@ export default function Transactions() {
     });
 
     // Add transactions as movements
-    transactions.forEach(transaction => {
+    transactions
+      .filter(transaction => transaction.registrato.getFullYear() === selectedYear)
+      .forEach(transaction => {
       const accountInfo = accounts.find(acc => acc.conto === transaction.conto);
       movements.push({
         id: transaction.id,
@@ -107,7 +113,7 @@ export default function Transactions() {
 
     // Sort by date descending
     return movements.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [bets, transactions, accounts]);
+  }, [bets, transactions, accounts, selectedYear]);
 
   // Filter movements
   const filteredMovements = useMemo(() => {

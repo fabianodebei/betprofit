@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Badge } from '@/components/common/Badge';
 import { useBets } from '@/contexts/BetContext';
+import { useYear } from '@/contexts/YearContext';
 import { formatDate } from '@/utils/dates';
 import { ArchiveBetDialog } from '@/components/dialogs/ArchiveBetDialog';
 import { Bet } from '@/types';
@@ -14,6 +15,9 @@ import { toast } from 'sonner';
 
 export default function OngoingBets() {
   const { getOngoingBets, deleteBet, archiveBet } = useBets();
+  const { selectedYear } = useYear();
+  const allOngoingBets = getOngoingBets();
+  const ongoingBets = allOngoingBets.filter(bet => bet.dataEvento.getFullYear() === selectedYear);
   const [activeTab, setActiveTab] = useState<'singola' | 'multipla' | 'casino'>('singola');
   const [showSingleBetForm, setShowSingleBetForm] = useState(false);
   const [showCasinoBetForm, setShowCasinoBetForm] = useState(false);
@@ -21,7 +25,6 @@ export default function OngoingBets() {
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [editingBet, setEditingBet] = useState<Bet | null>(null);
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'clone'>('create');
-  const ongoingBets = getOngoingBets();
 
   const handleArchive = (bet: Bet) => {
     setSelectedBet(bet);

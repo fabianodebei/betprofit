@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useBets } from '@/contexts/BetContext';
 import { useAccounts } from '@/contexts/AccountContext';
+import { useYear } from '@/contexts/YearContext';
 import { formatCurrency } from '@/utils/currency';
 
 type MonthlyData = {
@@ -28,6 +29,7 @@ type IntestatarioSummary = {
 export default function Redditometro() {
   const { bets } = useBets();
   const { accounts } = useAccounts();
+  const { selectedYear } = useYear();
   
   const [filterIntestatario, setFilterIntestatario] = useState('');
   const [filterConto, setFilterConto] = useState('');
@@ -36,7 +38,11 @@ export default function Redditometro() {
   // Calculate redditometro data from archived bets
   const redditometroData = useMemo(() => {
     const data: RedditometroEntry[] = [];
-    const archivedBets = bets.filter(bet => bet.stato === 'Archiviata' && bet.risultato !== undefined);
+    const archivedBets = bets.filter(bet => 
+      bet.stato === 'Archiviata' && 
+      bet.risultato !== undefined &&
+      bet.dataEvento.getFullYear() === selectedYear
+    );
     
     // Group by intestatario and conto
     const grouped = new Map<string, RedditometroEntry>();
@@ -62,7 +68,7 @@ export default function Redditometro() {
     });
     
     return Array.from(grouped.values());
-  }, [bets, accounts]);
+  }, [bets, accounts, selectedYear]);
 
   // Calculate intestatario summary
   const intestatarioSummary = useMemo(() => {

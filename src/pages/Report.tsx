@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useBets } from '@/contexts/BetContext';
 import { useAccounts } from '@/contexts/AccountContext';
+import { useYear } from '@/contexts/YearContext';
 import { formatCurrency } from '@/utils/currency';
 
 type MonthlyData = {
@@ -24,6 +25,7 @@ type ReportType = 'scommesse' | 'giocate-rapide';
 export default function Report() {
   const { bets } = useBets();
   const { accounts } = useAccounts();
+  const { selectedYear } = useYear();
   
   const [activeTab, setActiveTab] = useState<ReportType>('scommesse');
   const [filterIntestatario, setFilterIntestatario] = useState('');
@@ -37,7 +39,8 @@ export default function Report() {
     const archivedBets = bets.filter(bet => 
       bet.stato === 'Archiviata' && 
       bet.risultato !== undefined &&
-      bet.tipo === (activeTab === 'scommesse' ? 'Scommessa' : 'Rapida')
+      bet.tipo === (activeTab === 'scommesse' ? 'Scommessa' : 'Rapida') &&
+      bet.dataEvento.getFullYear() === selectedYear
     );
     
     const grouped = new Map<string, ReportEntry>();
@@ -62,7 +65,7 @@ export default function Report() {
     });
     
     return Array.from(grouped.values());
-  }, [bets, accounts, activeTab]);
+  }, [bets, accounts, activeTab, selectedYear]);
 
   // Calculate report data for detailed view (by intestatario and tipo)
   const reportDataDetailed = useMemo(() => {
@@ -70,7 +73,8 @@ export default function Report() {
     const archivedBets = bets.filter(bet => 
       bet.stato === 'Archiviata' && 
       bet.risultato !== undefined &&
-      bet.tipo === (activeTab === 'scommesse' ? 'Scommessa' : 'Rapida')
+      bet.tipo === (activeTab === 'scommesse' ? 'Scommessa' : 'Rapida') &&
+      bet.dataEvento.getFullYear() === selectedYear
     );
     
     const grouped = new Map<string, ReportEntry>();
@@ -102,7 +106,7 @@ export default function Report() {
     });
     
     return Array.from(grouped.values());
-  }, [bets, accounts, activeTab]);
+  }, [bets, accounts, activeTab, selectedYear]);
 
   // Calculate totals for aggregated view
   const totalAggregated = useMemo(() => {
