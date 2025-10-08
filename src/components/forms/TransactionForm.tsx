@@ -151,7 +151,7 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Conto *</FormLabel>
-                  <Popover modal={true} open={openContoCombobox} onOpenChange={setOpenContoCombobox}>
+                  <Popover modal={false} open={openContoCombobox} onOpenChange={setOpenContoCombobox}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
@@ -170,11 +170,11 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-[100] bg-popover" align="start" sideOffset={5}>
-                      <Command className="bg-popover">
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-[100] bg-popover pointer-events-auto" align="start" sideOffset={5}>
+                      <Command className="bg-popover pointer-events-auto">
                         <CommandInput placeholder="Cerca conto..." className="h-9" />
                         <CommandEmpty>Nessun conto trovato.</CommandEmpty>
-                        <CommandGroup className="max-h-[200px] overflow-auto">
+                        <CommandGroup className="max-h-[200px] overflow-auto pointer-events-auto">
                           {accounts
                             .filter(a => a.stato === 'Abilitato')
                             .sort((a, b) => a.conto.localeCompare(b.conto, 'it', { sensitivity: 'base' }))
@@ -182,6 +182,7 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
                               <CommandItem
                                 value={`${account.conto} ${account.intestatario}`}
                                 key={account.id}
+                                className="cursor-pointer"
                                 onSelect={() => {
                                   field.onChange(account.conto);
                                   setSelectedIntestatario(account.intestatario);
