@@ -45,7 +45,7 @@ export function Header() {
   const { selectedYear, setSelectedYear } = useYear();
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
-  return <header className="sticky top-0 z-50 w-full border-b bg-gradient-to-r from-primary to-accent shadow-sm bg-indigo-950 rounded-none">
+  return <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm rounded-none">
       <div className="container mx-auto px-4 bg-transparent">
         <div className="flex h-16 items-center justify-between rounded-none bg-transparent">
           {/* Logo */}
