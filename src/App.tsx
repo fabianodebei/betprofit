@@ -20,6 +20,7 @@ import { TagProvider } from "./contexts/TagContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
 import { YearProvider } from "./contexts/YearContext";
 import Auth from "./pages/Auth";
+import SetupGuide from "./pages/SetupGuide";
 import Dashboard from "./pages/Dashboard";
 import Wallets from "./pages/Wallets";
 import Accounts from "./pages/Accounts";
@@ -63,6 +64,7 @@ const App = () => (
                                   <Sonner />
                                   <Routes>
                                     <Route path="/auth" element={<Auth />} />
+                                    <Route path="/guida" element={<SetupGuide />} />
                                     <Route
                                       path="/*"
                                       element={

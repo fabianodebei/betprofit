@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BookOpen } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const loginSchema = z.object({
   email: z.string().email('Email non valida'),
@@ -67,6 +69,11 @@ const Auth = () => {
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold">BetTracker Pro</CardTitle>
           <CardDescription>Gestisci le tue scommesse in modo professionale</CardDescription>
+          
+          <Link to="/guida" className="inline-flex items-center gap-2 text-sm text-primary hover:underline mt-2">
+            <BookOpen className="h-4 w-4" />
+            Leggi la guida setup
+          </Link>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
