@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { LayBet } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
 
 interface LayBetContextType {
@@ -17,6 +18,7 @@ const LayBetContext = createContext<LayBetContextType | undefined>(undefined);
 export function LayBetProvider({ children }: { children: ReactNode }) {
   const [layBets, setLayBets] = useState<LayBet[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchLayBets();
@@ -78,6 +80,8 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
 
   const addLayBet = async (layBet: Omit<LayBet, 'id' | 'createdAt'>) => {
     try {
+      if (!user) throw new Error('User not authenticated');
+      
       const { data, error } = await supabase
         .from('lay_bets')
         .insert({
@@ -92,6 +96,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
           quota_punta: layBet.quotaPunta,
           tasse_percentuale: layBet.tassePercentuale,
           url_evento: layBet.urlEvento || null,
+          user_id: user.id,
         })
         .select()
         .single();

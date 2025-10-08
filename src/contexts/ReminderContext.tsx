@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Reminder } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
 
 interface ReminderContextType {
@@ -16,6 +17,7 @@ const ReminderContext = createContext<ReminderContextType | undefined>(undefined
 export function ReminderProvider({ children }: { children: ReactNode }) {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchReminders();
@@ -52,6 +54,8 @@ export function ReminderProvider({ children }: { children: ReactNode }) {
 
   const addReminder = async (reminder: Omit<Reminder, 'id' | 'createdAt'>) => {
     try {
+      if (!user) throw new Error('User not authenticated');
+      
       const { data, error } = await supabase
         .from('reminders')
         .insert({
@@ -61,6 +65,7 @@ export function ReminderProvider({ children }: { children: ReactNode }) {
           data_di_scadenza: reminder.dataScadenza.toISOString(),
           notifica_periodo: reminder.notificaPeriodo,
           stato: reminder.stato,
+          user_id: user.id,
         })
         .select()
         .single();

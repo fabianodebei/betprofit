@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
 import { toast } from '@/hooks/use-toast';
 
 export interface Tag {
@@ -29,6 +30,7 @@ export const useTags = () => {
 export const TagProvider = ({ children }: { children: ReactNode }) => {
   const [tags, setTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   const fetchTags = async () => {
     try {
@@ -80,9 +82,11 @@ export const TagProvider = ({ children }: { children: ReactNode }) => {
 
   const addTag = async (tag: Omit<Tag, 'id' | 'created_at'>) => {
     try {
+      if (!user) throw new Error('User not authenticated');
+      
       const { error } = await supabase
         .from('tags')
-        .insert([tag]);
+        .insert([{ ...tag, user_id: user.id }]);
 
       if (error) throw error;
 

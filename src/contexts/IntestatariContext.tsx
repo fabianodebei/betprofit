@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
 
 export type Intestatario = {
@@ -24,6 +25,7 @@ const IntestatariContext = createContext<IntestatariContextType | undefined>(und
 export function IntestatariProvider({ children }: { children: ReactNode }) {
   const [intestatari, setIntestatari] = useState<Intestatario[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchIntestatari();
@@ -75,6 +77,8 @@ export function IntestatariProvider({ children }: { children: ReactNode }) {
 
   const addIntestatario = async (intestatario: Omit<Intestatario, 'id' | 'createdAt'>) => {
     try {
+      if (!user) throw new Error('User not authenticated');
+      
       const { error } = await supabase
         .from('intestatari')
         .insert({
@@ -82,6 +86,7 @@ export function IntestatariProvider({ children }: { children: ReactNode }) {
           descrizione: intestatario.descrizione || null,
           stato: intestatario.stato,
           predefinito: intestatario.predefinito,
+          user_id: user.id,
         });
 
       if (error) throw error;

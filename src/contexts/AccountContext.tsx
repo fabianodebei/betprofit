@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Account } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
 
 interface AccountContextType {
@@ -17,6 +18,7 @@ const AccountContext = createContext<AccountContextType | undefined>(undefined);
 export function AccountProvider({ children }: { children: ReactNode }) {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchAccounts();
@@ -55,6 +57,8 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
   const addAccount = async (account: Omit<Account, 'id' | 'createdAt' | 'saldoAttuale' | 'bilancioGiocate' | 'bilancioGiocateRapide'>) => {
     try {
+      if (!user) throw new Error('User not authenticated');
+      
       const { data, error } = await supabase
         .from('accounts')
         .insert({
@@ -66,6 +70,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
           saldo_attuale: 0,
           bilancio_giocate: 0,
           bilancio_giocate_rapide: 0,
+          user_id: user.id,
         })
         .select()
         .single();

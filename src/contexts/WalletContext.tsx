@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Wallet } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
 
 interface WalletContextType {
@@ -17,6 +18,7 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchWallets();
@@ -52,6 +54,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   const addWallet = async (wallet: Omit<Wallet, 'id' | 'createdAt'>) => {
     try {
+      if (!user) throw new Error('User not authenticated');
+      
       const { data, error } = await supabase
         .from('wallets')
         .insert({
@@ -60,6 +64,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           descrizione: wallet.descrizione || null,
           saldo_attuale: wallet.saldoAttuale,
           stato: wallet.stato,
+          user_id: user.id,
         })
         .select()
         .single();

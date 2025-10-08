@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Transaction } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
 
 interface TransactionContextType {
@@ -16,6 +17,7 @@ const TransactionContext = createContext<TransactionContextType | undefined>(und
 export function TransactionProvider({ children }: { children: ReactNode }) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchTransactions();
@@ -62,6 +64,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
   const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
     try {
+      if (!user) throw new Error('User not authenticated');
+      
       const { data, error } = await supabase
         .from('transactions')
         .insert({
@@ -72,6 +76,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
           accredito: transaction.accredito || null,
           descrizione: transaction.descrizione || null,
           registrato: transaction.registrato.toISOString(),
+          user_id: user.id,
         })
         .select()
         .single();

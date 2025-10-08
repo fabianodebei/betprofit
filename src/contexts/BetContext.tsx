@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Bet } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
 
 interface BetContextType {
@@ -22,6 +23,7 @@ const BetContext = createContext<BetContextType | undefined>(undefined);
 export function BetProvider({ children }: { children: ReactNode }) {
   const [bets, setBets] = useState<Bet[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchBets();
@@ -92,6 +94,8 @@ export function BetProvider({ children }: { children: ReactNode }) {
 
   const addBet = async (bet: Omit<Bet, 'id' | 'createdAt'>) => {
     try {
+      if (!user) throw new Error('User not authenticated');
+      
       const { data, error } = await supabase
         .from('bets')
         .insert({
@@ -115,6 +119,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
           url_evento: bet.urlEvento || null,
           nome_gioco: bet.nomeGioco || null,
           quota_punta: bet.quotaPunta || null,
+          user_id: user.id,
         })
         .select()
         .single();

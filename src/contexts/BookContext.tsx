@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
 import { toast } from '@/hooks/use-toast';
 
 export interface Book {
@@ -32,6 +33,7 @@ export const useBooks = () => {
 export const BookProvider = ({ children }: { children: ReactNode }) => {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   const fetchBooks = async () => {
     try {
@@ -85,9 +87,11 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
 
   const addBook = async (book: Omit<Book, 'id' | 'created_at'>) => {
     try {
+      if (!user) throw new Error('User not authenticated');
+      
       const { error } = await supabase
         .from('books')
-        .insert([book]);
+        .insert([{ ...book, user_id: user.id }]);
 
       if (error) throw error;
 
