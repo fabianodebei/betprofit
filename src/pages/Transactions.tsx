@@ -111,11 +111,7 @@ export default function Transactions() {
   const filteredMovements = useMemo(() => {
     return allMovements.filter(movement => {
       if (filterConto !== 'all' && !movement.conto.includes(filterConto)) return false;
-      if (filterWallet !== 'all') {
-        const matchesWallet = movement.wallet === filterWallet;
-        const matchesIntestatario = movement.intestatario === filterWallet;
-        if (!matchesWallet && !matchesIntestatario) return false;
-      }
+      if (filterWallet !== 'all' && movement.wallet !== filterWallet) return false;
       if (filterMetodo !== 'all' && movement.metodo !== filterMetodo) return false;
       return true;
     });
