@@ -158,9 +158,18 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
     return;
   }
 
+  console.log(`Found ${bets?.length || 0} bets to check`);
+
   const now = new Date();
+  console.log('Current time:', now.toISOString());
 
   for (const bet of bets || []) {
+    console.log(`\nChecking bet ${bet.id}:`, {
+      evento: bet.evento,
+      data_evento: bet.data_evento,
+      tipo: bet.tipo,
+      conto: bet.conto,
+    });
     // Check if already notified
     const { data: existingLog } = await supabase
       .from('notification_logs')
@@ -177,6 +186,10 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
     const eventDate = new Date(bet.data_evento);
     // Add 1 hour and 40 minutes (100 minutes)
     const reportTime = new Date(eventDate.getTime() + 100 * 60 * 1000);
+
+    console.log('Event date:', eventDate.toISOString());
+    console.log('Report time (event + 100min):', reportTime.toISOString());
+    console.log('Should notify:', now >= reportTime);
 
     // Send notification if time has arrived
     if (now >= reportTime) {
