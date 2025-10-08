@@ -138,7 +138,8 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
   const { data: bets, error } = await supabase
     .from('bets')
     .select('*')
-    .eq('stato', 'In Corso');
+    .eq('stato', 'In Corso')
+    .neq('tipo', 'Rapida');
 
   if (error) {
     console.error('Error fetching bets:', error);
