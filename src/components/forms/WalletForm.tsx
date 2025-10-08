@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useWallets } from '@/contexts/WalletContext';
+import { useIntestatari } from '@/contexts/IntestatariContext';
 import { Wallet } from '@/types';
 
 const walletSchema = z.object({
@@ -28,6 +29,13 @@ interface WalletFormProps {
 
 export function WalletForm({ open, onOpenChange, editingWallet }: WalletFormProps) {
   const { addWallet, updateWallet } = useWallets();
+  const { intestatari } = useIntestatari();
+
+  const availableIntestatari = useMemo(() => {
+    return intestatari
+      .filter(int => int.stato === 'Abilitato')
+      .sort((a, b) => a.nome.localeCompare(b.nome));
+  }, [intestatari]);
 
   const form = useForm<WalletFormData>({
     resolver: zodResolver(walletSchema),
@@ -92,9 +100,20 @@ export function WalletForm({ open, onOpenChange, editingWallet }: WalletFormProp
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Intestatario *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Es: Mario Rossi" {...field} />
-                  </FormControl>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleziona intestatario" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {availableIntestatari.map((int) => (
+                        <SelectItem key={int.id} value={int.nome}>
+                          {int.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
