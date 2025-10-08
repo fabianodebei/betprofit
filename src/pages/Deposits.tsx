@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Badge } from '@/components/common/Badge';
 import { useTransactions } from '@/contexts/TransactionContext';
+import { useAccounts } from '@/contexts/AccountContext';
 import { formatCurrency } from '@/utils/currency';
 import { formatDateTime } from '@/utils/dates';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 export default function Deposits() {
   const { transactions, deleteTransaction } = useTransactions();
+  const { accounts } = useAccounts();
   const [showTransactionForm, setShowTransactionForm] = useState(false);
   
   // Filter states
@@ -23,11 +25,16 @@ export default function Deposits() {
   const [filterWallet, setFilterWallet] = useState('');
   const [filterDescrizione, setFilterDescrizione] = useState('');
 
+  // Get active accounts
+  const activeAccounts = useMemo(() => {
+    return accounts.filter(acc => acc.stato === 'Abilitato');
+  }, [accounts]);
+
   // Filtered transactions
   const filteredTransactions = useMemo(() => {
     return transactions.filter(transaction => {
-      if (filterMetodo && transaction.metodo !== filterMetodo) return false;
-      if (filterConto && !transaction.conto.toLowerCase().includes(filterConto.toLowerCase())) return false;
+      if (filterMetodo && filterMetodo !== 'all' && transaction.metodo !== filterMetodo) return false;
+      if (filterConto && filterConto !== 'all' && transaction.conto !== filterConto) return false;
       if (filterAddebito && transaction.addebito && !transaction.addebito.toString().includes(filterAddebito)) return false;
       if (filterAccredito && transaction.accredito && !transaction.accredito.toString().includes(filterAccredito)) return false;
       if (filterWallet && transaction.wallet && !transaction.wallet.toLowerCase().includes(filterWallet.toLowerCase())) return false;
@@ -99,12 +106,19 @@ export default function Deposits() {
                     </th>
                     <th className="p-2"></th>
                     <th className="p-2">
-                      <Input
-                        placeholder="Filtra Conto"
-                        value={filterConto}
-                        onChange={(e) => setFilterConto(e.target.value)}
-                        className="h-8 text-xs"
-                      />
+                      <Select value={filterConto} onValueChange={setFilterConto}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue placeholder="Filtra Conto" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Tutti</SelectItem>
+                          {activeAccounts.map(account => (
+                            <SelectItem key={account.id} value={account.conto}>
+                              {account.conto} - {account.intestatario}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </th>
                     <th className="p-2">
                       <Input
