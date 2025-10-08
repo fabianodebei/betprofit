@@ -36,12 +36,31 @@ export default function Report() {
   // Calculate report data for aggregated view (by intestatario only)
   const reportDataAggregated = useMemo(() => {
     const data: ReportEntry[] = [];
-    const relevantBets = bets.filter(bet => 
-      (bet.stato === 'Archiviata' || bet.stato === 'In Corso') && 
-      bet.risultato !== undefined &&
-      bet.tipo === (activeTab === 'scommesse' ? 'Scommessa' : 'Rapida') &&
-      bet.dataEvento.getFullYear() === selectedYear
-    );
+    console.log('All bets:', bets.length);
+    console.log('Selected year:', selectedYear);
+    console.log('Active tab:', activeTab);
+    
+    const relevantBets = bets.filter(bet => {
+      const hasRisultato = bet.risultato !== undefined;
+      const matchesStato = bet.stato === 'Archiviata' || bet.stato === 'In Corso';
+      const matchesTipo = bet.tipo === (activeTab === 'scommesse' ? 'Scommessa' : 'Rapida');
+      const matchesYear = bet.dataEvento.getFullYear() === selectedYear;
+      
+      console.log('Bet:', bet.id, {
+        stato: bet.stato,
+        tipo: bet.tipo,
+        risultato: bet.risultato,
+        year: bet.dataEvento.getFullYear(),
+        matchesStato,
+        matchesTipo,
+        hasRisultato,
+        matchesYear
+      });
+      
+      return matchesStato && hasRisultato && matchesTipo && matchesYear;
+    });
+    
+    console.log('Relevant bets for report:', relevantBets.length);
     
     const grouped = new Map<string, ReportEntry>();
     
