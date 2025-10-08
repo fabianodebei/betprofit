@@ -17,6 +17,7 @@ export default function Settings() {
       icon: List,
       title: 'Transazioni',
       description: 'Gestisci le impostazioni delle transazioni',
+      path: '/impostazioni/transazioni',
     },
     {
       icon: Euro,
