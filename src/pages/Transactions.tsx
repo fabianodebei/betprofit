@@ -124,10 +124,11 @@ export default function Transactions() {
   const activeAccounts = accounts.filter(acc => acc.stato === 'Abilitato');
   const activeWallets = wallets.filter(w => w.stato === 'Abilitato');
   
-  // Get unique intestatari from accounts
-  const uniqueIntestatari = Array.from(
-    new Set(accounts.map(acc => acc.intestatario))
-  ).filter(Boolean);
+  // Combine wallets with their intestatari
+  const walletOptions = activeWallets.map(wallet => ({
+    value: wallet.nome,
+    label: `${wallet.nome} ${wallet.intestatario}`,
+  }));
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -176,14 +177,9 @@ export default function Transactions() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Tutti</SelectItem>
-                        {uniqueIntestatari.map(intestatario => (
-                          <SelectItem key={`int-${intestatario}`} value={intestatario}>
-                            {intestatario}
-                          </SelectItem>
-                        ))}
-                        {activeWallets.map(wallet => (
-                          <SelectItem key={`wallet-${wallet.id}`} value={wallet.nome}>
-                            {wallet.nome}
+                        {walletOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
