@@ -68,14 +68,17 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
         stato: editingAccount.stato,
       });
     } else if (!open) {
+      // Trova il book predefinito
+      const defaultBook = books.find(book => book.predefinito && book.stato === 'Abilitato');
+      
       form.reset({
         intestatario: '',
-        conto: '',
+        conto: defaultBook?.nome || '',
         descrizione: '',
         stato: 'Abilitato',
       });
     }
-  }, [editingAccount, open, form]);
+  }, [editingAccount, open, form, books]);
 
   const onSubmit = async (data: AccountFormData) => {
     if (editingAccount) {

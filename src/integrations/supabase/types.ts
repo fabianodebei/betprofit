@@ -150,6 +150,7 @@ export type Database = {
           id: string
           metodo: string
           nome: string
+          predefinito: boolean
           stato: string
         }
         Insert: {
@@ -157,6 +158,7 @@ export type Database = {
           id?: string
           metodo?: string
           nome: string
+          predefinito?: boolean
           stato?: string
         }
         Update: {
@@ -164,6 +166,7 @@ export type Database = {
           id?: string
           metodo?: string
           nome?: string
+          predefinito?: boolean
           stato?: string
         }
         Relationships: []

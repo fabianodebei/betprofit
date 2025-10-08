@@ -7,6 +7,7 @@ export interface Book {
   nome: string;
   metodo: string;
   stato: 'Abilitato' | 'Disabilitato';
+  predefinito: boolean;
   created_at: Date;
 }
 
@@ -44,6 +45,7 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
       setBooks(data.map(book => ({
         ...book,
         stato: book.stato as 'Abilitato' | 'Disabilitato',
+        predefinito: book.predefinito || false,
         created_at: new Date(book.created_at)
       })));
     } catch (error) {
