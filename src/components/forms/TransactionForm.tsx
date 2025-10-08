@@ -151,7 +151,7 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Conto *</FormLabel>
-                  <Popover open={openContoCombobox} onOpenChange={setOpenContoCombobox}>
+                  <Popover modal={true} open={openContoCombobox} onOpenChange={setOpenContoCombobox}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
@@ -170,11 +170,11 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-[70]" align="start">
-                      <Command>
-                        <CommandInput placeholder="Cerca conto..." />
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-[100] bg-popover" align="start" sideOffset={5}>
+                      <Command className="bg-popover">
+                        <CommandInput placeholder="Cerca conto..." className="h-9" />
                         <CommandEmpty>Nessun conto trovato.</CommandEmpty>
-                        <CommandGroup className="max-h-[240px] overflow-auto">
+                        <CommandGroup className="max-h-[200px] overflow-auto">
                           {accounts
                             .filter(a => a.stato === 'Abilitato')
                             .sort((a, b) => a.conto.localeCompare(b.conto, 'it', { sensitivity: 'base' }))
