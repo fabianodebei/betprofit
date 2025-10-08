@@ -62,11 +62,9 @@ export function Header() {
                   {item.name}
                 </Link>;
           })}
-            <div className="relative ml-2">
-              <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10">
-                <Settings className="h-5 w-5" />
-              </Button>
-            </div>
+            <Link to="/impostazioni" className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ml-2 ${isActive('/impostazioni') ? 'bg-primary-foreground/20 text-primary-foreground' : 'text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground'}`}>
+              <Settings className="h-5 w-5" />
+            </Link>
           </nav>
 
           {/* Year Selector */}
@@ -98,6 +96,10 @@ export function Header() {
                     {item.name}
                   </Link>;
           })}
+              <Link to="/impostazioni" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${isActive('/impostazioni') ? 'bg-primary-foreground/20 text-primary-foreground' : 'text-primary-foreground/80 hover:bg-primary-foreground/10'}`}>
+                <Settings className="h-5 w-5" />
+                Impostazioni
+              </Link>
               <div className="mt-2 flex items-center justify-between rounded-md bg-primary-foreground/10 px-3 py-2">
                 <span className="text-sm font-medium text-primary-foreground">Anno:</span>
                 <div className="flex items-center gap-2">
