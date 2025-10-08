@@ -133,6 +133,33 @@ export type Database = {
         }
         Relationships: []
       }
+      intestatari: {
+        Row: {
+          created_at: string
+          descrizione: string | null
+          id: string
+          nome: string
+          predefinito: boolean
+          stato: string
+        }
+        Insert: {
+          created_at?: string
+          descrizione?: string | null
+          id?: string
+          nome: string
+          predefinito?: boolean
+          stato?: string
+        }
+        Update: {
+          created_at?: string
+          descrizione?: string | null
+          id?: string
+          nome?: string
+          predefinito?: boolean
+          stato?: string
+        }
+        Relationships: []
+      }
       reminders: {
         Row: {
           conto: string
