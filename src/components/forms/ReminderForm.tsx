@@ -106,11 +106,10 @@ export function ReminderForm({ open, onOpenChange }: ReminderFormProps) {
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Seleziona Conto" />
+                        <SelectValue placeholder="Seleziona Conto (Opzionale)" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Nessuno</SelectItem>
                       {activeAccounts.map(account => (
                         <SelectItem key={account.id} value={account.conto}>
                           {account.conto} - {account.intestatario}

@@ -12,12 +12,12 @@ export default function Promemoria() {
   const { reminders, deleteReminder, updateReminder } = useReminders();
   const [showReminderForm, setShowReminderForm] = useState(false);
   const [filterMetodo, setFilterMetodo] = useState('all');
-  const [filterConto, setFilterConto] = useState('');
+  const [filterConto, setFilterConto] = useState('all');
   const [filterStato, setFilterStato] = useState('all');
 
   const filteredReminders = reminders.filter(reminder => {
     if (filterMetodo !== 'all' && reminder.metodo !== filterMetodo) return false;
-    if (filterConto && !reminder.conto.toLowerCase().includes(filterConto.toLowerCase())) return false;
+    if (filterConto !== 'all' && filterConto && reminder.conto && !reminder.conto.toLowerCase().includes(filterConto.toLowerCase())) return false;
     if (filterStato !== 'all' && reminder.stato !== filterStato) return false;
     return true;
   });
@@ -88,7 +88,7 @@ export default function Promemoria() {
                           <SelectValue placeholder="Filtra Conto" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Tutti</SelectItem>
+                          <SelectItem value="all">Tutti</SelectItem>
                         </SelectContent>
                       </Select>
                     </th>
