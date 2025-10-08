@@ -17,6 +17,7 @@ type Movement = {
   conto: string;
   wallet?: string;
   intestatario?: string;
+  walletCombined?: string;
   metodo: string;
   movimento: number;
   type: 'bet' | 'transaction';
@@ -90,6 +91,7 @@ export default function Transactions() {
         conto: accountInfo ? `${transaction.conto} ${accountInfo.intestatario}` : transaction.conto,
         wallet: transaction.wallet,
         intestatario: accountInfo?.intestatario,
+        walletCombined: transaction.wallet ? `${transaction.wallet}:::${accountInfo?.intestatario || ''}` : undefined,
         metodo: transaction.metodo === 'Deposito' || transaction.metodo === 'Prelievo' 
           ? 'Conto Movimento' 
           : transaction.metodo,
@@ -111,7 +113,7 @@ export default function Transactions() {
   const filteredMovements = useMemo(() => {
     return allMovements.filter(movement => {
       if (filterConto !== 'all' && !movement.conto.includes(filterConto)) return false;
-      if (filterWallet !== 'all' && movement.wallet !== filterWallet) return false;
+      if (filterWallet !== 'all' && movement.walletCombined !== filterWallet) return false;
       if (filterMetodo !== 'all' && movement.metodo !== filterMetodo) return false;
       return true;
     });
@@ -120,11 +122,17 @@ export default function Transactions() {
   const activeAccounts = accounts.filter(acc => acc.stato === 'Abilitato');
   const activeWallets = wallets.filter(w => w.stato === 'Abilitato');
   
-  // Combine wallets with their intestatari
-  const walletOptions = activeWallets.map(wallet => ({
-    value: wallet.nome,
-    label: `${wallet.nome} ${wallet.intestatario}`,
-  }));
+  // Wallet options built from movements to ensure matching values
+  const walletOptions = useMemo(() => {
+    const unique = Array.from(
+      new Set(
+        allMovements
+          .filter(m => !!m.walletCombined)
+          .map(m => m.walletCombined as string)
+      )
+    );
+    return unique.map(val => ({ value: val, label: val.replace(':::', ' ') }));
+  }, [allMovements]);
 
   return (
     <div className="container mx-auto px-4 py-8">
