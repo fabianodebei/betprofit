@@ -8,64 +8,50 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Nero Colosseo - Sfondo principale elegante */
-    --background: 0 0% 4%;
-    /* Bianco Marmo - Testo principale */
-    --foreground: 0 0% 98%;
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
 
-    /* Card con sfondo leggermente più chiaro del nero */
-    --card: 0 0% 8%;
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
 
-    /* Popover */
-    --popover: 0 0% 8%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
-    /* Rosso Legionario - Colore primario per pulsanti e highlight */
-    --primary: 0 100% 27%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 166 76% 37%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Bronzo Centurione - Accenti e navigazione */
-    --secondary: 30 60% 50%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
 
-    /* Aree muted con blu senato */
-    --muted: 210 100% 12%;
-    --muted-foreground: 0 0% 70%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    /* Oro Imperiale - Per highlight e premi */
-    --accent: 51 100% 50%;
-    --accent-foreground: 0 0% 10%;
+    --accent: 160 84% 39%;
+    --accent-foreground: 0 0% 100%;
 
-    /* Destructive rimane rosso ma leggermente più chiaro */
-    --destructive: 0 84% 40%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    /* Success con tonalità oro/verde */
-    --success: 80 60% 45%;
-    --success-foreground: 0 0% 98%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
 
-    /* Warning con oro imperiale */
-    --warning: 51 100% 50%;
-    --warning-foreground: 0 0% 10%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
 
-    /* Info con blu senato più chiaro */
-    --info: 210 100% 20%;
-    --info-foreground: 0 0% 98%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
 
-    /* Bordi con bronzo scuro */
-    --border: 30 30% 25%;
-    --input: 30 30% 25%;
-    --ring: 0 100% 27%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 166 76% 37%;
 
     --radius: 0.75rem;
 
-    /* Charts con palette romana */
-    --chart-1: 0 100% 27%;    /* Rosso Legionario */
-    --chart-2: 51 100% 50%;   /* Oro Imperiale */
-    --chart-3: 30 60% 50%;    /* Bronzo Centurione */
-    --chart-4: 210 100% 20%;  /* Blu Senato */
-    --chart-5: 0 84% 40%;     /* Rosso Scuro */
+    --chart-1: 166 76% 37%;
+    --chart-2: 142 71% 45%;
+    --chart-3: 217 91% 60%;
+    --chart-4: 38 92% 50%;
+    --chart-5: 0 84% 60%;
   }
 }
 
