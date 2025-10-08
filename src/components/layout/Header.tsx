@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Zap, FileText, ArrowRightLeft, Scale, Archive, Wallet, Clock, Settings, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, Zap, FileText, ArrowRightLeft, Scale, Archive, Wallet, Clock, Settings, Menu, X, ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useYear } from '@/contexts/YearContext';
+import { useAuth } from '@/contexts/AuthContext';
 const navigation = [{
   name: 'Dashboard',
   href: '/',
@@ -43,6 +44,7 @@ const navigation = [{
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { selectedYear, setSelectedYear } = useYear();
+  const { signOut } = useAuth();
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
   return <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm rounded-none">
@@ -66,6 +68,14 @@ export function Header() {
             <Link to="/impostazioni" className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ml-2 ${isActive('/impostazioni') ? 'bg-primary-foreground/20 text-primary-foreground' : 'text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground'}`}>
               <Settings className="h-5 w-5" />
             </Link>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={signOut}
+              className="ml-2 text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
           </nav>
 
           {/* Year Selector */}
@@ -101,6 +111,16 @@ export function Header() {
                 <Settings className="h-5 w-5" />
                 Impostazioni
               </Link>
+              <button
+                onClick={() => {
+                  signOut();
+                  setMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors text-primary-foreground/80 hover:bg-primary-foreground/10"
+              >
+                <LogOut className="h-5 w-5" />
+                Esci
+              </button>
               <div className="mt-2 flex items-center justify-between rounded-md bg-primary-foreground/10 px-3 py-2">
                 <span className="text-sm font-medium text-primary-foreground">Anno:</span>
                 <div className="flex items-center gap-2">
