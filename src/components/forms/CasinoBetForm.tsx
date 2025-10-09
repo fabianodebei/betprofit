@@ -51,7 +51,9 @@ export function CasinoBetForm({
     accounts,
     updateAccount
   } = useAccounts();
-  const { intestatari } = useIntestatari();
+  const {
+    intestatari
+  } = useIntestatari();
   const [tipoBonus, setTipoBonus] = useState<Bet['tipoBonus']>('Nessuno');
   const [selectedIntestatario, setSelectedIntestatario] = useState<string>('');
 
@@ -72,12 +74,10 @@ export function CasinoBetForm({
       rimborso: 0
     }
   });
-
   useEffect(() => {
     if (editingBet && open) {
       const account = accounts.find(a => a.conto === editingBet.conto);
       const intestatario = account?.intestatario || '';
-      
       form.reset({
         nomeGioco: editingBet.nomeGioco || '',
         dataEvento: editingBet.dataEvento,
@@ -109,7 +109,6 @@ export function CasinoBetForm({
       setTipoBonus('Nessuno');
     }
   }, [editingBet, open, form, accounts]);
-
   const onSubmit = async (data: CasinoBetFormData) => {
     if (mode === 'edit' && editingBet) {
       await updateBet(editingBet.id, {
@@ -212,14 +211,11 @@ export function CasinoBetForm({
             field
           }) => <FormItem>
                   <FormLabel>Intestatario *</FormLabel>
-                  <Select 
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                      setSelectedIntestatario(value);
-                      form.setValue('conto', '');
-                    }} 
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={value => {
+              field.onChange(value);
+              setSelectedIntestatario(value);
+              form.setValue('conto', '');
+            }} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleziona intestatario" />
@@ -244,9 +240,7 @@ export function CasinoBetForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {accounts
-                        .filter(a => a.stato === 'Abilitato' && a.intestatario === selectedIntestatario)
-                        .map(account => <SelectItem key={account.id} value={account.conto}>
+                      {accounts.filter(a => a.stato === 'Abilitato' && a.intestatario === selectedIntestatario).map(account => <SelectItem key={account.id} value={account.conto}>
                           {account.conto}
                         </SelectItem>)}
                     </SelectContent>
@@ -268,13 +262,7 @@ export function CasinoBetForm({
                   </FormItem>} />
               <FormField control={form.control} name="quota" render={({
               field
-            }) => <FormItem>
-                    <FormLabel>Quota *</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="0.01" placeholder="1.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 1.01)} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>} />
+            }) => {}} />
             </div>
             <FormField control={form.control} name="tipoBonus" render={({
             field
