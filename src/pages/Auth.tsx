@@ -10,7 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import logo from '@/assets/logo_centurion.png';
+import logo from '@/assets/logo_centurion.webp';
 
 const loginSchema = z.object({
   email: z.string().email('Email non valida'),

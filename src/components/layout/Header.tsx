@@ -4,7 +4,7 @@ import { Home, Zap, FileText, ArrowRightLeft, Scale, Archive, Wallet, Clock, Set
 import { Button } from '@/components/ui/button';
 import { useYear } from '@/contexts/YearContext';
 import { useAuth } from '@/contexts/AuthContext';
-import logo from '@/assets/logo_centurion.png';
+import logo from '@/assets/logo_centurion.webp';
 const navigation = [{
   name: 'Dashboard',
   href: '/',
