@@ -12,6 +12,7 @@ import { AdminRoute } from "./components/layout/AdminRoute";
 import { WalletProvider } from "./contexts/WalletContext";
 import { AccountProvider } from "./contexts/AccountContext";
 import { BetProvider } from "./contexts/BetContext";
+import { BetLegProvider } from "./contexts/BetLegContext";
 import { LayBetProvider } from "./contexts/LayBetContext";
 import { TransactionProvider } from "./contexts/TransactionContext";
 import { ReminderProvider } from "./contexts/ReminderContext";
@@ -59,9 +60,10 @@ const App = () => (
                       <WalletProvider>
                         <AccountProvider>
                           <BetProvider>
-                            <LayBetProvider>
-                              <TransactionProvider>
-                                <ReminderProvider>
+                            <BetLegProvider>
+                              <LayBetProvider>
+                                <TransactionProvider>
+                                  <ReminderProvider>
                                   <Toaster />
                                   <Sonner />
                                   <Routes>
@@ -107,9 +109,10 @@ const App = () => (
                                       }
                                     />
                                   </Routes>
-                                </ReminderProvider>
-                              </TransactionProvider>
-                            </LayBetProvider>
+                                  </ReminderProvider>
+                                </TransactionProvider>
+                              </LayBetProvider>
+                            </BetLegProvider>
                           </BetProvider>
                         </AccountProvider>
                       </WalletProvider>
