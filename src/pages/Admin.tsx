@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -9,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Shield, Search, UserCog, Users, Activity, Database, TrendingUp } from 'lucide-react';
+import { Shield, Search, UserCog, Users, Activity, Database, TrendingUp, ArrowLeft } from 'lucide-react';
 import { format, subDays, eachDayOfInterval } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { AdminKPICard } from '@/components/admin/AdminKPICard';
@@ -43,6 +44,7 @@ interface SystemStats {
 }
 
 export default function Admin() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -286,12 +288,21 @@ export default function Admin() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <Shield className="h-8 w-8 text-primary" />
-        <div>
-          <h1 className="text-3xl font-bold">Admin Panel</h1>
-          <p className="text-muted-foreground">Dashboard e gestione sistema</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Shield className="h-8 w-8 text-primary" />
+          <div>
+            <h1 className="text-3xl font-bold">Admin Panel</h1>
+            <p className="text-muted-foreground">Dashboard e gestione sistema</p>
+          </div>
         </div>
+        <Button
+          variant="outline"
+          onClick={() => navigate('/impostazioni')}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Torna alle Impostazioni
+        </Button>
       </div>
 
       <Tabs defaultValue="dashboard" className="space-y-6">
