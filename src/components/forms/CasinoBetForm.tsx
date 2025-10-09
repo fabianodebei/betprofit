@@ -262,7 +262,13 @@ export function CasinoBetForm({
                   </FormItem>} />
               <FormField control={form.control} name="quota" render={({
               field
-            }) => {}} />
+            }) => <FormItem>
+                    <FormLabel>Quota *</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="0.01" placeholder="1.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 1.01)} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>} />
             </div>
             <FormField control={form.control} name="tipoBonus" render={({
             field
