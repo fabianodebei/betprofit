@@ -90,6 +90,8 @@ export function IntestatariProvider({ children }: { children: ReactNode }) {
         });
 
       if (error) throw error;
+      
+      await fetchIntestatari();
       toast.success('Intestatario aggiunto con successo');
     } catch (error: any) {
       console.error('Error adding intestatario:', error);
@@ -116,6 +118,8 @@ export function IntestatariProvider({ children }: { children: ReactNode }) {
         .eq('id', id);
 
       if (error) throw error;
+      
+      await fetchIntestatari();
       toast.success('Intestatario aggiornato con successo');
     } catch (error: any) {
       console.error('Error updating intestatario:', error);
@@ -136,6 +140,8 @@ export function IntestatariProvider({ children }: { children: ReactNode }) {
         .eq('id', id);
 
       if (error) throw error;
+      
+      await fetchIntestatari();
       toast.success('Intestatario eliminato con successo');
     } catch (error) {
       console.error('Error deleting intestatario:', error);
