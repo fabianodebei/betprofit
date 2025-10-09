@@ -4,6 +4,7 @@ import { Home, Zap, FileText, ArrowRightLeft, Scale, Archive, Wallet, Clock, Set
 import { Button } from '@/components/ui/button';
 import { useYear } from '@/contexts/YearContext';
 import { useAuth } from '@/contexts/AuthContext';
+import logo from '@/assets/logo_centurion.png';
 const navigation = [{
   name: 'Dashboard',
   href: '/',
@@ -51,9 +52,8 @@ export function Header() {
       <div className="container mx-auto px-4 bg-transparent">
         <div className="flex h-16 items-center justify-between rounded-none bg-transparent">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 text-primary-foreground">
-            
-            <span className="text-xl font-bold">Profit Tracker</span>
+          <Link to="/" className="flex items-center gap-2">
+            <img src={logo} alt="Centurion Club" className="h-10 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}
