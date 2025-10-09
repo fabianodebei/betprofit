@@ -53,7 +53,7 @@ export function Header() {
         <div className="flex h-20 items-center justify-between rounded-none bg-transparent">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="Centurion Club" className="w-auto" style={{ height: '66px' }} />
+            <img src={logo} alt="Centurion Club" className="w-auto" style={{ height: '90px' }} />
           </Link>
 
           {/* Desktop Navigation */}
