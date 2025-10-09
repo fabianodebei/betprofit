@@ -26,7 +26,7 @@ const casinoBetSchema = z.object({
   conto: z.string().min(1, 'Conto è obbligatorio'),
   stake: z.number().positive('Lo stake deve essere positivo'),
   quota: z.number().min(1.01, 'La quota deve essere almeno 1.01'),
-  tipoBonus: z.enum(['Nessuno', 'Bonus', 'Rimborso', 'Free Bet']),
+  tipoBonus: z.enum(['Nessuno', 'Bonus', 'Rimborso', 'Free Bet', 'Bonus Multipla', 'Rimborso Multipla', 'Free Bet Multipla', 'Assicurazione Multipla']),
   bonus: z.number().optional(),
   rimborso: z.number().optional()
 });
@@ -52,7 +52,7 @@ export function CasinoBetForm({
     updateAccount
   } = useAccounts();
   const { intestatari } = useIntestatari();
-  const [tipoBonus, setTipoBonus] = useState<'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet'>('Nessuno');
+  const [tipoBonus, setTipoBonus] = useState<Bet['tipoBonus']>('Nessuno');
   const [selectedIntestatario, setSelectedIntestatario] = useState<string>('');
 
   // Get available intestatari (abilitati)

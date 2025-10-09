@@ -33,6 +33,21 @@ export interface Transaction {
   registrato: Date; // Include time
 }
 
+export interface BetLeg {
+  id: string;
+  betId: string;
+  userId?: string;
+  evento: string;
+  competizione?: string;
+  mercato?: string;
+  selezione: string;
+  quota: number;
+  stato: 'In Corso' | 'Vinta' | 'Persa' | 'Void';
+  risultato?: string;
+  dataEvento: Date;
+  createdAt: Date;
+}
+
 export interface Bet {
   id: string;
   tipo: 'Singola' | 'Multipla' | 'Casino' | 'Rapida';
@@ -42,7 +57,7 @@ export interface Bet {
   evento?: string;
   dataEvento: Date; // Include time
   metodo?: string;
-  tipoBonus?: 'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet';
+  tipoBonus?: 'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet' | 'Bonus Multipla' | 'Rimborso Multipla' | 'Free Bet Multipla' | 'Assicurazione Multipla';
   bonus?: number;
   rimborso?: number;
   stato: 'In Corso' | 'Archiviata';
@@ -55,6 +70,10 @@ export interface Bet {
   urlEvento?: string;
   nomeGioco?: string;
   quotaPunta?: number;
+  percentualeBonus?: number;
+  numeroMinimoSelezioni?: number;
+  quotaCombinata?: number;
+  vincitaPotenziale?: number;
   createdAt: Date; // Include time
 }
 

@@ -64,6 +64,51 @@ export type Database = {
           },
         ]
       }
+      bet_legs: {
+        Row: {
+          bet_id: string
+          competizione: string | null
+          created_at: string
+          data_evento: string
+          evento: string
+          id: string
+          mercato: string | null
+          quota: number
+          risultato: string | null
+          selezione: string
+          stato: string
+          user_id: string | null
+        }
+        Insert: {
+          bet_id: string
+          competizione?: string | null
+          created_at?: string
+          data_evento: string
+          evento: string
+          id?: string
+          mercato?: string | null
+          quota: number
+          risultato?: string | null
+          selezione: string
+          stato?: string
+          user_id?: string | null
+        }
+        Update: {
+          bet_id?: string
+          competizione?: string | null
+          created_at?: string
+          data_evento?: string
+          evento?: string
+          id?: string
+          mercato?: string | null
+          quota?: number
+          risultato?: string | null
+          selezione?: string
+          stato?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       bets: {
         Row: {
           bonus: number | null
@@ -77,7 +122,10 @@ export type Database = {
           metodo: string | null
           nome_gioco: string | null
           note: string | null
+          numero_minimo_selezioni: number | null
+          percentuale_bonus: number | null
           quota: number | null
+          quota_combinata: number | null
           quota_punta: number | null
           rimborso: number | null
           risultato: number | null
@@ -88,6 +136,7 @@ export type Database = {
           tipo_bonus: string | null
           url_evento: string | null
           user_id: string | null
+          vincita_potenziale: number | null
           wallet_id: string | null
         }
         Insert: {
@@ -102,7 +151,10 @@ export type Database = {
           metodo?: string | null
           nome_gioco?: string | null
           note?: string | null
+          numero_minimo_selezioni?: number | null
+          percentuale_bonus?: number | null
           quota?: number | null
+          quota_combinata?: number | null
           quota_punta?: number | null
           rimborso?: number | null
           risultato?: number | null
@@ -113,6 +165,7 @@ export type Database = {
           tipo_bonus?: string | null
           url_evento?: string | null
           user_id?: string | null
+          vincita_potenziale?: number | null
           wallet_id?: string | null
         }
         Update: {
@@ -127,7 +180,10 @@ export type Database = {
           metodo?: string | null
           nome_gioco?: string | null
           note?: string | null
+          numero_minimo_selezioni?: number | null
+          percentuale_bonus?: number | null
           quota?: number | null
+          quota_combinata?: number | null
           quota_punta?: number | null
           rimborso?: number | null
           risultato?: number | null
@@ -138,6 +194,7 @@ export type Database = {
           tipo_bonus?: string | null
           url_evento?: string | null
           user_id?: string | null
+          vincita_potenziale?: number | null
           wallet_id?: string | null
         }
         Relationships: [
