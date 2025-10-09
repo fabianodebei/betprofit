@@ -2,26 +2,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { 
-  UserPlus, 
-  MessageSquare, 
-  Bot, 
-  Bell, 
-  CheckCircle2, 
-  ArrowRight,
-  Info,
-  Smartphone,
-  Search,
-  Send,
-  Copy,
-  Settings
-} from 'lucide-react';
-
+import { UserPlus, MessageSquare, Bot, Bell, CheckCircle2, ArrowRight, Info, Smartphone, Search, Send, Copy, Settings } from 'lucide-react';
 const SetupGuide = () => {
   const navigate = useNavigate();
-
-  return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+  return <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-8 text-center">
         <h1 className="text-4xl font-bold mb-4">Guida Setup Multi-Tenant</h1>
         <p className="text-lg text-muted-foreground">
@@ -62,14 +46,7 @@ const SetupGuide = () => {
             </ol>
           </div>
 
-          <Alert>
-            <Info className="h-4 w-4" />
-            <AlertDescription>
-              <strong>Piano Gratuito:</strong> Al momento della registrazione ricevi automaticamente 
-              il piano FREE che include fino a 10 scommesse al mese. Potrai fare upgrade in futuro 
-              per sbloccare scommesse illimitate e notifiche Telegram.
-            </AlertDescription>
-          </Alert>
+          
 
           <Alert className="bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800">
             <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
@@ -346,8 +323,6 @@ const SetupGuide = () => {
           Configura Telegram
         </Button>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default SetupGuide;
