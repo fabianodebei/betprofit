@@ -48,12 +48,12 @@ export function Header() {
   const { signOut } = useAuth();
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
-  return <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm rounded-none">
+  return <header className="sticky top-0 z-50 w-full border-b shadow-sm rounded-none" style={{ backgroundColor: 'hsl(210, 50%, 14%)' }}>
       <div className="container mx-auto px-4 bg-transparent">
-        <div className="flex h-16 items-center justify-between rounded-none bg-transparent">
+        <div className="flex h-20 items-center justify-between rounded-none bg-transparent">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="Centurion Club" className="h-10 w-auto" />
+            <img src={logo} alt="Centurion Club" className="w-auto" style={{ height: '66px' }} />
           </Link>
 
           {/* Desktop Navigation */}
