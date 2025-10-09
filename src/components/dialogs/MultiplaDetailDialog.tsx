@@ -109,7 +109,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                 </TableHeader>
                 <TableBody>
                   {/* Main Multipla Bet Row */}
-                  <TableRow className="bg-blue-50 dark:bg-blue-950">
+                  <TableRow className="bg-primary/5 border-l-4 border-l-primary">
                     <TableCell>
                       {format(new Date(bet.dataEvento), 'dd MMMM yyyy HH:mm')}
                     </TableCell>
@@ -128,7 +128,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                       <Badge variant="secondary">{bet.tipoBonus || 'Nessuno'}</Badge>
                     </TableCell>
                     <TableCell className="font-medium">{bet.conto}</TableCell>
-                    <TableCell className="font-semibold text-blue-600">{formatCurrency(bet.stake)}</TableCell>
+                    <TableCell className="font-semibold text-primary">{formatCurrency(bet.stake)}</TableCell>
                     <TableCell className="font-semibold">{bet.quotaCombinata?.toFixed(3) || bet.quota?.toFixed(3)}</TableCell>
                     <TableCell>-</TableCell>
                     <TableCell className="text-red-600">{formatCurrency(0)}</TableCell>
@@ -141,7 +141,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                         {bet.stato}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-blue-600 text-sm">{bet.tag || '(non impostato)'}</TableCell>
+                    <TableCell className="text-primary text-sm">{bet.tag || '(non impostato)'}</TableCell>
                     <TableCell>
                       <Button size="sm" variant="ghost">
                         Clona
@@ -155,7 +155,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                     const tasse = layBet.stake * (layBet.quotaBanca - 1) * (layBet.tassePercentuale / 100);
                     
                     return (
-                      <TableRow key={layBet.id} className="bg-orange-50 dark:bg-orange-950">
+                      <TableRow key={layBet.id} className="bg-accent/5 border-l-4 border-l-accent">
                         <TableCell>
                           {format(new Date(layBet.dataEvento), 'dd MMMM yyyy HH:mm')}
                         </TableCell>
@@ -171,13 +171,13 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                           </Badge>
                         </TableCell>
                         <TableCell className="font-medium">{layBet.conto}</TableCell>
-                        <TableCell className="font-semibold text-orange-600">{formatCurrency(layBet.stake)}</TableCell>
+                        <TableCell className="font-semibold text-accent">{formatCurrency(layBet.stake)}</TableCell>
                         <TableCell className="font-semibold">{layBet.quotaPunta.toFixed(2)}</TableCell>
                         <TableCell className="font-semibold text-red-600">{layBet.quotaBanca.toFixed(2)}</TableCell>
                         <TableCell className="text-red-600 font-semibold">{formatCurrency(rischio)}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
-                        <TableCell className="text-orange-600">{formatCurrency(tasse)}</TableCell>
+                        <TableCell className="text-accent">{formatCurrency(tasse)}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
                         <TableCell>
                           <Badge>Bozza</Badge>
