@@ -7,10 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Shield, Search, UserCog } from 'lucide-react';
-import { format } from 'date-fns';
+import { Shield, Search, UserCog, Users, Activity, Database, TrendingUp } from 'lucide-react';
+import { format, subDays, eachDayOfInterval } from 'date-fns';
 import { it } from 'date-fns/locale';
+import { AdminKPICard } from '@/components/admin/AdminKPICard';
+import { UserActivityTable } from '@/components/admin/UserActivityTable';
+import { RoleDistributionChart } from '@/components/admin/RoleDistributionChart';
+import { UserRegistrationChart } from '@/components/admin/UserRegistrationChart';
 
 interface UserProfile {
   id: string;
@@ -18,6 +23,23 @@ interface UserProfile {
   full_name: string | null;
   created_at: string;
   role: 'admin' | 'premium' | 'free';
+}
+
+interface SystemStats {
+  totalUsers: number;
+  newUsersThisWeek: number;
+  newUsersThisMonth: number;
+  activeUsers: number;
+  totalBets: number;
+  totalTransactions: number;
+  totalAccounts: number;
+  totalWallets: number;
+  totalTags: number;
+  roleDistribution: {
+    admin: number;
+    premium: number;
+    free: number;
+  };
 }
 
 export default function Admin() {
@@ -28,9 +50,15 @@ export default function Admin() {
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [newRole, setNewRole] = useState<'admin' | 'premium' | 'free'>('free');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [systemStats, setSystemStats] = useState<SystemStats | null>(null);
+  const [userActivities, setUserActivities] = useState<any[]>([]);
+  const [registrationData, setRegistrationData] = useState<any[]>([]);
 
   useEffect(() => {
     fetchUsers();
+    fetchSystemStats();
+    fetchUserActivities();
+    fetchRegistrationData();
   }, []);
 
   useEffect(() => {
@@ -73,6 +101,115 @@ export default function Admin() {
       toast.error('Errore nel caricamento degli utenti');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSystemStats = async () => {
+    try {
+      // Fetch all data
+      const [profilesRes, rolesRes, betsRes, transactionsRes, accountsRes, walletsRes, tagsRes] = await Promise.all([
+        supabase.from('profiles').select('*'),
+        supabase.from('user_roles').select('*'),
+        supabase.from('bets').select('*'),
+        supabase.from('transactions').select('*'),
+        supabase.from('accounts').select('*'),
+        supabase.from('wallets').select('*'),
+        supabase.from('tags').select('*'),
+      ]);
+
+      const now = new Date();
+      const oneWeekAgo = subDays(now, 7);
+      const oneMonthAgo = subDays(now, 30);
+
+      const newUsersThisWeek = profilesRes.data?.filter(
+        p => new Date(p.created_at) >= oneWeekAgo
+      ).length || 0;
+
+      const newUsersThisMonth = profilesRes.data?.filter(
+        p => new Date(p.created_at) >= oneMonthAgo
+      ).length || 0;
+
+      // Count active users (users with bets or transactions in last 30 days)
+      const activeUserIds = new Set([
+        ...(betsRes.data?.filter(b => new Date(b.created_at) >= oneMonthAgo).map(b => b.user_id) || []),
+        ...(transactionsRes.data?.filter(t => new Date(t.registrato) >= oneMonthAgo).map(t => t.user_id) || [])
+      ]);
+
+      const roleDistribution = {
+        admin: rolesRes.data?.filter(r => r.role === 'admin').length || 0,
+        premium: rolesRes.data?.filter(r => r.role === 'premium').length || 0,
+        free: rolesRes.data?.filter(r => r.role === 'free').length || 0,
+      };
+
+      setSystemStats({
+        totalUsers: profilesRes.data?.length || 0,
+        newUsersThisWeek,
+        newUsersThisMonth,
+        activeUsers: activeUserIds.size,
+        totalBets: betsRes.data?.length || 0,
+        totalTransactions: transactionsRes.data?.length || 0,
+        totalAccounts: accountsRes.data?.length || 0,
+        totalWallets: walletsRes.data?.length || 0,
+        totalTags: tagsRes.data?.length || 0,
+        roleDistribution,
+      });
+    } catch (error) {
+      console.error('Error fetching system stats:', error);
+    }
+  };
+
+  const fetchUserActivities = async () => {
+    try {
+      const { data: profiles } = await supabase.from('profiles').select('*');
+      const { data: roles } = await supabase.from('user_roles').select('*');
+      const { data: bets } = await supabase.from('bets').select('user_id');
+      const { data: transactions } = await supabase.from('transactions').select('user_id');
+      const { data: accounts } = await supabase.from('accounts').select('user_id');
+      const { data: wallets } = await supabase.from('wallets').select('user_id');
+
+      const activities = profiles?.map(profile => ({
+        ...profile,
+        role: (roles?.find(r => r.user_id === profile.id)?.role || 'free') as 'admin' | 'premium' | 'free',
+        betsCount: bets?.filter(b => b.user_id === profile.id).length || 0,
+        transactionsCount: transactions?.filter(t => t.user_id === profile.id).length || 0,
+        accountsCount: accounts?.filter(a => a.user_id === profile.id).length || 0,
+        walletsCount: wallets?.filter(w => w.user_id === profile.id).length || 0,
+      })) || [];
+
+      setUserActivities(activities);
+    } catch (error) {
+      console.error('Error fetching user activities:', error);
+    }
+  };
+
+  const fetchRegistrationData = async () => {
+    try {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('created_at')
+        .order('created_at', { ascending: true });
+
+      if (!profiles) return;
+
+      const now = new Date();
+      const thirtyDaysAgo = subDays(now, 30);
+      const days = eachDayOfInterval({ start: thirtyDaysAgo, end: now });
+
+      const registrationsByDay = days.map(day => {
+        const count = profiles.filter(p => {
+          const createdDate = new Date(p.created_at);
+          return createdDate.toDateString() === day.toDateString();
+        }).length;
+
+        return {
+          date: day.toISOString(),
+          count,
+        };
+      });
+
+      setRegistrationData(registrationsByDay);
+    } catch (error) {
+      console.error('Error fetching registration data:', error);
     }
   };
 
@@ -141,17 +278,141 @@ export default function Admin() {
     );
   }
 
+  const roleDistributionData = systemStats ? [
+    { name: 'Admin', value: systemStats.roleDistribution.admin },
+    { name: 'Premium', value: systemStats.roleDistribution.premium },
+    { name: 'Free', value: systemStats.roleDistribution.free },
+  ] : [];
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center gap-3">
         <Shield className="h-8 w-8 text-primary" />
         <div>
           <h1 className="text-3xl font-bold">Admin Panel</h1>
-          <p className="text-muted-foreground">Gestisci utenti e permessi</p>
+          <p className="text-muted-foreground">Dashboard e gestione sistema</p>
         </div>
       </div>
 
-      <Card>
+      <Tabs defaultValue="dashboard" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="users">Gestione Utenti</TabsTrigger>
+          <TabsTrigger value="activity">Attività Utenti</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="dashboard" className="space-y-6">
+          {/* KPI Cards */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <AdminKPICard
+              title="Totale Utenti"
+              value={systemStats?.totalUsers || 0}
+              icon={Users}
+              trend={{
+                value: systemStats?.newUsersThisWeek || 0,
+                label: 'questa settimana'
+              }}
+            />
+            <AdminKPICard
+              title="Utenti Attivi"
+              value={systemStats?.activeUsers || 0}
+              icon={Activity}
+              description="Ultimi 30 giorni"
+            />
+            <AdminKPICard
+              title="Nuovi Utenti"
+              value={systemStats?.newUsersThisMonth || 0}
+              icon={TrendingUp}
+              description="Ultimo mese"
+            />
+            <AdminKPICard
+              title="Database"
+              value={`${systemStats?.totalBets || 0} bets`}
+              icon={Database}
+              description={`${systemStats?.totalTransactions || 0} transazioni`}
+            />
+          </div>
+
+          {/* Charts */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            <UserRegistrationChart data={registrationData} />
+            <RoleDistributionChart data={roleDistributionData} />
+          </div>
+
+          {/* System Stats */}
+          <div className="grid gap-6 md:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle>Statistiche Database</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Bets</span>
+                  <span className="font-semibold">{systemStats?.totalBets || 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Transazioni</span>
+                  <span className="font-semibold">{systemStats?.totalTransactions || 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Conti</span>
+                  <span className="font-semibold">{systemStats?.totalAccounts || 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Wallet</span>
+                  <span className="font-semibold">{systemStats?.totalWallets || 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Tag</span>
+                  <span className="font-semibold">{systemStats?.totalTags || 0}</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Distribuzione Ruoli</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Admin</span>
+                  <Badge variant="default">{systemStats?.roleDistribution.admin || 0}</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Premium</span>
+                  <Badge variant="secondary">{systemStats?.roleDistribution.premium || 0}</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Free</span>
+                  <Badge variant="outline">{systemStats?.roleDistribution.free || 0}</Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Crescita Utenti</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Questa settimana</span>
+                  <span className="font-semibold text-green-600">+{systemStats?.newUsersThisWeek || 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Questo mese</span>
+                  <span className="font-semibold text-green-600">+{systemStats?.newUsersThisMonth || 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Attivi (30gg)</span>
+                  <span className="font-semibold">{systemStats?.activeUsers || 0}</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="users">
+          <Card>
         <CardHeader>
           <CardTitle>Utenti Registrati</CardTitle>
           <CardDescription>
@@ -206,7 +467,23 @@ export default function Admin() {
             </TableBody>
           </Table>
         </CardContent>
-      </Card>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="activity">
+          <Card>
+            <CardHeader>
+              <CardTitle>Attività Utenti</CardTitle>
+              <CardDescription>
+                Panoramica delle attività di tutti gli utenti
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <UserActivityTable users={userActivities} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
