@@ -11,65 +11,58 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import logo from '@/assets/logo_centurion.webp';
-
 const loginSchema = z.object({
   email: z.string().email('Email non valida'),
-  password: z.string().min(6, 'La password deve essere di almeno 6 caratteri'),
+  password: z.string().min(6, 'La password deve essere di almeno 6 caratteri')
 });
-
 const signupSchema = z.object({
   fullName: z.string().min(2, 'Il nome deve essere di almeno 2 caratteri'),
   email: z.string().email('Email non valida'),
   password: z.string().min(6, 'La password deve essere di almeno 6 caratteri'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
+  confirmPassword: z.string()
+}).refine(data => data.password === data.confirmPassword, {
   message: "Le password non coincidono",
-  path: ["confirmPassword"],
+  path: ["confirmPassword"]
 });
-
 type LoginFormData = z.infer<typeof loginSchema>;
 type SignupFormData = z.infer<typeof signupSchema>;
-
 const Auth = () => {
-  const { signIn, signUp } = useAuth();
+  const {
+    signIn,
+    signUp
+  } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
-      password: '',
-    },
+      password: ''
+    }
   });
-
   const signupForm = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
       fullName: '',
       email: '',
       password: '',
-      confirmPassword: '',
-    },
+      confirmPassword: ''
+    }
   });
-
   const handleLogin = async (data: LoginFormData) => {
     setIsLoading(true);
     await signIn(data.email, data.password);
     setIsLoading(false);
   };
-
   const handleSignup = async (data: SignupFormData) => {
     setIsLoading(true);
     await signUp(data.email, data.password, data.fullName);
     setIsLoading(false);
   };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+  return <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <img src={logo} alt="Centurion Club" className="h-32 w-auto" />
+            <img src={logo} alt="Centurion Club" className="h-36 w-auto " />
           </div>
           <CardDescription>Gestisci le tue scommesse in modo professionale</CardDescription>
           
@@ -88,33 +81,25 @@ const Auth = () => {
             <TabsContent value="login">
               <Form {...loginForm}>
                 <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
-                  <FormField
-                    control={loginForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
+                  <FormField control={loginForm.control} name="email" render={({
+                  field
+                }) => <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
                           <Input type="email" placeholder="tua@email.com" {...field} />
                         </FormControl>
                         <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      </FormItem>} />
 
-                  <FormField
-                    control={loginForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
+                  <FormField control={loginForm.control} name="password" render={({
+                  field
+                }) => <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
                           <Input type="password" placeholder="••••••" {...field} />
                         </FormControl>
                         <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      </FormItem>} />
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? 'Accesso...' : 'Accedi'}
@@ -126,61 +111,45 @@ const Auth = () => {
             <TabsContent value="signup">
               <Form {...signupForm}>
                 <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-4">
-                  <FormField
-                    control={signupForm.control}
-                    name="fullName"
-                    render={({ field }) => (
-                      <FormItem>
+                  <FormField control={signupForm.control} name="fullName" render={({
+                  field
+                }) => <FormItem>
                         <FormLabel>Nome Completo</FormLabel>
                         <FormControl>
                           <Input placeholder="Mario Rossi" {...field} />
                         </FormControl>
                         <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      </FormItem>} />
 
-                  <FormField
-                    control={signupForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
+                  <FormField control={signupForm.control} name="email" render={({
+                  field
+                }) => <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
                           <Input type="email" placeholder="tua@email.com" {...field} />
                         </FormControl>
                         <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      </FormItem>} />
 
-                  <FormField
-                    control={signupForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
+                  <FormField control={signupForm.control} name="password" render={({
+                  field
+                }) => <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
                           <Input type="password" placeholder="••••••" {...field} />
                         </FormControl>
                         <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      </FormItem>} />
 
-                  <FormField
-                    control={signupForm.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
+                  <FormField control={signupForm.control} name="confirmPassword" render={({
+                  field
+                }) => <FormItem>
                         <FormLabel>Conferma Password</FormLabel>
                         <FormControl>
                           <Input type="password" placeholder="••••••" {...field} />
                         </FormControl>
                         <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      </FormItem>} />
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? 'Creazione account...' : 'Crea Account'}
@@ -191,8 +160,6 @@ const Auth = () => {
           </Tabs>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default Auth;
