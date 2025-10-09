@@ -69,7 +69,7 @@ const Auth = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <img src={logo} alt="Centurion Club" className="h-24 w-auto" />
+            <img src={logo} alt="Centurion Club" className="h-32 w-auto" />
           </div>
           <CardDescription>Gestisci le tue scommesse in modo professionale</CardDescription>
           
