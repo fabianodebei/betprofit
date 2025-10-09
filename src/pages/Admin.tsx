@@ -23,7 +23,7 @@ interface UserProfile {
   email: string;
   full_name: string | null;
   created_at: string;
-  role: 'admin' | 'premium' | 'free';
+  role: 'admin' | 'free';
 }
 
 interface SystemStats {
@@ -38,7 +38,6 @@ interface SystemStats {
   totalTags: number;
   roleDistribution: {
     admin: number;
-    premium: number;
     free: number;
   };
 }
@@ -50,7 +49,7 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
-  const [newRole, setNewRole] = useState<'admin' | 'premium' | 'free'>('free');
+  const [newRole, setNewRole] = useState<'admin' | 'free'>('free');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [systemStats, setSystemStats] = useState<SystemStats | null>(null);
   const [userActivities, setUserActivities] = useState<any[]>([]);
@@ -93,7 +92,7 @@ export default function Admin() {
 
       const usersWithRoles = profiles.map(profile => ({
         ...profile,
-        role: (roles.find(r => r.user_id === profile.id)?.role || 'free') as 'admin' | 'premium' | 'free'
+        role: (roles.find(r => r.user_id === profile.id)?.role || 'free') as 'admin' | 'free'
       }));
 
       setUsers(usersWithRoles);
@@ -139,7 +138,6 @@ export default function Admin() {
 
       const roleDistribution = {
         admin: rolesRes.data?.filter(r => r.role === 'admin').length || 0,
-        premium: rolesRes.data?.filter(r => r.role === 'premium').length || 0,
         free: rolesRes.data?.filter(r => r.role === 'free').length || 0,
       };
 
@@ -171,7 +169,7 @@ export default function Admin() {
 
       const activities = profiles?.map(profile => ({
         ...profile,
-        role: (roles?.find(r => r.user_id === profile.id)?.role || 'free') as 'admin' | 'premium' | 'free',
+        role: (roles?.find(r => r.user_id === profile.id)?.role || 'free') as 'admin' | 'free',
         betsCount: bets?.filter(b => b.user_id === profile.id).length || 0,
         transactionsCount: transactions?.filter(t => t.user_id === profile.id).length || 0,
         accountsCount: accounts?.filter(a => a.user_id === profile.id).length || 0,
@@ -254,8 +252,6 @@ export default function Admin() {
     switch (role) {
       case 'admin':
         return 'default';
-      case 'premium':
-        return 'secondary';
       default:
         return 'outline';
     }
@@ -265,8 +261,6 @@ export default function Admin() {
     switch (role) {
       case 'admin':
         return 'Amministratore';
-      case 'premium':
-        return 'Premium';
       default:
         return 'Gratuito';
     }
@@ -282,7 +276,6 @@ export default function Admin() {
 
   const roleDistributionData = systemStats ? [
     { name: 'Admin', value: systemStats.roleDistribution.admin },
-    { name: 'Premium', value: systemStats.roleDistribution.premium },
     { name: 'Free', value: systemStats.roleDistribution.free },
   ] : [];
 
@@ -388,10 +381,6 @@ export default function Admin() {
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Admin</span>
                   <Badge variant="default">{systemStats?.roleDistribution.admin || 0}</Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Premium</span>
-                  <Badge variant="secondary">{systemStats?.roleDistribution.premium || 0}</Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Free</span>
@@ -511,7 +500,6 @@ export default function Admin() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="free">Gratuito</SelectItem>
-                <SelectItem value="premium">Premium</SelectItem>
                 <SelectItem value="admin">Amministratore</SelectItem>
               </SelectContent>
             </Select>

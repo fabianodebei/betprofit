@@ -7,7 +7,7 @@ interface UserActivity {
   id: string;
   email: string;
   full_name: string | null;
-  role: 'admin' | 'premium' | 'free';
+  role: 'admin' | 'free';
   created_at: string;
   betsCount: number;
   transactionsCount: number;
@@ -24,8 +24,6 @@ export const UserActivityTable = ({ users }: UserActivityTableProps) => {
     switch (role) {
       case 'admin':
         return 'default';
-      case 'premium':
-        return 'secondary';
       default:
         return 'outline';
     }
@@ -35,8 +33,6 @@ export const UserActivityTable = ({ users }: UserActivityTableProps) => {
     switch (role) {
       case 'admin':
         return 'Admin';
-      case 'premium':
-        return 'Premium';
       default:
         return 'Free';
     }
