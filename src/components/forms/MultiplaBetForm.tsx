@@ -40,7 +40,7 @@ const createMultiplaBetSchema = (tagRequired: boolean) => z.object({
   dataEvento: z.date(),
   conto: z.string().min(1, 'Conto è obbligatorio'),
   stake: z.number().positive('Lo stake deve essere positivo'),
-  tipoBonus: z.enum(['Nessuno', 'Bonus Multipla', 'Rimborso Multipla', 'Free Bet Multipla', 'Assicurazione Multipla']),
+  tipoBonus: z.enum(['Nessuno', 'Bonus', 'Rimborso', 'Free Bet']),
   percentualeBonus: z.number().optional(),
   numeroMinimoSelezioni: z.number().optional(),
   bonus: z.number().optional(),
@@ -129,7 +129,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
       const account = accounts.find(a => a.conto === editingBet.conto);
       const intestatario = account?.intestatario || '';
       
-      const bonusTypes = ['Nessuno', 'Bonus Multipla', 'Rimborso Multipla', 'Free Bet Multipla', 'Assicurazione Multipla'];
+      const bonusTypes = ['Nessuno', 'Bonus', 'Rimborso', 'Free Bet'];
       const validBonus = bonusTypes.includes(editingBet.tipoBonus || 'Nessuno') ? editingBet.tipoBonus : 'Nessuno';
       
       form.reset({
@@ -595,10 +595,9 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="Nessuno">Nessuno</SelectItem>
-                      <SelectItem value="Bonus Multipla">Bonus Multipla</SelectItem>
-                      <SelectItem value="Rimborso Multipla">Rimborso Multipla</SelectItem>
-                      <SelectItem value="Free Bet Multipla">Free Bet Multipla</SelectItem>
-                      <SelectItem value="Assicurazione Multipla">Assicurazione Multipla</SelectItem>
+                      <SelectItem value="Bonus">Bonus Multipla</SelectItem>
+                      <SelectItem value="Rimborso">Rimborso Multipla</SelectItem>
+                      <SelectItem value="Free Bet">Free Bet Multipla</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -607,7 +606,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
             />
 
             {/* Conditional Bonus Fields */}
-            {tipoBonus === 'Bonus Multipla' && (
+            {tipoBonus === 'Bonus' && (
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -648,9 +647,9 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
               </div>
             )}
 
-            {(tipoBonus === 'Bonus Multipla' || tipoBonus === 'Rimborso Multipla') && (
+            {(tipoBonus === 'Bonus' || tipoBonus === 'Rimborso') && (
               <div className="grid grid-cols-2 gap-4">
-                {tipoBonus === 'Bonus Multipla' && (
+                {tipoBonus === 'Bonus' && (
                   <FormField
                     control={form.control}
                     name="bonus"
@@ -671,7 +670,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                   />
                 )}
 
-                {tipoBonus === 'Rimborso Multipla' && (
+                {tipoBonus === 'Rimborso' && (
                   <FormField
                     control={form.control}
                     name="rimborso"

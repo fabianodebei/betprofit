@@ -32,7 +32,7 @@ const createSingleBetSchema = (tagRequired: boolean) => z.object({
   conto: z.string().min(1, 'Conto è obbligatorio'),
   stake: z.number().positive('Lo stake deve essere positivo'),
   quota: z.number().min(1.01, 'La quota deve essere almeno 1.01'),
-  tipoBonus: z.enum(['Nessuno', 'Bonus', 'Rimborso', 'Free Bet', 'Bonus Multipla', 'Rimborso Multipla', 'Free Bet Multipla', 'Assicurazione Multipla']),
+  tipoBonus: z.enum(['Nessuno', 'Bonus', 'Rimborso', 'Free Bet']),
   bonus: z.number().optional(),
   rimborso: z.number().optional(),
   urlEvento: z.string().optional(),
@@ -98,6 +98,16 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
       const account = accounts.find(a => a.conto === editingBet.conto);
       const intestatario = account?.intestatario || '';
       
+      // Convert old bonus type values to new ones
+      const convertBonusType = (oldType: string | undefined): 'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet' => {
+        if (!oldType) return 'Nessuno';
+        if (oldType === 'Bonus Multipla') return 'Bonus';
+        if (oldType === 'Rimborso Multipla') return 'Rimborso';
+        if (oldType === 'Free Bet Multipla') return 'Free Bet';
+        if (['Nessuno', 'Bonus', 'Rimborso', 'Free Bet'].includes(oldType)) return oldType as any;
+        return 'Nessuno';
+      };
+      
       form.reset({
         metodo: (editingBet.metodo as 'Punta' | 'Banca') || 'Punta',
         intestatario: intestatario,
@@ -107,7 +117,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         conto: editingBet.conto,
         stake: editingBet.stake,
         quota: editingBet.quota || 1.01,
-        tipoBonus: editingBet.tipoBonus || 'Nessuno',
+        tipoBonus: convertBonusType(editingBet.tipoBonus),
         bonus: editingBet.bonus || 0,
         rimborso: editingBet.rimborso || 0,
         urlEvento: editingBet.urlEvento || '',
