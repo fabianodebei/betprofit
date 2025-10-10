@@ -21,6 +21,7 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useWallets } from '@/contexts/WalletContext';
 import { useIntestatari } from '@/contexts/IntestatariContext';
 import { PREDEFINED_TAGS } from '@/constants/predefinedTags';
+import { ALL_SPORT_MARKETS, CASINO_MARKETS } from '@/constants/markets';
 import { Bet, BetLeg } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -361,11 +362,27 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
 
                       <div>
                         <label className="text-sm font-medium">Mercato</label>
-                        <Input
+                        <Select
                           value={selection.mercato}
-                          onChange={(e) => handleSelectionChange(index, 'mercato', e.target.value)}
-                          placeholder="Es: 1X2"
-                        />
+                          onValueChange={(value) => handleSelectionChange(index, 'mercato', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleziona mercato" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Nessuno</SelectItem>
+                            {ALL_SPORT_MARKETS.map((market) => (
+                              <SelectItem key={market} value={market}>
+                                {market}
+                              </SelectItem>
+                            ))}
+                            {CASINO_MARKETS.map((market) => (
+                              <SelectItem key={market} value={market}>
+                                {market}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       <div>
@@ -403,11 +420,25 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={selection.dataEvento}
-                              onSelect={(date) => handleSelectionChange(index, 'dataEvento', date || new Date())}
-                            />
+                            <div className="space-y-3 p-3">
+                              <Calendar
+                                mode="single"
+                                selected={selection.dataEvento}
+                                onSelect={(date) => {
+                                  if (date) {
+                                    const newDate = new Date(date);
+                                    newDate.setHours(selection.dataEvento.getHours());
+                                    newDate.setMinutes(selection.dataEvento.getMinutes());
+                                    handleSelectionChange(index, 'dataEvento', newDate);
+                                  }
+                                }}
+                                className="pointer-events-auto"
+                              />
+                              <TimePicker
+                                value={selection.dataEvento}
+                                onChange={(date) => handleSelectionChange(index, 'dataEvento', date)}
+                              />
+                            </div>
                           </PopoverContent>
                         </Popover>
                       </div>
