@@ -66,7 +66,7 @@ const Auth = () => {
           </div>
           <CardDescription>Gestisci le tue scommesse in modo professionale</CardDescription>
 
-          <Link to="/guida" className="inline-flex items-center gap-2 text-sm text-primary hover:underline mt-2">
+          <Link to="/guida" className="inline-flex items-center gap-2 text-sm text-primary hover:underline mt-2 my-0 px-[10px] mx-[110px]">
             <BookOpen className="h-4 w-4" />
             Leggi la guida setup
           </Link>
