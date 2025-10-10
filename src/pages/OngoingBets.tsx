@@ -12,6 +12,7 @@ import { useYear } from '@/contexts/YearContext';
 import { formatDate } from '@/utils/dates';
 import { ArchiveBetDialog } from '@/components/dialogs/ArchiveBetDialog';
 import { MultiplaDetailDialog } from '@/components/dialogs/MultiplaDetailDialog';
+import { SingleBetDetailDialog } from '@/components/dialogs/SingleBetDetailDialog';
 import { Bet } from '@/types';
 
 export default function OngoingBets() {
@@ -24,6 +25,7 @@ export default function OngoingBets() {
   const [showCasinoBetForm, setShowCasinoBetForm] = useState(false);
   const [showMultiplaBetForm, setShowMultiplaBetForm] = useState(false);
   const [showMultiplaDetailDialog, setShowMultiplaDetailDialog] = useState(false);
+  const [showSingleBetDetailDialog, setShowSingleBetDetailDialog] = useState(false);
   const [selectedBet, setSelectedBet] = useState<Bet | null>(null);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [editingBet, setEditingBet] = useState<Bet | null>(null);
@@ -73,6 +75,11 @@ export default function OngoingBets() {
   const handleShowMultiplaDetail = (bet: Bet) => {
     setSelectedBet(bet);
     setShowMultiplaDetailDialog(true);
+  };
+
+  const handleShowSingleBetDetail = (bet: Bet) => {
+    setSelectedBet(bet);
+    setShowSingleBetDetailDialog(true);
   };
 
   return (
@@ -170,6 +177,9 @@ export default function OngoingBets() {
                           {bet.tipo === 'Multipla' && (
                             <Button size="sm" variant="outline" onClick={() => handleShowMultiplaDetail(bet)}>Dettagli</Button>
                           )}
+                          {bet.tipo === 'Singola' && (
+                            <Button size="sm" variant="outline" onClick={() => handleShowSingleBetDetail(bet)}>Dettagli</Button>
+                          )}
                           <Button size="sm" variant="outline" onClick={() => handleDetail(bet)}>Modifica</Button>
                           <Button size="sm" variant="outline" onClick={() => handleArchive(bet)}>Archivia</Button>
                           <Button size="sm" variant="outline" onClick={() => handleClone(bet)}>Clona</Button>
@@ -227,6 +237,11 @@ export default function OngoingBets() {
       <MultiplaDetailDialog
         open={showMultiplaDetailDialog}
         onOpenChange={setShowMultiplaDetailDialog}
+        bet={selectedBet}
+      />
+      <SingleBetDetailDialog
+        open={showSingleBetDetailDialog}
+        onOpenChange={setShowSingleBetDetailDialog}
         bet={selectedBet}
       />
       <ArchiveBetDialog

@@ -57,7 +57,7 @@ export interface Bet {
   evento?: string;
   dataEvento: Date; // Include time
   metodo?: string;
-  tipoBonus?: 'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet' | 'Bonus Multipla' | 'Rimborso Multipla' | 'Free Bet Multipla' | 'Assicurazione Multipla';
+  tipoBonus?: 'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet';
   bonus?: number;
   rimborso?: number;
   stato: 'In Corso' | 'Archiviata';
