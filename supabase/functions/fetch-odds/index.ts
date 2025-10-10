@@ -69,6 +69,13 @@ serve(async (req) => {
       console.log(`Available bookmakers: ${availableBookmakers}`);
     }
 
+    // Define Italian bookmakers to filter
+    const italianBookmakers = [
+      'snai', 'sisal', 'goldbet', 'betflag', 'lottomatica', 
+      'eurobet', 'planetwin365', 'admiral', 'netbet', 'betsson', 
+      'better', 'bet365', 'williamhill', 'unibet'
+    ];
+
     // Process odds and find opportunities
     const opportunities = [];
     
@@ -79,78 +86,16 @@ serve(async (req) => {
 
       const bookmakerOdds = event.bookmakers || [];
       
-      // First pass: Look for matched betting opportunities (bookmaker vs exchange)
-      for (const bookmaker of bookmakerOdds) {
-        if (isExchange(bookmaker.key)) continue;
-
-        for (const market of bookmaker.markets || []) {
-          const internalMarket = mapAPIMarketToInternal(market.key, sport);
-          if (!markets.includes(internalMarket)) continue;
-
-          for (const outcome of market.outcomes || []) {
-            const quotaPunta = outcome.price;
-            
-            // Find matching exchange odds
-            for (const exchangeBookmaker of bookmakerOdds) {
-              if (!isExchange(exchangeBookmaker.key)) continue;
-              
-              const exchangeName = mapExchangeName(exchangeBookmaker.key);
-              const exchangeConfig = exchangeName === 'Betfair' ? exchanges.betfair : exchanges.betflag;
-              
-              if (!exchangeConfig.enabled) continue;
-
-              for (const exchangeMarket of exchangeBookmaker.markets || []) {
-                if (exchangeMarket.key !== market.key) continue;
-
-                const layOutcome = exchangeMarket.outcomes.find((o: any) => o.name === outcome.name);
-                if (!layOutcome) continue;
-
-                const quotaBanca = layOutcome.price;
-                const commission = exchangeConfig.commission;
-
-                const rating = calculateRating(quotaPunta, quotaBanca, commission);
-                
-                // Find all opportunities regardless of rating
-                if (true) {
-                  const defaultStake = 100;
-                  const profitEstimate = calculateGuaranteedProfit(
-                    defaultStake,
-                    quotaPunta,
-                    quotaBanca,
-                    commission
-                  );
-
-                  opportunities.push({
-                    id: crypto.randomUUID(),
-                    sport,
-                    eventName,
-                    eventDate,
-                    competition,
-                    market: internalMarket,
-                    selection: outcome.name,
-                    bookmaker: mapBookmakerName(bookmaker.key),
-                    quotaPunta,
-                    exchange: exchangeName,
-                    quotaBanca,
-                    rating: parseFloat(rating.toFixed(2)),
-                    profitEstimate: parseFloat(profitEstimate.toFixed(2)),
-                    commission,
-                    suggestedStake: defaultStake,
-                    liability: parseFloat((defaultStake * (quotaBanca - 1)).toFixed(2))
-                  });
-
-                  console.log(`Found matched betting: ${eventName} - ${outcome.name} - ${mapBookmakerName(bookmaker.key)} vs ${exchangeName} - Rating: ${rating.toFixed(2)}%`);
-                }
-              }
-            }
-          }
-        }
-      }
+      // Filter only Italian bookmakers and exclude exchanges
+      const italianBookmakerOdds = bookmakerOdds.filter((bm: any) => 
+        !isExchange(bm.key) && italianBookmakers.some(italian => bm.key.toLowerCase().includes(italian))
+      );
       
-      // Second pass: Look for surebet opportunities between different bookmakers
-      for (let i = 0; i < bookmakerOdds.length; i++) {
-        const bookmaker1 = bookmakerOdds[i];
-        if (isExchange(bookmaker1.key)) continue;
+      console.log(`Event: ${eventName}, Italian bookmakers found: ${italianBookmakerOdds.map((b: any) => b.key).join(', ')}`);
+      
+      // Look for surebet opportunities between different Italian bookmakers
+      for (let i = 0; i < italianBookmakerOdds.length; i++) {
+        const bookmaker1 = italianBookmakerOdds[i];
 
         for (const market1 of bookmaker1.markets || []) {
           const internalMarket = mapAPIMarketToInternal(market1.key, sport);
@@ -159,11 +104,11 @@ serve(async (req) => {
           for (const outcome1 of market1.outcomes || []) {
             const quotaPunta = outcome1.price;
             
-            // Check against other bookmakers for opposite outcomes (surebet)
-            for (let j = 0; j < bookmakerOdds.length; j++) {
+            // Check against other Italian bookmakers for opposite outcomes (surebet)
+            for (let j = 0; j < italianBookmakerOdds.length; j++) {
               if (i === j) continue; // Skip same bookmaker
               
-              const bookmaker2 = bookmakerOdds[j];
+              const bookmaker2 = italianBookmakerOdds[j];
               
               for (const market2 of bookmaker2.markets || []) {
                 if (market2.key !== market1.key) continue;
@@ -186,7 +131,7 @@ serve(async (req) => {
                       o.name !== outcome1.name && o.name !== outcome2.name
                     );
                     
-                    // Calculate surebet rating for bookmaker vs bookmaker
+                    // Calculate surebet rating
                     let rating = 0;
                     
                     if (outcome3) {
@@ -195,7 +140,7 @@ serve(async (req) => {
                       const totalInverse3 = inverse1 + inverse2 + inverse3;
                       rating = (1 - totalInverse3) * 100;
                     } else {
-                      // 2-way market (no exchange)
+                      // 2-way market
                       rating = (1 - totalInverse) * 100;
                     }
                     

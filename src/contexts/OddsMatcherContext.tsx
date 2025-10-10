@@ -20,15 +20,11 @@ interface OddsMatcherContextType {
 
 const defaultFilters: FilterState = {
   sport: 'soccer',
-  markets: [
-    '1 Calcio', 'X Calcio', '2 Calcio',
-    'Over 0.5 Calcio', 'Over 1.5 Calcio', 'Over 2.5 Calcio', 'Over 3.5 Calcio', 'Over 4.5 Calcio',
-    'Under 0.5 Calcio', 'Under 1.5 Calcio', 'Under 2.5 Calcio', 'Under 3.5 Calcio', 'Under 4.5 Calcio'
-  ],
+  markets: ['1 Calcio', 'X Calcio', '2 Calcio', 'Over 2.5 Calcio', 'Under 2.5 Calcio'],
   minRating: 0,
   exchanges: {
-    betfair: { enabled: true, commission: 4.5 },
-    betflag: { enabled: true, commission: 5.0 },
+    betfair: { enabled: false, commission: 4.5 },
+    betflag: { enabled: false, commission: 5.0 },
   },
   bookmakers: [],
   dateRange: 'today',
