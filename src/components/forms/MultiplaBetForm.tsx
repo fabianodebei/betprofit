@@ -21,7 +21,7 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useWallets } from '@/contexts/WalletContext';
 import { useIntestatari } from '@/contexts/IntestatariContext';
 import { PREDEFINED_TAGS } from '@/constants/predefinedTags';
-import { ALL_SPORT_MARKETS, CASINO_MARKETS } from '@/constants/markets';
+import { ALL_SPORT_MARKETS } from '@/constants/markets';
 import { Bet, BetLeg } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -372,11 +372,6 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                           <SelectContent>
                             <SelectItem value="none">Nessuno</SelectItem>
                             {ALL_SPORT_MARKETS.map((market) => (
-                              <SelectItem key={market} value={market}>
-                                {market}
-                              </SelectItem>
-                            ))}
-                            {CASINO_MARKETS.map((market) => (
                               <SelectItem key={market} value={market}>
                                 {market}
                               </SelectItem>
