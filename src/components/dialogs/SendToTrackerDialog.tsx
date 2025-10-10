@@ -73,7 +73,7 @@ export function SendToTrackerDialog({
         evento: opportunity.eventName,
         mercato: opportunity.market,
         competizione: opportunity.competition,
-        dataEvento: opportunity.eventDate,
+        dataEvento: new Date(opportunity.eventDate),
         quota: opportunity.quotaPunta,
         stake: stakeNum,
         stato: 'In Corso',
@@ -89,12 +89,12 @@ export function SendToTrackerDialog({
           conto: opportunity.exchange,
           evento: opportunity.eventName,
           mercato: opportunity.market,
-          data_evento: opportunity.eventDate,
-          quota_punta: opportunity.quotaPunta,
-          quota_banca: opportunity.quotaBanca,
+          dataEvento: new Date(opportunity.eventDate),
+          quotaPunta: opportunity.quotaPunta,
+          quotaBanca: opportunity.quotaBanca,
           stake: stakeNum,
-          tasse_percentuale: commissionNum,
-          url_evento: '',
+          tassePercentuale: commissionNum,
+          urlEvento: '',
         });
       }
 
