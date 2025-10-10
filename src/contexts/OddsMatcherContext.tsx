@@ -21,7 +21,7 @@ interface OddsMatcherContextType {
 const defaultFilters: FilterState = {
   sport: 'soccer',
   markets: ['1 Calcio', 'X Calcio', '2 Calcio'],
-  minRating: 75,
+  minRating: 0,
   exchanges: {
     betfair: { enabled: true, commission: 4.5 },
     betflag: { enabled: true, commission: 5.0 },

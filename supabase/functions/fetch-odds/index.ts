@@ -110,7 +110,8 @@ serve(async (req) => {
 
                 const rating = calculateRating(quotaPunta, quotaBanca, commission);
                 
-                if (rating >= minRating) {
+                // Find all opportunities regardless of rating
+                if (true) {
                   const defaultStake = 100;
                   const profitEstimate = calculateGuaranteedProfit(
                     defaultStake,
@@ -198,7 +199,8 @@ serve(async (req) => {
                       rating = (1 - totalInverse) * 100;
                     }
                     
-                    if (rating >= minRating) {
+                    // Find all opportunities regardless of rating
+                    if (true) {
                       const defaultStake = 100;
                       const profitEstimate = (defaultStake / totalInverse) - defaultStake;
 
