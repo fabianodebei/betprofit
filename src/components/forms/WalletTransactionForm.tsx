@@ -16,8 +16,8 @@ import { useWallets } from '@/contexts/WalletContext';
 import { formatCurrency } from '@/utils/currency';
 
 const transactionSchema = z.object({
-  metodo: z.enum(['Ricarica', 'Spesa'], {
-    required_error: 'Metodo non può essere vuoto.',
+  metodo: z.enum(['Ricarica', 'Spesa'] as const, {
+    message: 'Metodo non può essere vuoto.',
   }),
   wallet: z.string().min(1, 'Wallet è obbligatorio'),
   importo: z.number().positive('L\'importo deve essere positivo'),

@@ -32,9 +32,9 @@ const handler = async (req: Request): Promise<Response> => {
       }
     );
   } catch (error: any) {
-    console.error('Error in check-notifications:', error);
+    console.error('Function error:', error.name);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ success: false }),
       {
         status: 500,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -44,7 +44,7 @@ const handler = async (req: Request): Promise<Response> => {
 };
 
 async function checkReminders(supabase: any, supabaseUrl: string, serviceKey: string) {
-  console.log('Checking reminders...');
+  console.log('Processing reminders');
 
   const { data: reminders, error } = await supabase
     .from('reminders')
@@ -52,22 +52,15 @@ async function checkReminders(supabase: any, supabaseUrl: string, serviceKey: st
     .eq('stato', 'Nuovo');
 
   if (error) {
-    console.error('Error fetching reminders:', error);
+    console.error('Query failed');
     return;
   }
 
-  console.log(`Found ${reminders?.length || 0} reminders to check`);
+  console.log(`Processing ${reminders?.length || 0} items`);
 
   const now = new Date();
-  console.log('Current time:', now.toISOString());
 
   for (const reminder of reminders || []) {
-    console.log(`\nChecking reminder ${reminder.id}:`, {
-      scadenza: reminder.data_di_scadenza,
-      periodo: reminder.notifica_periodo,
-      metodo: reminder.metodo,
-      conto: reminder.conto,
-    });
     // Check if already notified
     const { data: existingLog } = await supabase
       .from('notification_logs')
@@ -77,7 +70,6 @@ async function checkReminders(supabase: any, supabaseUrl: string, serviceKey: st
       .single();
 
     if (existingLog) {
-      console.log(`Reminder ${reminder.id} already notified`);
       continue;
     }
 
@@ -103,9 +95,6 @@ async function checkReminders(supabase: any, supabaseUrl: string, serviceKey: st
         break;
     }
 
-    console.log('Notification time:', notificationTime.toISOString());
-    console.log('Should notify:', now >= notificationTime);
-
     // Send notification if time has arrived
     if (now >= notificationTime) {
       const message = `🔔 <b>PROMEMORIA IN SCADENZA</b>\n\n` +
@@ -114,7 +103,7 @@ async function checkReminders(supabase: any, supabaseUrl: string, serviceKey: st
         `📝 Descrizione: ${reminder.descrizione}\n` +
         `⏰ Scadenza: ${formatDate(scadenza)}`;
 
-      console.log('Sending reminder notification:', reminder.id);
+      console.log('Sending notification');
 
       await fetch(`${supabaseUrl}/functions/v1/send-telegram-notification`, {
         method: 'POST',
@@ -142,13 +131,13 @@ async function checkReminders(supabase: any, supabaseUrl: string, serviceKey: st
         .update({ stato: 'Letto' })
         .eq('id', reminder.id);
 
-      console.log('Reminder notification sent:', reminder.id);
+      console.log('Notification sent');
     }
   }
 }
 
 async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey: string) {
-  console.log('Checking bets to report...');
+  console.log('Processing bets');
 
   const { data: bets, error } = await supabase
     .from('bets')
@@ -157,22 +146,15 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
     .neq('tipo', 'Rapida');
 
   if (error) {
-    console.error('Error fetching bets:', error);
+    console.error('Query failed');
     return;
   }
 
-  console.log(`Found ${bets?.length || 0} bets to check`);
+  console.log(`Processing ${bets?.length || 0} items`);
 
   const now = new Date();
-  console.log('Current time:', now.toISOString());
 
   for (const bet of bets || []) {
-    console.log(`\nChecking bet ${bet.id}:`, {
-      evento: bet.evento,
-      data_evento: bet.data_evento,
-      tipo: bet.tipo,
-      conto: bet.conto,
-    });
     // Check if already notified
     const { data: existingLog } = await supabase
       .from('notification_logs')
@@ -182,17 +164,12 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
       .single();
 
     if (existingLog) {
-      console.log(`Bet ${bet.id} already notified`);
       continue;
     }
 
     const eventDate = new Date(bet.data_evento);
     // Add 1 hour and 40 minutes (100 minutes)
     const reportTime = new Date(eventDate.getTime() + 100 * 60 * 1000);
-
-    console.log('Event date:', eventDate.toISOString());
-    console.log('Report time (event + 100min):', reportTime.toISOString());
-    console.log('Should notify:', now >= reportTime);
 
     // Send notification if time has arrived
     if (now >= reportTime) {
@@ -231,7 +208,7 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
         message += `\n⚠️ <b>Banca la prossima scommessa della multipla!</b>`;
       }
 
-      console.log('Sending bet notification:', bet.id);
+      console.log('Sending notification');
 
       await fetch(`${supabaseUrl}/functions/v1/send-telegram-notification`, {
         method: 'POST',
@@ -253,7 +230,7 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
           reference_id: bet.id,
         });
 
-      console.log('Bet notification sent:', bet.id);
+      console.log('Notification sent');
     }
   }
 }

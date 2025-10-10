@@ -20,7 +20,7 @@ const reminderSchema = z.object({
   conto: z.string().optional(),
   descrizione: z.string().min(1, 'Descrizione richiesta'),
   dataScadenza: z.date({
-    required_error: 'Data di scadenza richiesta',
+    message: 'Data di scadenza richiesta',
   }),
   notificaPeriodo: z.string().min(1, 'Periodo di notifica richiesto'),
 });

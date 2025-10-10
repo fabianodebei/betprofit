@@ -1,15 +1,19 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface TelegramMessageRequest {
-  message: string;
-  user_id: string;
-}
+const requestSchema = z.object({
+  message: z.string()
+    .trim()
+    .min(1, 'Message cannot be empty')
+    .max(4096, 'Message exceeds maximum length'),
+  user_id: z.string().uuid('Invalid user ID'),
+});
 
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
@@ -22,8 +26,9 @@ const handler = async (req: Request): Promise<Response> => {
     try {
       body = await req.json();
     } catch (e) {
+      console.error('Invalid JSON body');
       return new Response(
-        JSON.stringify({ error: 'Invalid request' }),
+        JSON.stringify({ success: false }),
         {
           status: 400,
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -31,13 +36,12 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { message, user_id } = body as TelegramMessageRequest;
-
-    // Validate user_id
-    if (!user_id) {
-      console.error('Missing user_id');
+    // Validate request with Zod
+    const validation = requestSchema.safeParse(body);
+    if (!validation.success) {
+      console.error('Validation error:', validation.error.errors);
       return new Response(
-        JSON.stringify({ error: 'Invalid request' }),
+        JSON.stringify({ success: false }),
         {
           status: 400,
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -45,29 +49,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Validate message
-    if (!message || typeof message !== 'string' || message.trim().length === 0) {
-      console.error('Invalid or empty message');
-      return new Response(
-        JSON.stringify({ error: 'Invalid request' }),
-        {
-          status: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        }
-      );
-    }
-
-    // Check message length (Telegram limit is 4096 characters)
-    if (message.length > 4096) {
-      console.error('Message exceeds maximum length');
-      return new Response(
-        JSON.stringify({ error: 'Invalid request' }),
-        {
-          status: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        }
-      );
-    }
+    const { message, user_id } = validation.data;
 
     // Get user's Telegram configuration
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -81,9 +63,9 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (configError) {
-      console.error('Error fetching config:', configError.message);
+      console.error('Config fetch failed');
       return new Response(
-        JSON.stringify({ error: 'Configuration error' }),
+        JSON.stringify({ success: false }),
         {
           status: 500,
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -91,43 +73,10 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    if (!config) {
-      console.log('No configuration found');
+    if (!config || !config.notifications_enabled || !config.telegram_bot_token || !config.telegram_chat_id) {
+      console.log('Notification not sent: configuration incomplete or disabled');
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: 'Configuration not found' 
-        }),
-        {
-          status: 200,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        }
-      );
-    }
-
-    // Check if notifications are enabled
-    if (!config.notifications_enabled) {
-      console.log('Notifications disabled');
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: 'Notifications disabled' 
-        }),
-        {
-          status: 200,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        }
-      );
-    }
-
-    // Check if user has configured Telegram credentials
-    if (!config.telegram_bot_token || !config.telegram_chat_id) {
-      console.log('Credentials not configured');
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: 'Configuration incomplete' 
-        }),
+        JSON.stringify({ success: false }),
         {
           status: 200,
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -137,7 +86,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const telegramUrl = `https://api.telegram.org/bot${config.telegram_bot_token}/sendMessage`;
 
-    console.log('Sending Telegram notification to user:', user_id);
+    console.log('Sending notification');
 
     const response = await fetch(telegramUrl, {
       method: 'POST',
@@ -151,12 +100,10 @@ const handler = async (req: Request): Promise<Response> => {
       }),
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-      console.error('Telegram API error:', response.status, data);
+      console.error('External API error:', response.status);
       return new Response(
-        JSON.stringify({ error: 'Failed to send notification' }),
+        JSON.stringify({ success: false }),
         {
           status: 500,
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -164,19 +111,19 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    console.log('Notification sent successfully');
+    console.log('Notification sent');
 
     return new Response(
-      JSON.stringify({ success: true, data }),
+      JSON.stringify({ success: true }),
       {
         status: 200,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       }
     );
   } catch (error: any) {
-    console.error('Error in send-telegram-notification:', error.message);
+    console.error('Function error:', error.name);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ success: false }),
       {
         status: 500,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
