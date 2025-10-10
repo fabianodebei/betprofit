@@ -242,6 +242,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
         parentBetId={bet.id}
         editingLayBet={editingLayBet}
         mode={editingLayBet ? 'edit' : 'create'}
+        parentBet={bet}
       />
     </>
   );

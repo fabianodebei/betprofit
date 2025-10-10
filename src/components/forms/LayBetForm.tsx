@@ -39,9 +39,10 @@ interface LayBetFormProps {
   parentBetId: string;
   editingLayBet?: LayBet | null;
   mode?: 'create' | 'edit';
+  parentBet?: any; // Bet principale per pre-compilare i dati
 }
 
-export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mode = 'create' }: LayBetFormProps) {
+export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mode = 'create', parentBet }: LayBetFormProps) {
   const { addLayBet, updateLayBet } = useLayBets();
   const { accounts } = useAccounts();
   const [selectedMetodo, setSelectedMetodo] = useState<'Punta' | 'Banca'>('Punta');
@@ -77,6 +78,21 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
         urlEvento: editingLayBet.urlEvento || '',
       });
       setSelectedMetodo(editingLayBet.metodo);
+    } else if (!editingLayBet && open && parentBet) {
+      // Pre-compila con i dati della bet principale
+      form.reset({
+        metodo: 'Banca',
+        evento: parentBet.evento || '',
+        dataEvento: new Date(parentBet.dataEvento),
+        mercato: parentBet.mercato || '',
+        conto: '',
+        stake: 0,
+        quotaBanca: 1.01,
+        quotaPunta: parentBet.quota || 1.01,
+        tassePercentuale: 0,
+        urlEvento: parentBet.urlEvento || '',
+      });
+      setSelectedMetodo('Banca');
     } else if (!editingLayBet && open) {
       form.reset({
         metodo: 'Punta',
@@ -92,7 +108,7 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
       });
       setSelectedMetodo('Punta');
     }
-  }, [editingLayBet, open, form]);
+  }, [editingLayBet, open, form, parentBet]);
 
   const onSubmit = async (data: LayBetFormData) => {
     if (mode === 'edit' && editingLayBet) {
