@@ -21,9 +21,11 @@ import { BookProvider } from "./contexts/BookContext";
 import { TagProvider } from "./contexts/TagContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
 import { YearProvider } from "./contexts/YearContext";
+import { OddsMatcherProvider } from "./contexts/OddsMatcherContext";
 import Auth from "./pages/Auth";
 import SetupGuide from "./pages/SetupGuide";
 import Dashboard from "./pages/Dashboard";
+import Oddsmatcher from "./pages/Oddsmatcher";
 import Wallets from "./pages/Wallets";
 import Accounts from "./pages/Accounts";
 import OngoingBets from "./pages/OngoingBets";
@@ -56,10 +58,11 @@ const App = () => (
               <SettingsProvider>
                 <IntestatariProvider>
                   <BookProvider>
-                    <TagProvider>
-                      <WalletProvider>
-                        <AccountProvider>
-                          <BetProvider>
+                      <TagProvider>
+                        <OddsMatcherProvider>
+                          <WalletProvider>
+                            <AccountProvider>
+                              <BetProvider>
                             <BetLegProvider>
                               <LayBetProvider>
                                 <TransactionProvider>
@@ -85,8 +88,9 @@ const App = () => (
                                                 <Route path="/" element={<Dashboard />} />
                                                 <Route path="/wallets" element={<Wallets />} />
                                                 <Route path="/conti" element={<Accounts />} />
-                                                <Route path="/puntate" element={<OngoingBets />} />
-                                                <Route path="/rapide" element={<QuickBets />} />
+                                <Route path="/puntate" element={<OngoingBets />} />
+                                <Route path="/oddsmatcher" element={<Oddsmatcher />} />
+                                <Route path="/rapide" element={<QuickBets />} />
                                                 <Route path="/archiviate" element={<ArchivedBets />} />
                                                 <Route path="/depositi" element={<Deposits />} />
                                                 <Route path="/bilancio" element={<Balance />} />
@@ -114,8 +118,9 @@ const App = () => (
                               </LayBetProvider>
                             </BetLegProvider>
                           </BetProvider>
-                        </AccountProvider>
-                      </WalletProvider>
+                          </AccountProvider>
+                        </WalletProvider>
+                      </OddsMatcherProvider>
                     </TagProvider>
                   </BookProvider>
                 </IntestatariProvider>
