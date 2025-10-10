@@ -15,6 +15,10 @@ const loginSchema = z.object({
   email: z.string().email("Email non valida"),
   password: z.string().min(6, "La password deve essere di almeno 6 caratteri")
 });
+
+const resetPasswordSchema = z.object({
+  email: z.string().email("Email non valida")
+});
 const signupSchema = z.object({
   fullName: z.string().min(2, "Il nome deve essere di almeno 2 caratteri"),
   email: z.string().email("Email non valida"),
@@ -26,12 +30,15 @@ const signupSchema = z.object({
 });
 type LoginFormData = z.infer<typeof loginSchema>;
 type SignupFormData = z.infer<typeof signupSchema>;
+type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 const Auth = () => {
   const {
     signIn,
-    signUp
+    signUp,
+    resetPassword
   } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -48,6 +55,13 @@ const Auth = () => {
       confirmPassword: ""
     }
   });
+
+  const resetPasswordForm = useForm<ResetPasswordFormData>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      email: ""
+    }
+  });
   const handleLogin = async (data: LoginFormData) => {
     setIsLoading(true);
     await signIn(data.email, data.password);
@@ -56,6 +70,16 @@ const Auth = () => {
   const handleSignup = async (data: SignupFormData) => {
     setIsLoading(true);
     await signUp(data.email, data.password, data.fullName);
+    setIsLoading(false);
+  };
+
+  const handleResetPassword = async (data: ResetPasswordFormData) => {
+    setIsLoading(true);
+    const { error } = await resetPassword(data.email);
+    if (!error) {
+      setShowResetPassword(false);
+      resetPasswordForm.reset();
+    }
     setIsLoading(false);
   };
   return <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -104,8 +128,54 @@ const Auth = () => {
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Accesso..." : "Accedi"}
                   </Button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowResetPassword(true)}
+                    className="text-sm text-primary hover:underline mt-2"
+                  >
+                    Password dimenticata?
+                  </button>
                 </form>
               </Form>
+
+              {showResetPassword && (
+                <div className="mt-4 p-4 border rounded-md bg-muted/50">
+                  <h3 className="text-sm font-medium mb-3">Recupera Password</h3>
+                  <Form {...resetPasswordForm}>
+                    <form onSubmit={resetPasswordForm.handleSubmit(handleResetPassword)} className="space-y-3">
+                      <FormField
+                        control={resetPasswordForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input type="email" placeholder="tua@email.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="flex gap-2">
+                        <Button type="submit" disabled={isLoading} className="flex-1">
+                          {isLoading ? "Invio..." : "Invia Email"}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setShowResetPassword(false);
+                            resetPasswordForm.reset();
+                          }}
+                        >
+                          Annulla
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="signup">
