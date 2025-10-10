@@ -62,6 +62,12 @@ serve(async (req) => {
 
     const oddsData = await oddsResponse.json();
     console.log(`Received ${oddsData.length} events from Odds API`);
+    
+    // Log available bookmakers
+    if (oddsData.length > 0 && oddsData[0].bookmakers) {
+      const availableBookmakers = oddsData[0].bookmakers.map((b: any) => b.key).join(', ');
+      console.log(`Available bookmakers: ${availableBookmakers}`);
+    }
 
     // Process odds and find opportunities
     const opportunities = [];
@@ -73,7 +79,74 @@ serve(async (req) => {
 
       const bookmakerOdds = event.bookmakers || [];
       
-      // Group odds by market and outcome
+      // First pass: Look for matched betting opportunities (bookmaker vs exchange)
+      for (const bookmaker of bookmakerOdds) {
+        if (isExchange(bookmaker.key)) continue;
+
+        for (const market of bookmaker.markets || []) {
+          const internalMarket = mapAPIMarketToInternal(market.key, sport);
+          if (!markets.includes(internalMarket)) continue;
+
+          for (const outcome of market.outcomes || []) {
+            const quotaPunta = outcome.price;
+            
+            // Find matching exchange odds
+            for (const exchangeBookmaker of bookmakerOdds) {
+              if (!isExchange(exchangeBookmaker.key)) continue;
+              
+              const exchangeName = mapExchangeName(exchangeBookmaker.key);
+              const exchangeConfig = exchangeName === 'Betfair' ? exchanges.betfair : exchanges.betflag;
+              
+              if (!exchangeConfig.enabled) continue;
+
+              for (const exchangeMarket of exchangeBookmaker.markets || []) {
+                if (exchangeMarket.key !== market.key) continue;
+
+                const layOutcome = exchangeMarket.outcomes.find((o: any) => o.name === outcome.name);
+                if (!layOutcome) continue;
+
+                const quotaBanca = layOutcome.price;
+                const commission = exchangeConfig.commission;
+
+                const rating = calculateRating(quotaPunta, quotaBanca, commission);
+                
+                if (rating >= minRating) {
+                  const defaultStake = 100;
+                  const profitEstimate = calculateGuaranteedProfit(
+                    defaultStake,
+                    quotaPunta,
+                    quotaBanca,
+                    commission
+                  );
+
+                  opportunities.push({
+                    id: crypto.randomUUID(),
+                    sport,
+                    eventName,
+                    eventDate,
+                    competition,
+                    market: internalMarket,
+                    selection: outcome.name,
+                    bookmaker: mapBookmakerName(bookmaker.key),
+                    quotaPunta,
+                    exchange: exchangeName,
+                    quotaBanca,
+                    rating: parseFloat(rating.toFixed(2)),
+                    profitEstimate: parseFloat(profitEstimate.toFixed(2)),
+                    commission,
+                    suggestedStake: defaultStake,
+                    liability: parseFloat((defaultStake * (quotaBanca - 1)).toFixed(2))
+                  });
+
+                  console.log(`Found matched betting: ${eventName} - ${outcome.name} - ${mapBookmakerName(bookmaker.key)} vs ${exchangeName} - Rating: ${rating.toFixed(2)}%`);
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      // Second pass: Look for surebet opportunities between different bookmakers
       for (let i = 0; i < bookmakerOdds.length; i++) {
         const bookmaker1 = bookmakerOdds[i];
         if (isExchange(bookmaker1.key)) continue;
@@ -112,8 +185,8 @@ serve(async (req) => {
                       o.name !== outcome1.name && o.name !== outcome2.name
                     );
                     
+                    // Calculate surebet rating for bookmaker vs bookmaker
                     let rating = 0;
-                    let isExchangeOpp = isExchange(bookmaker2.key);
                     
                     if (outcome3) {
                       // 3-way market (1X2)
@@ -121,24 +194,13 @@ serve(async (req) => {
                       const totalInverse3 = inverse1 + inverse2 + inverse3;
                       rating = (1 - totalInverse3) * 100;
                     } else {
-                      // 2-way market
-                      if (isExchangeOpp) {
-                        // Matched betting with exchange
-                        const exchangeName = mapExchangeName(bookmaker2.key);
-                        const exchangeConfig = exchangeName === 'Betfair' ? exchanges.betfair : exchanges.betflag;
-                        if (!exchangeConfig.enabled) continue;
-                        rating = calculateRating(quotaPunta, quota2, exchangeConfig.commission);
-                      } else {
-                        // Surebet between two bookmakers
-                        rating = (1 - totalInverse) * 100;
-                      }
+                      // 2-way market (no exchange)
+                      rating = (1 - totalInverse) * 100;
                     }
                     
                     if (rating >= minRating) {
                       const defaultStake = 100;
-                      const profitEstimate = isExchangeOpp 
-                        ? calculateGuaranteedProfit(defaultStake, quotaPunta, quota2, exchanges.betfair.commission)
-                        : (defaultStake / totalInverse) - defaultStake;
+                      const profitEstimate = (defaultStake / totalInverse) - defaultStake;
 
                       opportunities.push({
                         id: crypto.randomUUID(),
@@ -150,14 +212,16 @@ serve(async (req) => {
                         selection: outcome1.name,
                         bookmaker: mapBookmakerName(bookmaker1.key),
                         quotaPunta,
-                        exchange: isExchangeOpp ? mapExchangeName(bookmaker2.key) : mapBookmakerName(bookmaker2.key),
+                        exchange: mapBookmakerName(bookmaker2.key),
                         quotaBanca: quota2,
                         rating: parseFloat(rating.toFixed(2)),
                         profitEstimate: parseFloat(profitEstimate.toFixed(2)),
-                        commission: isExchangeOpp ? (mapExchangeName(bookmaker2.key) === 'Betfair' ? exchanges.betfair.commission : exchanges.betflag.commission) : 0,
+                        commission: 0,
                         suggestedStake: defaultStake,
                         liability: parseFloat((defaultStake * (quota2 - 1)).toFixed(2))
                       });
+
+                      console.log(`Found surebet: ${eventName} - ${outcome1.name} vs ${outcome2.name} - ${mapBookmakerName(bookmaker1.key)} vs ${mapBookmakerName(bookmaker2.key)} - Rating: ${rating.toFixed(2)}%`);
                     }
                   }
                 }
