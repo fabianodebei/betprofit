@@ -71,72 +71,95 @@ serve(async (req) => {
       const eventDate = event.commence_time;
       const competition = event.sport_title || sport;
 
-      // Get bookmaker odds
       const bookmakerOdds = event.bookmakers || [];
       
-      for (const bookmaker of bookmakerOdds) {
-        // Skip if bookmaker is an exchange
-        if (isExchange(bookmaker.key)) continue;
+      // Group odds by market and outcome
+      for (let i = 0; i < bookmakerOdds.length; i++) {
+        const bookmaker1 = bookmakerOdds[i];
+        if (isExchange(bookmaker1.key)) continue;
 
-        for (const market of bookmaker.markets || []) {
-          const internalMarket = mapAPIMarketToInternal(market.key, sport);
+        for (const market1 of bookmaker1.markets || []) {
+          const internalMarket = mapAPIMarketToInternal(market1.key, sport);
           if (!markets.includes(internalMarket)) continue;
 
-          for (const outcome of market.outcomes || []) {
-            const quotaPunta = outcome.price;
+          for (const outcome1 of market1.outcomes || []) {
+            const quotaPunta = outcome1.price;
             
-            // Find matching exchange odds
-            for (const exchangeBookmaker of bookmakerOdds) {
-              if (!isExchange(exchangeBookmaker.key)) continue;
+            // Check against other bookmakers for opposite outcomes (surebet)
+            for (let j = 0; j < bookmakerOdds.length; j++) {
+              if (i === j) continue; // Skip same bookmaker
               
-              const exchangeName = mapExchangeName(exchangeBookmaker.key);
-              const exchangeConfig = exchangeName === 'Betfair' ? exchanges.betfair : exchanges.betflag;
+              const bookmaker2 = bookmakerOdds[j];
               
-              if (!exchangeConfig.enabled) continue;
+              for (const market2 of bookmaker2.markets || []) {
+                if (market2.key !== market1.key) continue;
 
-              for (const exchangeMarket of exchangeBookmaker.markets || []) {
-                if (exchangeMarket.key !== market.key) continue;
+                // For h2h markets, find opposite outcomes
+                if (market1.key === 'h2h') {
+                  // Find different team/outcome
+                  for (const outcome2 of market2.outcomes || []) {
+                    if (outcome1.name === outcome2.name) continue;
+                    
+                    const quota2 = outcome2.price;
+                    
+                    // Calculate surebet rating
+                    const inverse1 = 1 / quotaPunta;
+                    const inverse2 = 1 / quota2;
+                    const totalInverse = inverse1 + inverse2;
+                    
+                    // Check if there's a third outcome (X)
+                    const outcome3 = market2.outcomes.find((o: any) => 
+                      o.name !== outcome1.name && o.name !== outcome2.name
+                    );
+                    
+                    let rating = 0;
+                    let isExchangeOpp = isExchange(bookmaker2.key);
+                    
+                    if (outcome3) {
+                      // 3-way market (1X2)
+                      const inverse3 = 1 / outcome3.price;
+                      const totalInverse3 = inverse1 + inverse2 + inverse3;
+                      rating = (1 - totalInverse3) * 100;
+                    } else {
+                      // 2-way market
+                      if (isExchangeOpp) {
+                        // Matched betting with exchange
+                        const exchangeName = mapExchangeName(bookmaker2.key);
+                        const exchangeConfig = exchangeName === 'Betfair' ? exchanges.betfair : exchanges.betflag;
+                        if (!exchangeConfig.enabled) continue;
+                        rating = calculateRating(quotaPunta, quota2, exchangeConfig.commission);
+                      } else {
+                        // Surebet between two bookmakers
+                        rating = (1 - totalInverse) * 100;
+                      }
+                    }
+                    
+                    if (rating >= minRating) {
+                      const defaultStake = 100;
+                      const profitEstimate = isExchangeOpp 
+                        ? calculateGuaranteedProfit(defaultStake, quotaPunta, quota2, exchanges.betfair.commission)
+                        : (defaultStake / totalInverse) - defaultStake;
 
-                // Find matching outcome (for lay)
-                const layOutcome = exchangeMarket.outcomes.find((o: any) => o.name === outcome.name);
-                if (!layOutcome) continue;
-
-                const quotaBanca = layOutcome.price;
-                const commission = exchangeConfig.commission;
-
-                // Calculate rating
-                const rating = calculateRating(quotaPunta, quotaBanca, commission);
-                
-                if (rating >= minRating) {
-                  // Calculate estimated profit (assuming default stake of 100€)
-                  const defaultStake = 100;
-                  const profitEstimate = calculateGuaranteedProfit(
-                    defaultStake,
-                    quotaPunta,
-                    quotaBanca,
-                    commission
-                  );
-
-                  opportunities.push({
-                    id: crypto.randomUUID(),
-                    sport,
-                    eventName,
-                    eventDate,
-                    competition,
-                    market: internalMarket,
-                    selection: outcome.name,
-                    bookmaker: mapBookmakerName(bookmaker.key),
-                    quotaPunta,
-                    exchange: exchangeName,
-                    quotaBanca,
-                    rating: parseFloat(rating.toFixed(2)),
-                    profitEstimate: parseFloat(profitEstimate.toFixed(2)),
-                    commission,
-                    suggestedStake: defaultStake,
-                    liability: parseFloat((defaultStake * (quotaBanca - 1)).toFixed(2))
-                  });
-
-                  console.log(`Found opportunity: ${eventName} - ${internalMarket} - Rating: ${rating.toFixed(2)}%`);
+                      opportunities.push({
+                        id: crypto.randomUUID(),
+                        sport,
+                        eventName,
+                        eventDate,
+                        competition,
+                        market: internalMarket,
+                        selection: outcome1.name,
+                        bookmaker: mapBookmakerName(bookmaker1.key),
+                        quotaPunta,
+                        exchange: isExchangeOpp ? mapExchangeName(bookmaker2.key) : mapBookmakerName(bookmaker2.key),
+                        quotaBanca: quota2,
+                        rating: parseFloat(rating.toFixed(2)),
+                        profitEstimate: parseFloat(profitEstimate.toFixed(2)),
+                        commission: isExchangeOpp ? (mapExchangeName(bookmaker2.key) === 'Betfair' ? exchanges.betfair.commission : exchanges.betflag.commission) : 0,
+                        suggestedStake: defaultStake,
+                        liability: parseFloat((defaultStake * (quota2 - 1)).toFixed(2))
+                      });
+                    }
+                  }
                 }
               }
             }
@@ -220,6 +243,17 @@ function mapBookmakerName(bookmakerKey: string): string {
     'betway': 'Betway',
     'skybet': 'SkyBet',
     'ladbrokes': 'Ladbrokes',
+    'snai': 'SNAI',
+    'sisal': 'Sisal',
+    'goldbet': 'Goldbet',
+    'betflag': 'Betflag',
+    'lottomatica': 'Lottomatica',
+    'eurobet': 'Eurobet',
+    'planetwin365': 'Planetwin365',
+    'admiral': 'Admiral',
+    'netbet': 'NetBet',
+    'betsson': 'Betsson',
+    'better': 'Better',
   };
   return mapping[bookmakerKey] || bookmakerKey;
 }
