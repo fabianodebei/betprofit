@@ -257,8 +257,6 @@ function mapMarketsToAPI(markets: string[]): string[] {
     '1 Calcio': 'h2h',
     'X Calcio': 'h2h',
     '2 Calcio': 'h2h',
-    'Goal Calcio': 'btts',
-    'No Goal Calcio': 'btts',
     'Over 0.5 Calcio': 'totals',
     'Over 1.5 Calcio': 'totals',
     'Over 2.5 Calcio': 'totals',
@@ -277,6 +275,11 @@ function mapMarketsToAPI(markets: string[]): string[] {
     if (apiMarket) apiMarkets.add(apiMarket);
   }
 
+  // If no markets mapped, use h2h as default
+  if (apiMarkets.size === 0) {
+    apiMarkets.add('h2h');
+  }
+
   return Array.from(apiMarkets);
 }
 
@@ -284,7 +287,6 @@ function mapAPIMarketToInternal(apiMarket: string, sport: string): string {
   const suffix = sport === 'soccer' ? ' Calcio' : sport === 'tennis' ? ' Tennis' : ' Basket';
   
   if (apiMarket === 'h2h') return '1' + suffix;
-  if (apiMarket === 'btts') return 'Goal' + suffix;
   if (apiMarket === 'totals') return 'Over 2.5' + suffix;
   
   return 'Altro' + suffix;

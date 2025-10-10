@@ -21,11 +21,9 @@ interface OddsMatcherContextType {
 const defaultFilters: FilterState = {
   sport: 'soccer',
   markets: [
-    '1 Calcio', 'X Calcio', '2 Calcio', '1X Calcio', '12 Calcio', 'X2 Calcio',
-    'Pari Calcio', 'Dispari Calcio', 'Goal Calcio', 'No Goal Calcio',
+    '1 Calcio', 'X Calcio', '2 Calcio',
     'Over 0.5 Calcio', 'Over 1.5 Calcio', 'Over 2.5 Calcio', 'Over 3.5 Calcio', 'Over 4.5 Calcio',
-    'Under 0.5 Calcio', 'Under 1.5 Calcio', 'Under 2.5 Calcio', 'Under 3.5 Calcio', 'Under 4.5 Calcio',
-    'Tennis', 'Altro Tennis', 'Basket'
+    'Under 0.5 Calcio', 'Under 1.5 Calcio', 'Under 2.5 Calcio', 'Under 3.5 Calcio', 'Under 4.5 Calcio'
   ],
   minRating: 0,
   exchanges: {
