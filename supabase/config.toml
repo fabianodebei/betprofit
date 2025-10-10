@@ -5,6 +5,3 @@ verify_jwt = false
 
 [functions.check-notifications]
 verify_jwt = false
-
-[functions.test-notifications]
-verify_jwt = false
