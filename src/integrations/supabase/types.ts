@@ -347,72 +347,6 @@ export type Database = {
         }
         Relationships: []
       }
-      oddsmatcher_history: {
-        Row: {
-          bet_id: string | null
-          bookmaker: string
-          commission: number
-          competition: string | null
-          created_at: string
-          event_date: string
-          event_name: string
-          exchange: string
-          found_at: string
-          id: string
-          market: string
-          profit_estimate: number
-          quota_banca: number
-          quota_punta: number
-          rating: number
-          sent_at: string | null
-          sport: string
-          status: string
-          user_id: string
-        }
-        Insert: {
-          bet_id?: string | null
-          bookmaker: string
-          commission: number
-          competition?: string | null
-          created_at?: string
-          event_date: string
-          event_name: string
-          exchange: string
-          found_at?: string
-          id?: string
-          market: string
-          profit_estimate: number
-          quota_banca: number
-          quota_punta: number
-          rating: number
-          sent_at?: string | null
-          sport: string
-          status?: string
-          user_id: string
-        }
-        Update: {
-          bet_id?: string | null
-          bookmaker?: string
-          commission?: number
-          competition?: string | null
-          created_at?: string
-          event_date?: string
-          event_name?: string
-          exchange?: string
-          found_at?: string
-          id?: string
-          market?: string
-          profit_estimate?: number
-          quota_banca?: number
-          quota_punta?: number
-          rating?: number
-          sent_at?: string | null
-          sport?: string
-          status?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           created_at: string
@@ -527,51 +461,6 @@ export type Database = {
           registrato?: string
           user_id?: string | null
           wallet?: string | null
-        }
-        Relationships: []
-      }
-      user_oddsmatcher_settings: {
-        Row: {
-          auto_refresh_minutes: number
-          betfair_commission: number
-          betfair_enabled: boolean
-          betflag_commission: number
-          betflag_enabled: boolean
-          created_at: string
-          default_stake: number
-          id: string
-          min_rating: number
-          odds_api_key: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          auto_refresh_minutes?: number
-          betfair_commission?: number
-          betfair_enabled?: boolean
-          betflag_commission?: number
-          betflag_enabled?: boolean
-          created_at?: string
-          default_stake?: number
-          id?: string
-          min_rating?: number
-          odds_api_key?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          auto_refresh_minutes?: number
-          betfair_commission?: number
-          betfair_enabled?: boolean
-          betflag_commission?: number
-          betflag_enabled?: boolean
-          created_at?: string
-          default_stake?: number
-          id?: string
-          min_rating?: number
-          odds_api_key?: string | null
-          updated_at?: string
-          user_id?: string
         }
         Relationships: []
       }

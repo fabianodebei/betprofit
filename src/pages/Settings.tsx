@@ -1,4 +1,4 @@
-import { Wrench, List, Euro, FileText, Users, BookOpen, Tag, MessageSquare, Shield, TrendingUp } from 'lucide-react';
+import { Wrench, List, Euro, FileText, Users, BookOpen, Tag, MessageSquare, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -19,12 +19,6 @@ export default function Settings() {
       title: 'Telegram',
       description: 'Configura il tuo BOT Telegram per ricevere notifiche',
       path: '/impostazioni/telegram',
-    },
-    {
-      icon: TrendingUp,
-      title: 'API Oddsmatcher',
-      description: 'Configura la tua API key per ricevere le quote',
-      path: '/impostazioni/oddsmatcher-api',
     },
     {
       icon: List,

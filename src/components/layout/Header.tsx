@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Zap, FileText, ArrowRightLeft, Scale, Archive, Wallet, Clock, Settings, Menu, X, ChevronLeft, ChevronRight, LogOut, TrendingUp } from 'lucide-react';
+import { Home, Zap, FileText, ArrowRightLeft, Scale, Archive, Wallet, Clock, Settings, Menu, X, ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useYear } from '@/contexts/YearContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,10 +13,6 @@ const navigation = [{
   name: 'Puntate',
   href: '/puntate',
   icon: Zap
-}, {
-  name: 'Oddsmatcher',
-  href: '/oddsmatcher',
-  icon: TrendingUp
 }, {
   name: 'Rapide',
   href: '/rapide',

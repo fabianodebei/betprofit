@@ -21,11 +21,9 @@ import { BookProvider } from "./contexts/BookContext";
 import { TagProvider } from "./contexts/TagContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
 import { YearProvider } from "./contexts/YearContext";
-import { OddsMatcherProvider } from "./contexts/OddsMatcherContext";
 import Auth from "./pages/Auth";
 import SetupGuide from "./pages/SetupGuide";
 import Dashboard from "./pages/Dashboard";
-import Oddsmatcher from "./pages/Oddsmatcher";
 import Wallets from "./pages/Wallets";
 import Accounts from "./pages/Accounts";
 import OngoingBets from "./pages/OngoingBets";
@@ -37,7 +35,6 @@ import Promemoria from "./pages/Promemoria";
 import Settings from "./pages/Settings";
 import GeneralSettings from "./pages/GeneralSettings";
 import TelegramSettings from "./pages/TelegramSettings";
-import OddsMatcherApiSettings from "./pages/OddsMatcherApiSettings";
 import Transactions from "./pages/Transactions";
 import Redditometro from "./pages/Redditometro";
 import Report from "./pages/Report";
@@ -59,11 +56,10 @@ const App = () => (
               <SettingsProvider>
                 <IntestatariProvider>
                   <BookProvider>
-                      <TagProvider>
-                        <OddsMatcherProvider>
-                          <WalletProvider>
-                            <AccountProvider>
-                              <BetProvider>
+                    <TagProvider>
+                      <WalletProvider>
+                        <AccountProvider>
+                          <BetProvider>
                             <BetLegProvider>
                               <LayBetProvider>
                                 <TransactionProvider>
@@ -89,9 +85,8 @@ const App = () => (
                                                 <Route path="/" element={<Dashboard />} />
                                                 <Route path="/wallets" element={<Wallets />} />
                                                 <Route path="/conti" element={<Accounts />} />
-                                <Route path="/puntate" element={<OngoingBets />} />
-                                <Route path="/oddsmatcher" element={<Oddsmatcher />} />
-                                <Route path="/rapide" element={<QuickBets />} />
+                                                <Route path="/puntate" element={<OngoingBets />} />
+                                                <Route path="/rapide" element={<QuickBets />} />
                                                 <Route path="/archiviate" element={<ArchivedBets />} />
                                                 <Route path="/depositi" element={<Deposits />} />
                                                 <Route path="/bilancio" element={<Balance />} />
@@ -99,7 +94,6 @@ const App = () => (
                                                 <Route path="/impostazioni" element={<Settings />} />
                                                 <Route path="/impostazioni/generali" element={<GeneralSettings />} />
                                                 <Route path="/impostazioni/telegram" element={<TelegramSettings />} />
-                                                <Route path="/impostazioni/oddsmatcher-api" element={<OddsMatcherApiSettings />} />
                                                 <Route path="/impostazioni/transazioni" element={<Transactions />} />
                                                 <Route path="/impostazioni/redditometro" element={<Redditometro />} />
                                                 <Route path="/impostazioni/report" element={<Report />} />
@@ -120,9 +114,8 @@ const App = () => (
                               </LayBetProvider>
                             </BetLegProvider>
                           </BetProvider>
-                          </AccountProvider>
-                        </WalletProvider>
-                      </OddsMatcherProvider>
+                        </AccountProvider>
+                      </WalletProvider>
                     </TagProvider>
                   </BookProvider>
                 </IntestatariProvider>

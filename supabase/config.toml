@@ -8,6 +8,3 @@ verify_jwt = false
 
 [functions.test-notifications]
 verify_jwt = false
-
-[functions.fetch-odds]
-verify_jwt = true

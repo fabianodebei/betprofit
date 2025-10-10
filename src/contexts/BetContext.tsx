@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 
 interface BetContextType {
   bets: Bet[];
-  addBet: (bet: Omit<Bet, 'id' | 'createdAt'>) => Promise<Bet | null>;
+  addBet: (bet: Omit<Bet, 'id' | 'createdAt'>) => Promise<void>;
   updateBet: (id: string, bet: Partial<Bet>) => Promise<void>;
   deleteBet: (id: string) => Promise<void>;
   archiveBet: (id: string, risultato: number) => Promise<void>;
@@ -153,11 +153,9 @@ export function BetProvider({ children }: { children: ReactNode }) {
 
       setBets((prev) => [newBet, ...prev]);
       toast.success('Puntata aggiunta con successo');
-      return newBet;
     } catch (error: any) {
       toast.error('Errore durante l\'aggiunta della puntata');
       console.error('Error adding bet:', error);
-      return null;
     }
   };
 
