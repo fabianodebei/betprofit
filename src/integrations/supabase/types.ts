@@ -25,7 +25,7 @@ export type Database = {
           intestatario: string
           saldo_attuale: number
           stato: string
-          user_id: string | null
+          user_id: string
           wallet_id: string | null
         }
         Insert: {
@@ -38,7 +38,7 @@ export type Database = {
           intestatario: string
           saldo_attuale?: number
           stato: string
-          user_id?: string | null
+          user_id: string
           wallet_id?: string | null
         }
         Update: {
@@ -51,7 +51,7 @@ export type Database = {
           intestatario?: string
           saldo_attuale?: number
           stato?: string
-          user_id?: string | null
+          user_id?: string
           wallet_id?: string | null
         }
         Relationships: [
@@ -77,7 +77,7 @@ export type Database = {
           risultato: string | null
           selezione: string
           stato: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           bet_id: string
@@ -91,7 +91,7 @@ export type Database = {
           risultato?: string | null
           selezione: string
           stato?: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           bet_id?: string
@@ -105,7 +105,7 @@ export type Database = {
           risultato?: string | null
           selezione?: string
           stato?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -135,7 +135,7 @@ export type Database = {
           tipo: string
           tipo_bonus: string | null
           url_evento: string | null
-          user_id: string | null
+          user_id: string
           vincita_potenziale: number | null
           wallet_id: string | null
         }
@@ -164,7 +164,7 @@ export type Database = {
           tipo: string
           tipo_bonus?: string | null
           url_evento?: string | null
-          user_id?: string | null
+          user_id: string
           vincita_potenziale?: number | null
           wallet_id?: string | null
         }
@@ -193,7 +193,7 @@ export type Database = {
           tipo?: string
           tipo_bonus?: string | null
           url_evento?: string | null
-          user_id?: string | null
+          user_id?: string
           vincita_potenziale?: number | null
           wallet_id?: string | null
         }
@@ -215,7 +215,7 @@ export type Database = {
           nome: string
           predefinito: boolean
           stato: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -224,7 +224,7 @@ export type Database = {
           nome: string
           predefinito?: boolean
           stato?: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -233,7 +233,7 @@ export type Database = {
           nome?: string
           predefinito?: boolean
           stato?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -245,7 +245,7 @@ export type Database = {
           nome: string
           predefinito: boolean
           stato: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -254,7 +254,7 @@ export type Database = {
           nome: string
           predefinito?: boolean
           stato?: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -263,7 +263,7 @@ export type Database = {
           nome?: string
           predefinito?: boolean
           stato?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -282,7 +282,7 @@ export type Database = {
           stake: number
           tasse_percentuale: number
           url_evento: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           conto: string
@@ -298,7 +298,7 @@ export type Database = {
           stake: number
           tasse_percentuale?: number
           url_evento?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           conto?: string
@@ -314,7 +314,7 @@ export type Database = {
           stake?: number
           tasse_percentuale?: number
           url_evento?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -344,6 +344,72 @@ export type Database = {
           reference_id?: string
           sent_at?: string | null
           type?: string
+        }
+        Relationships: []
+      }
+      oddsmatcher_history: {
+        Row: {
+          bet_id: string | null
+          bookmaker: string
+          commission: number
+          competition: string | null
+          created_at: string
+          event_date: string
+          event_name: string
+          exchange: string
+          found_at: string
+          id: string
+          market: string
+          profit_estimate: number
+          quota_banca: number
+          quota_punta: number
+          rating: number
+          sent_at: string | null
+          sport: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          bet_id?: string | null
+          bookmaker: string
+          commission: number
+          competition?: string | null
+          created_at?: string
+          event_date: string
+          event_name: string
+          exchange: string
+          found_at?: string
+          id?: string
+          market: string
+          profit_estimate: number
+          quota_banca: number
+          quota_punta: number
+          rating: number
+          sent_at?: string | null
+          sport: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          bet_id?: string | null
+          bookmaker?: string
+          commission?: number
+          competition?: string | null
+          created_at?: string
+          event_date?: string
+          event_name?: string
+          exchange?: string
+          found_at?: string
+          id?: string
+          market?: string
+          profit_estimate?: number
+          quota_banca?: number
+          quota_punta?: number
+          rating?: number
+          sent_at?: string | null
+          sport?: string
+          status?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -381,7 +447,7 @@ export type Database = {
           metodo: string
           notifica_periodo: string
           stato: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           conto: string
@@ -392,7 +458,7 @@ export type Database = {
           metodo: string
           notifica_periodo: string
           stato?: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           conto?: string
@@ -403,7 +469,7 @@ export type Database = {
           metodo?: string
           notifica_periodo?: string
           stato?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -412,19 +478,19 @@ export type Database = {
           created_at: string
           id: string
           nome: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
           nome: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
           id?: string
           nome?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -437,7 +503,7 @@ export type Database = {
           id: string
           metodo: string
           registrato: string
-          user_id: string | null
+          user_id: string
           wallet: string | null
         }
         Insert: {
@@ -448,7 +514,7 @@ export type Database = {
           id?: string
           metodo: string
           registrato?: string
-          user_id?: string | null
+          user_id: string
           wallet?: string | null
         }
         Update: {
@@ -459,8 +525,53 @@ export type Database = {
           id?: string
           metodo?: string
           registrato?: string
-          user_id?: string | null
+          user_id?: string
           wallet?: string | null
+        }
+        Relationships: []
+      }
+      user_oddsmatcher_settings: {
+        Row: {
+          auto_refresh_minutes: number
+          betfair_commission: number
+          betfair_enabled: boolean
+          betflag_commission: number
+          betflag_enabled: boolean
+          created_at: string
+          default_stake: number
+          id: string
+          min_rating: number
+          odds_api_key: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_refresh_minutes?: number
+          betfair_commission?: number
+          betfair_enabled?: boolean
+          betflag_commission?: number
+          betflag_enabled?: boolean
+          created_at?: string
+          default_stake?: number
+          id?: string
+          min_rating?: number
+          odds_api_key?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_refresh_minutes?: number
+          betfair_commission?: number
+          betfair_enabled?: boolean
+          betflag_commission?: number
+          betflag_enabled?: boolean
+          created_at?: string
+          default_stake?: number
+          id?: string
+          min_rating?: number
+          odds_api_key?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -524,7 +635,7 @@ export type Database = {
           nome: string
           saldo_attuale: number
           stato: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -534,7 +645,7 @@ export type Database = {
           nome: string
           saldo_attuale?: number
           stato: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -544,7 +655,7 @@ export type Database = {
           nome?: string
           saldo_attuale?: number
           stato?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -558,6 +669,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      validate_telegram_message: {
+        Args: { message: string }
         Returns: boolean
       }
     }
