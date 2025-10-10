@@ -23,7 +23,7 @@ const handler = async (req: Request): Promise<Response> => {
       body = await req.json();
     } catch (e) {
       return new Response(
-        JSON.stringify({ error: 'Invalid JSON body' }),
+        JSON.stringify({ error: 'Invalid request' }),
         {
           status: 400,
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -33,9 +33,35 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { message, user_id } = body as TelegramMessageRequest;
 
+    // Validate user_id
     if (!user_id) {
+      console.error('Missing user_id');
       return new Response(
-        JSON.stringify({ error: 'user_id is required' }),
+        JSON.stringify({ error: 'Invalid request' }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+
+    // Validate message
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      console.error('Invalid or empty message');
+      return new Response(
+        JSON.stringify({ error: 'Invalid request' }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+
+    // Check message length (Telegram limit is 4096 characters)
+    if (message.length > 4096) {
+      console.error('Message exceeds maximum length');
+      return new Response(
+        JSON.stringify({ error: 'Invalid request' }),
         {
           status: 400,
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -54,12 +80,23 @@ const handler = async (req: Request): Promise<Response> => {
       .eq('user_id', user_id)
       .single();
 
-    if (configError || !config) {
-      console.log('No Telegram configuration found for user:', user_id);
+    if (configError) {
+      console.error('Error fetching config:', configError.message);
+      return new Response(
+        JSON.stringify({ error: 'Configuration error' }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+
+    if (!config) {
+      console.log('No configuration found');
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: 'User has no Telegram configuration' 
+          message: 'Configuration not found' 
         }),
         {
           status: 200,
@@ -70,11 +107,11 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Check if notifications are enabled
     if (!config.notifications_enabled) {
-      console.log('Notifications disabled for user:', user_id);
+      console.log('Notifications disabled');
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: 'Notifications are disabled for this user' 
+          message: 'Notifications disabled' 
         }),
         {
           status: 200,
@@ -85,11 +122,11 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Check if user has configured Telegram credentials
     if (!config.telegram_bot_token || !config.telegram_chat_id) {
-      console.log('User has not configured Telegram credentials:', user_id);
+      console.log('Credentials not configured');
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: 'User has not configured Telegram credentials' 
+          message: 'Configuration incomplete' 
         }),
         {
           status: 200,
@@ -117,11 +154,17 @@ const handler = async (req: Request): Promise<Response> => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('Telegram API error:', data);
-      throw new Error(`Telegram API error: ${JSON.stringify(data)}`);
+      console.error('Telegram API error:', response.status, data);
+      return new Response(
+        JSON.stringify({ error: 'Failed to send notification' }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
     }
 
-    console.log('Telegram notification sent successfully to user:', user_id);
+    console.log('Notification sent successfully');
 
     return new Response(
       JSON.stringify({ success: true, data }),
@@ -131,9 +174,9 @@ const handler = async (req: Request): Promise<Response> => {
       }
     );
   } catch (error: any) {
-    console.error('Error in send-telegram-notification:', error);
+    console.error('Error in send-telegram-notification:', error.message);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'Internal server error' }),
       {
         status: 500,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },

@@ -39,9 +39,10 @@ export const TelegramConfigProvider = ({ children }: { children: ReactNode }) =>
     if (!user) return;
 
     try {
+      // Only fetch non-sensitive fields - sensitive data is only accessed server-side
       const { data, error } = await supabase
         .from('user_telegram_config')
-        .select('*')
+        .select('id, user_id, notifications_enabled, created_at, updated_at')
         .eq('user_id', user.id)
         .maybeSingle();
 
