@@ -45,20 +45,7 @@ export default function GeneralSettings() {
           </div>
 
           {/* Promemoria */}
-          <div className="flex items-start gap-4 pb-6 border-b">
-            <div className="flex-shrink-0 pt-1">
-              <Label htmlFor="promemoria" className="font-semibold text-base">Promemoria</Label>
-              <Switch id="promemoria" checked={settings.promemoria} onCheckedChange={checked => setSettings({
-              ...settings,
-              promemoria: checked
-            })} className="mt-2" />
-            </div>
-            <div className="flex-1 bg-muted/50 rounded-lg p-4">
-              <p className="text-sm text-muted-foreground">
-                Abilita le notifiche tramite BOT telegram per i promemoria.
-              </p>
-            </div>
-          </div>
+          
 
           {/* Singole */}
           
