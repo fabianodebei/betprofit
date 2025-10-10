@@ -363,14 +363,14 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                       <div>
                         <label className="text-sm font-medium">Mercato</label>
                         <Select
-                          value={selection.mercato}
-                          onValueChange={(value) => handleSelectionChange(index, 'mercato', value)}
+                          value={selection.mercato || "none"}
+                          onValueChange={(value) => handleSelectionChange(index, 'mercato', value === "none" ? "" : value)}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Seleziona mercato" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Nessuno</SelectItem>
+                            <SelectItem value="none">Nessuno</SelectItem>
                             {ALL_SPORT_MARKETS.map((market) => (
                               <SelectItem key={market} value={market}>
                                 {market}
