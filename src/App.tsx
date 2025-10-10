@@ -37,6 +37,7 @@ import Promemoria from "./pages/Promemoria";
 import Settings from "./pages/Settings";
 import GeneralSettings from "./pages/GeneralSettings";
 import TelegramSettings from "./pages/TelegramSettings";
+import OddsMatcherApiSettings from "./pages/OddsMatcherApiSettings";
 import Transactions from "./pages/Transactions";
 import Redditometro from "./pages/Redditometro";
 import Report from "./pages/Report";
@@ -98,6 +99,7 @@ const App = () => (
                                                 <Route path="/impostazioni" element={<Settings />} />
                                                 <Route path="/impostazioni/generali" element={<GeneralSettings />} />
                                                 <Route path="/impostazioni/telegram" element={<TelegramSettings />} />
+                                                <Route path="/impostazioni/oddsmatcher-api" element={<OddsMatcherApiSettings />} />
                                                 <Route path="/impostazioni/transazioni" element={<Transactions />} />
                                                 <Route path="/impostazioni/redditometro" element={<Redditometro />} />
                                                 <Route path="/impostazioni/report" element={<Report />} />

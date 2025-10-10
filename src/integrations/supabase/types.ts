@@ -541,6 +541,7 @@ export type Database = {
           default_stake: number
           id: string
           min_rating: number
+          odds_api_key: string | null
           updated_at: string
           user_id: string
         }
@@ -554,6 +555,7 @@ export type Database = {
           default_stake?: number
           id?: string
           min_rating?: number
+          odds_api_key?: string | null
           updated_at?: string
           user_id: string
         }
@@ -567,6 +569,7 @@ export type Database = {
           default_stake?: number
           id?: string
           min_rating?: number
+          odds_api_key?: string | null
           updated_at?: string
           user_id?: string
         }
