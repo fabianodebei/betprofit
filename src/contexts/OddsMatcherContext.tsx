@@ -14,6 +14,8 @@ interface OddsMatcherContextType {
   clearOpportunities: () => void;
   saveSettings: (settings: Partial<OddsMatcherSettings>) => Promise<void>;
   loadSettings: () => Promise<void>;
+  resetFilters: () => void;
+  filteredOpportunities: Opportunity[];
 }
 
 const defaultFilters: FilterState = {
@@ -26,6 +28,17 @@ const defaultFilters: FilterState = {
   },
   bookmakers: [],
   dateRange: 'today',
+  betType: 'singola',
+  stakePunta: 0,
+  isFreeBet: false,
+  bonus: 0,
+  isRimborso: false,
+  quotaMinima: 0,
+  quotaMassima: 0,
+  searchPartita: '',
+  searchCampionato: 'tutti',
+  dataInizio: null,
+  dataFine: null,
 };
 
 const OddsMatcherContext = createContext<OddsMatcherContextType | undefined>(undefined);
@@ -44,7 +57,46 @@ export const OddsMatcherProvider = ({ children }: { children: ReactNode }) => {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [exchangeSettings, setExchangeSettings] = useState<ExchangeSettings>(defaultFilters.exchanges);
   const [settings, setSettings] = useState<OddsMatcherSettings | null>(null);
+  const [filteredOpportunities, setFilteredOpportunities] = useState<Opportunity[]>([]);
   const { toast } = useToast();
+
+  // Apply client-side filters
+  useEffect(() => {
+    let filtered = [...opportunities];
+
+    // Filter by quota range
+    if (filters.quotaMinima > 0) {
+      filtered = filtered.filter(opp => opp.quotaPunta >= filters.quotaMinima);
+    }
+    if (filters.quotaMassima > 0) {
+      filtered = filtered.filter(opp => opp.quotaPunta <= filters.quotaMassima);
+    }
+
+    // Filter by partita search
+    if (filters.searchPartita.trim()) {
+      const search = filters.searchPartita.toLowerCase();
+      filtered = filtered.filter(opp => 
+        opp.eventName.toLowerCase().includes(search)
+      );
+    }
+
+    // Filter by campionato
+    if (filters.searchCampionato && filters.searchCampionato !== 'tutti') {
+      filtered = filtered.filter(opp => opp.competition === filters.searchCampionato);
+    }
+
+    // Filter by date range
+    if (filters.dataInizio) {
+      filtered = filtered.filter(opp => new Date(opp.eventDate) >= filters.dataInizio!);
+    }
+    if (filters.dataFine) {
+      const endOfDay = new Date(filters.dataFine);
+      endOfDay.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(opp => new Date(opp.eventDate) <= endOfDay);
+    }
+
+    setFilteredOpportunities(filtered);
+  }, [opportunities, filters]);
 
   useEffect(() => {
     loadSettings();
@@ -197,6 +249,12 @@ export const OddsMatcherProvider = ({ children }: { children: ReactNode }) => {
 
   const clearOpportunities = () => {
     setOpportunities([]);
+    setFilteredOpportunities([]);
+  };
+
+  const resetFilters = () => {
+    setFilters(defaultFilters);
+    setExchangeSettings(defaultFilters.exchanges);
   };
 
   return (
@@ -212,6 +270,8 @@ export const OddsMatcherProvider = ({ children }: { children: ReactNode }) => {
         clearOpportunities,
         saveSettings,
         loadSettings,
+        resetFilters,
+        filteredOpportunities,
       }}
     >
       {children}

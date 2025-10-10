@@ -1,3 +1,5 @@
+export type BetType = 'singola' | 'multipla' | 'tre_vie' | 'best_odds' | 'best_opposite' | 'sure_bet';
+
 export interface Opportunity {
   id: string;
   sport: string;
@@ -35,6 +37,17 @@ export interface FilterState {
   exchanges: ExchangeSettings;
   bookmakers: string[];
   dateRange: string;
+  betType: BetType;
+  stakePunta: number;
+  isFreeBet: boolean;
+  bonus: number;
+  isRimborso: boolean;
+  quotaMinima: number;
+  quotaMassima: number;
+  searchPartita: string;
+  searchCampionato: string;
+  dataInizio: Date | null;
+  dataFine: Date | null;
 }
 
 export interface OddsMatcherSettings {

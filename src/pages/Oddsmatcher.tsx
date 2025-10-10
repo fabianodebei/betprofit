@@ -17,29 +17,27 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function Oddsmatcher() {
   const {
-    opportunities,
+    filteredOpportunities,
     loading,
     filters,
     fetchOpportunities,
+    resetFilters,
   } = useOddsMatcher();
 
-  const [autoRefresh, setAutoRefresh] = useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
   const [sendDialogOpen, setSendDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const isMobile = useIsMobile();
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (autoRefresh && opportunities.length > 0) {
-      interval = setInterval(() => {
-        fetchOpportunities(filters);
-      }, 5 * 60 * 1000); // 5 minutes
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [autoRefresh, opportunities.length, filters, fetchOpportunities]);
+  // Calculate opportunity counts by bet type
+  const opportunityCounts = {
+    singola: filteredOpportunities.length,
+    multipla: 0,
+    tre_vie: 0,
+    best_odds: filteredOpportunities.length,
+    best_opposite: filteredOpportunities.length,
+    sure_bet: filteredOpportunities.filter(opp => opp.rating > 100).length,
+  };
 
   const handleSendToTracker = (opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
@@ -53,10 +51,6 @@ export default function Oddsmatcher() {
 
   const handleSearch = () => {
     fetchOpportunities(filters);
-  };
-
-  const handleAutoRefreshToggle = () => {
-    setAutoRefresh(!autoRefresh);
   };
 
   return (
@@ -78,8 +72,8 @@ export default function Oddsmatcher() {
         onFiltersChange={() => {}}
         onSearch={handleSearch}
         loading={loading}
-        autoRefresh={autoRefresh}
-        onAutoRefreshToggle={handleAutoRefreshToggle}
+        onClearFilters={resetFilters}
+        opportunityCounts={opportunityCounts}
       />
 
       {/* Results */}
@@ -94,7 +88,7 @@ export default function Oddsmatcher() {
             ))}
           </CardContent>
         </Card>
-      ) : opportunities.length > 0 ? (
+      ) : filteredOpportunities.length > 0 ? (
         <>
           <Card>
             <CardHeader>
