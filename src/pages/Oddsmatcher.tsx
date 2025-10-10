@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useOddsMatcher } from '@/contexts/OddsMatcherContext';
 import { FiltersSection } from '@/components/oddsmatcher/FiltersSection';
 import { OpportunityTable } from '@/components/oddsmatcher/OpportunityTable';
@@ -92,21 +92,14 @@ export default function Oddsmatcher() {
         <>
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>
-                  📊 Trovate {opportunities.length} opportunità
-                </CardTitle>
-                {autoRefresh && (
-                  <Badge variant="secondary" className="bg-green-100 text-green-900">
-                    Auto-refresh attivo
-                  </Badge>
-                )}
-              </div>
+              <CardTitle>
+                📊 Trovate {filteredOpportunities.length} opportunità
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {isMobile ? (
                 <div className="space-y-4">
-                  {opportunities.map((opp) => (
+                  {filteredOpportunities.map((opp) => (
                     <OpportunityCard
                       key={opp.id}
                       opportunity={opp}
@@ -117,7 +110,7 @@ export default function Oddsmatcher() {
                 </div>
               ) : (
                 <OpportunityTable
-                  opportunities={opportunities}
+                  opportunities={filteredOpportunities}
                   onSendToTracker={handleSendToTracker}
                   onShowDetails={handleShowDetails}
                 />
