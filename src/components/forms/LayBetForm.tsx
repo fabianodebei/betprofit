@@ -318,13 +318,13 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-2 gap-4">
+            {selectedMetodo === 'Banca' ? (
               <FormField
                 control={form.control}
                 name="quotaBanca"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Quota Banca *</FormLabel>
+                    <FormLabel>Quota Exchange *</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -338,12 +338,13 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                   </FormItem>
                 )}
               />
+            ) : (
               <FormField
                 control={form.control}
                 name="quotaPunta"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Quota Punta *</FormLabel>
+                    <FormLabel>Quota *</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -357,7 +358,7 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                   </FormItem>
                 )}
               />
-            </div>
+            )}
             <FormField
               control={form.control}
               name="tassePercentuale"
