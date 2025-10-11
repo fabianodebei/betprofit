@@ -39,7 +39,7 @@ const createMultiplaBetSchema = (tagRequired: boolean) => z.object({
   intestatario: z.string().min(1, 'Intestatario è obbligatorio'),
   dataEvento: z.date(),
   conto: z.string().min(1, 'Conto è obbligatorio'),
-  stake: z.number().positive('Lo stake deve essere positivo'),
+  stake: z.number(),
   tipoBonus: z.enum(['Nessuno', 'Bonus', 'Rimborso', 'Free Bet']),
   percentualeBonus: z.number().optional(),
   numeroMinimoSelezioni: z.number().optional(),
@@ -50,6 +50,14 @@ const createMultiplaBetSchema = (tagRequired: boolean) => z.object({
   tag: tagRequired 
     ? z.string().min(1, 'Tag è obbligatorio').refine(val => val !== 'none', 'Seleziona un tag valido')
     : z.string().optional(),
+}).refine((data) => {
+  if (data.tipoBonus === 'Nessuno') {
+    return data.stake > 0;
+  }
+  return true;
+}, {
+  message: 'Lo stake è obbligatorio quando non c\'è un bonus',
+  path: ['stake'],
 });
 
 type MultiplaBetFormData = z.infer<ReturnType<typeof createMultiplaBetSchema>>;
@@ -72,6 +80,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
   const [selectedIntestatario, setSelectedIntestatario] = useState<string>('');
   const [selectedConto, setSelectedConto] = useState<string>('');
   const [tipoBonus, setTipoBonus] = useState<Bet['tipoBonus']>('Nessuno');
+  const [selectionErrors, setSelectionErrors] = useState<number[]>([]);
   
   // State for bet selections
   const [selections, setSelections] = useState<BetSelection[]>([
@@ -215,11 +224,20 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
   const onSubmit = async (data: MultiplaBetFormData) => {
     try {
       // Validate selections
-      const invalidSelection = selections.find(s => !s.evento || !s.selezione || s.quota <= 1);
-      if (invalidSelection) {
-        toast.error('Compila tutti i campi delle selezioni e assicurati che le quote siano superiori a 1');
+      const errors: number[] = [];
+      selections.forEach((s, index) => {
+        if (!s.evento || !s.selezione || s.quota <= 1) {
+          errors.push(index);
+        }
+      });
+      
+      if (errors.length > 0) {
+        setSelectionErrors(errors);
+        toast.error('Compila tutti i campi obbligatori delle selezioni e assicurati che le quote siano superiori a 1');
         return;
       }
+      
+      setSelectionErrors([]);
 
       if (quotaCombinata > 50) {
         toast.warning('Attenzione: quota combinata molto alta (@' + quotaCombinata.toFixed(2) + ')');
@@ -348,7 +366,14 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                           value={selection.evento}
                           onChange={(e) => handleSelectionChange(index, 'evento', e.target.value)}
                           placeholder="Es: Manchester United vs Liverpool"
+                          className={cn(
+                            selectionErrors.includes(index) && !selection.evento && 
+                            "border-destructive focus-visible:ring-destructive"
+                          )}
                         />
+                        {selectionErrors.includes(index) && !selection.evento && (
+                          <p className="text-sm text-destructive mt-1">Campo obbligatorio</p>
+                        )}
                       </div>
 
                       <div>
@@ -386,7 +411,14 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                           value={selection.selezione}
                           onChange={(e) => handleSelectionChange(index, 'selezione', e.target.value)}
                           placeholder="Es: Manchester United"
+                          className={cn(
+                            selectionErrors.includes(index) && !selection.selezione && 
+                            "border-destructive focus-visible:ring-destructive"
+                          )}
                         />
+                        {selectionErrors.includes(index) && !selection.selezione && (
+                          <p className="text-sm text-destructive mt-1">Campo obbligatorio</p>
+                        )}
                       </div>
 
                       <div>
@@ -396,7 +428,14 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                           step="0.01"
                           value={selection.quota}
                           onChange={(e) => handleSelectionChange(index, 'quota', parseFloat(e.target.value) || 1.5)}
+                          className={cn(
+                            selectionErrors.includes(index) && selection.quota <= 1 && 
+                            "border-destructive focus-visible:ring-destructive"
+                          )}
                         />
+                        {selectionErrors.includes(index) && selection.quota <= 1 && (
+                          <p className="text-sm text-destructive mt-1">La quota deve essere maggiore di 1</p>
+                        )}
                       </div>
 
                       <div>
@@ -525,16 +564,24 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                 name="stake"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Stake Totale (€) *</FormLabel>
+                    <FormLabel>
+                      Stake Totale (€) {tipoBonus === 'Nessuno' && '*'}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         step="0.01"
                         {...field}
                         onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        disabled={tipoBonus !== 'Nessuno'}
                       />
                     </FormControl>
                     <FormMessage />
+                    {tipoBonus !== 'Nessuno' && (
+                      <p className="text-xs text-muted-foreground">
+                        Non richiesto con bonus/free bet
+                      </p>
+                    )}
                   </FormItem>
                 )}
               />
