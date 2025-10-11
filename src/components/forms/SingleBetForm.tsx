@@ -122,7 +122,6 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         rimborso: editingBet.rimborso || 0,
         urlEvento: editingBet.urlEvento || '',
         competizione: editingBet.competizione || '',
-        statoEvento: editingBet.statoEvento || 'Bozza',
         tag: editingBet.tag || 'none',
       });
       setSelectedIntestatario(intestatario);
@@ -143,7 +142,6 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         rimborso: 0,
         urlEvento: '',
         competizione: '',
-        statoEvento: 'Bozza',
         tag: 'none',
       });
       setSelectedIntestatario('');
@@ -168,7 +166,6 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         rimborso: data.rimborso,
         urlEvento: data.urlEvento,
         competizione: data.competizione,
-        statoEvento: data.statoEvento,
         walletId: account?.walletId || undefined,
         tag: data.tag === 'none' ? '' : data.tag,
       });
@@ -194,7 +191,6 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         bonus: data.bonus,
         rimborso: data.rimborso,
         stato: 'In Corso',
-        statoEvento: data.statoEvento,
         mercato: data.mercato,
         urlEvento: data.urlEvento,
         competizione: data.competizione,
@@ -229,7 +225,6 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                       variant={field.value === 'Punta' ? 'default' : 'outline'}
                       onClick={() => field.onChange('Punta')}
                       className="flex-1"
-                      disabled={mode === 'edit' && form.watch('statoEvento') !== 'Bozza'}
                     >
                       Punta
                     </Button>
@@ -238,7 +233,6 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                       variant={field.value === 'Banca' ? 'default' : 'outline'}
                       onClick={() => field.onChange('Banca')}
                       className="flex-1"
-                      disabled={mode === 'edit' && form.watch('statoEvento') !== 'Bozza'}
                     >
                       Banca
                     </Button>
@@ -257,7 +251,6 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                     <Input 
                       placeholder="Es: Roma vs Lazio" 
                       {...field} 
-                      disabled={mode === 'edit' && form.watch('statoEvento') !== 'Bozza'}
                     />
                   </FormControl>
                   <FormMessage />
@@ -279,7 +272,6 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                             'w-full pl-3 text-left font-normal',
                             !field.value && 'text-muted-foreground'
                           )}
-                          disabled={mode === 'edit' && form.watch('statoEvento') !== 'Bozza'}
                         >
                           {field.value ? format(field.value, 'dd/MM/yyyy HH:mm') : <span>Seleziona data</span>}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
@@ -312,7 +304,6 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                   <Select 
                     onValueChange={field.onChange} 
                     defaultValue={field.value}
-                    disabled={mode === 'edit' && form.watch('statoEvento') !== 'Bozza'}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -351,7 +342,6 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                       form.setValue('conto', '');
                     }} 
                     defaultValue={field.value}
-                    disabled={mode === 'edit' && form.watch('statoEvento') !== 'Bozza'}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -382,7 +372,6 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                       setSelectedConto(value);
                     }} 
                     defaultValue={field.value}
-                    disabled={mode === 'edit' && form.watch('statoEvento') !== 'Bozza'}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -429,7 +418,6 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                           placeholder="0.00"
                           {...field}
                           onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                          disabled={mode === 'edit' && form.watch('statoEvento') !== 'Bozza'}
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                       </div>
@@ -451,7 +439,6 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                         placeholder="1.01"
                         {...field}
                         onChange={(e) => field.onChange(parseFloat(e.target.value) || 1.01)}
-                        disabled={mode === 'edit' && form.watch('statoEvento') !== 'Bozza'}
                       />
                     </FormControl>
                     <FormMessage />
@@ -476,7 +463,6 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                           setTipoBonus(tipo);
                         }}
                         className="flex-1"
-                        disabled={mode === 'edit' && form.watch('statoEvento') !== 'Bozza'}
                       >
                         {tipo}
                       </Button>
@@ -501,7 +487,6 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                           placeholder="0.00"
                           {...field}
                           onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                          disabled={mode === 'edit' && form.watch('statoEvento') !== 'Bozza'}
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                       </div>
@@ -526,7 +511,6 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                           placeholder="0.00"
                           {...field}
                           onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                          disabled={mode === 'edit' && form.watch('statoEvento') !== 'Bozza'}
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                       </div>
@@ -546,7 +530,6 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                     <Input 
                       placeholder="https://..." 
                       {...field} 
-                      disabled={mode === 'edit' && form.watch('statoEvento') !== 'Bozza'}
                     />
                   </FormControl>
                   <FormMessage />
@@ -563,32 +546,8 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                     <Input 
                       placeholder="Es: Serie A" 
                       {...field} 
-                      disabled={mode === 'edit' && form.watch('statoEvento') !== 'Bozza'}
                     />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="statoEvento"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Stato Evento *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleziona stato" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Bozza">Bozza</SelectItem>
-                      <SelectItem value="In Corso">In Corso</SelectItem>
-                      <SelectItem value="Vinta">Vinta</SelectItem>
-                      <SelectItem value="Persa">Persa</SelectItem>
-                    </SelectContent>
-                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

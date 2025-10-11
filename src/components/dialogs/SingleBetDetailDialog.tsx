@@ -26,8 +26,6 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
   const [editingLayBet, setEditingLayBet] = useState<any>(null);
 
   const layBets = bet ? getLayBetsByParentId(bet.id) : [];
-  
-  const isEditable = bet?.statoEvento === 'Bozza';
 
   // Calculate totals
   const calculations = useMemo(() => {
@@ -60,16 +58,6 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
     }
   };
 
-  const handleStatoEventoChange = async (newStato: 'Bozza' | 'In Corso' | 'Vinta' | 'Persa' | 'Annullata') => {
-    if (!bet) return;
-    
-    try {
-      await updateBet(bet.id, { statoEvento: newStato });
-      toast.success('Stato evento aggiornato');
-    } catch (error) {
-      toast.error('Errore durante l\'aggiornamento dello stato');
-    }
-  };
 
   return (
     <>
@@ -81,7 +69,7 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
 
           <div className="space-y-4">
             {/* Actions */}
-            <div className="flex gap-2 justify-between items-center">
+            <div className="flex gap-2">
               <Button
                 size="sm"
                 variant="outline"
@@ -89,30 +77,10 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                   setEditingLayBet(null);
                   setShowLayBetForm(true);
                 }}
-                disabled={!isEditable}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Nuova Bancata
               </Button>
-              
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Stato Evento:</span>
-                <Select
-                  value={bet.statoEvento || 'Bozza'}
-                  onValueChange={handleStatoEventoChange}
-                >
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Bozza">Bozza</SelectItem>
-                    <SelectItem value="In Corso">In Corso</SelectItem>
-                    <SelectItem value="Vinta">Vinta</SelectItem>
-                    <SelectItem value="Persa">Persa</SelectItem>
-                    <SelectItem value="Annullata">Annullata</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
 
             {/* Main Table */}
@@ -135,7 +103,6 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                     <TableHead>Rimborso</TableHead>
                     <TableHead>Tasse</TableHead>
                     <TableHead>Mov.</TableHead>
-                    <TableHead>Stato Evento</TableHead>
                     <TableHead>Tag</TableHead>
                     <TableHead>Opzioni</TableHead>
                   </TableRow>
@@ -166,17 +133,6 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                     <TableCell>{formatCurrency(bet.rimborso || 0)}</TableCell>
                     <TableCell>0,00</TableCell>
                     <TableCell>{formatCurrency(0)}</TableCell>
-                    <TableCell>
-                      <Badge variant={
-                        bet.statoEvento === 'Bozza' ? 'outline' :
-                        bet.statoEvento === 'In Corso' ? 'default' :
-                        bet.statoEvento === 'Vinta' ? 'default' :
-                        bet.statoEvento === 'Persa' ? 'destructive' :
-                        'secondary'
-                      }>
-                        {bet.statoEvento || 'Bozza'}
-                      </Badge>
-                    </TableCell>
                     <TableCell className="text-primary text-sm">{bet.tag || '(non impostato)'}</TableCell>
                     <TableCell>
                       <Button size="sm" variant="ghost">
@@ -215,9 +171,6 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                         <TableCell>{formatCurrency(0)}</TableCell>
                         <TableCell className="text-accent">{formatCurrency(tasse)}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
-                        <TableCell>
-                          <Badge>Bozza</Badge>
-                        </TableCell>
                         <TableCell className="text-sm">-</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
