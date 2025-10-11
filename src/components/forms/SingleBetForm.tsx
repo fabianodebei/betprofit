@@ -37,7 +37,7 @@ const createSingleBetSchema = (tagRequired: boolean) => z.object({
   rimborso: z.number().optional(),
   urlEvento: z.string().optional(),
   competizione: z.string().optional(),
-  statoEvento: z.enum(['Bozza', 'In Corso', 'Vinta', 'Persa']),
+  statoEvento: z.enum(['Bozza', 'In Corso', 'Vinta', 'Persa', 'Annullata']),
   tag: tagRequired 
     ? z.string().min(1, 'Tag è obbligatorio').refine(val => val !== 'none', 'Seleziona un tag valido')
     : z.string().optional(),
@@ -124,7 +124,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         rimborso: editingBet.rimborso || 0,
         urlEvento: editingBet.urlEvento || '',
         competizione: editingBet.competizione || '',
-        statoEvento: (editingBet.stato as 'Bozza' | 'In Corso' | 'Vinta' | 'Persa') || 'In Corso',
+        statoEvento: editingBet.statoEvento || 'Bozza',
         tag: editingBet.tag || 'none',
       });
       setSelectedIntestatario(intestatario);
@@ -170,7 +170,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         rimborso: data.rimborso,
         urlEvento: data.urlEvento,
         competizione: data.competizione,
-        stato: data.statoEvento,
+        statoEvento: data.statoEvento,
         walletId: account?.walletId || undefined,
         tag: data.tag === 'none' ? '' : data.tag,
       });
@@ -195,7 +195,8 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         tipoBonus: data.tipoBonus,
         bonus: data.bonus,
         rimborso: data.rimborso,
-        stato: data.statoEvento,
+        stato: 'In Corso',
+        statoEvento: data.statoEvento,
         mercato: data.mercato,
         urlEvento: data.urlEvento,
         competizione: data.competizione,

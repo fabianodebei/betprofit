@@ -58,7 +58,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
-      const mappedBets: Bet[] = (data || []).map((b) => ({
+      const mappedBets: Bet[] = (data || []).map((b: any) => ({
         id: b.id,
         tipo: b.tipo as 'Singola' | 'Multipla' | 'Casino' | 'Rapida',
         conto: b.conto,
@@ -141,7 +141,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
         bonus: data.bonus ? Number(data.bonus) : undefined,
         rimborso: data.rimborso ? Number(data.rimborso) : undefined,
         stato: data.stato as 'In Corso' | 'Archiviata',
-        statoEvento: data.stato_evento as 'Bozza' | 'In Corso' | 'Vinta' | 'Persa' | 'Annullata' | undefined,
+        statoEvento: (data as any).stato_evento as 'Bozza' | 'In Corso' | 'Vinta' | 'Persa' | 'Annullata' | undefined,
         risultato: data.risultato ? Number(data.risultato) : undefined,
         tag: data.tag || undefined,
         walletId: data.wallet_id || undefined,

@@ -60,7 +60,7 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
     }
   };
 
-  const handleStatoEventoChange = async (newStato: string) => {
+  const handleStatoEventoChange = async (newStato: 'Bozza' | 'In Corso' | 'Vinta' | 'Persa' | 'Annullata') => {
     if (!bet) return;
     
     try {
