@@ -71,7 +71,6 @@ export function BetProvider({ children }: { children: ReactNode }) {
         bonus: b.bonus ? Number(b.bonus) : undefined,
         rimborso: b.rimborso ? Number(b.rimborso) : undefined,
         stato: b.stato as 'In Corso' | 'Archiviata',
-        statoEvento: b.stato_evento as 'Bozza' | 'In Corso' | 'Vinta' | 'Persa' | 'Annullata' | undefined,
         risultato: b.risultato ? Number(b.risultato) : undefined,
         tag: b.tag || undefined,
         walletId: b.wallet_id || undefined,
@@ -111,7 +110,6 @@ export function BetProvider({ children }: { children: ReactNode }) {
           bonus: bet.bonus || null,
           rimborso: bet.rimborso || null,
           stato: bet.stato,
-          stato_evento: bet.statoEvento || null,
           risultato: bet.risultato || null,
           tag: bet.tag || null,
           wallet_id: bet.walletId || null,
@@ -141,7 +139,6 @@ export function BetProvider({ children }: { children: ReactNode }) {
         bonus: data.bonus ? Number(data.bonus) : undefined,
         rimborso: data.rimborso ? Number(data.rimborso) : undefined,
         stato: data.stato as 'In Corso' | 'Archiviata',
-        statoEvento: (data as any).stato_evento as 'Bozza' | 'In Corso' | 'Vinta' | 'Persa' | 'Annullata' | undefined,
         risultato: data.risultato ? Number(data.risultato) : undefined,
         tag: data.tag || undefined,
         walletId: data.wallet_id || undefined,
@@ -185,7 +182,6 @@ export function BetProvider({ children }: { children: ReactNode }) {
       if (updates.urlEvento !== undefined) dbUpdates.url_evento = updates.urlEvento;
       if (updates.nomeGioco !== undefined) dbUpdates.nome_gioco = updates.nomeGioco;
       if (updates.quotaPunta !== undefined) dbUpdates.quota_punta = updates.quotaPunta;
-      if (updates.statoEvento !== undefined) dbUpdates.stato_evento = updates.statoEvento;
 
       const { error } = await supabase
         .from('bets')

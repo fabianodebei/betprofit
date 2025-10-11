@@ -37,8 +37,7 @@ const createSingleBetSchema = (tagRequired: boolean) => z.object({
   rimborso: z.number().optional(),
   urlEvento: z.string().optional(),
   competizione: z.string().optional(),
-  statoEvento: z.enum(['Bozza', 'In Corso', 'Vinta', 'Persa', 'Annullata']),
-  tag: tagRequired 
+  tag: tagRequired
     ? z.string().min(1, 'Tag è obbligatorio').refine(val => val !== 'none', 'Seleziona un tag valido')
     : z.string().optional(),
 });
@@ -81,7 +80,6 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
       rimborso: 0,
       urlEvento: '',
       competizione: '',
-      statoEvento: 'Bozza',
       tag: 'none',
     },
   });
