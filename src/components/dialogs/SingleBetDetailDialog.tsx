@@ -3,12 +3,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 import { Bet } from '@/types';
 import { useLayBets } from '@/contexts/LayBetContext';
+import { useBets } from '@/contexts/BetContext';
 import { LayBetForm } from '@/components/forms/LayBetForm';
 import { formatCurrency } from '@/utils/currency';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 interface SingleBetDetailDialogProps {
   open: boolean;
@@ -18,10 +21,13 @@ interface SingleBetDetailDialogProps {
 
 export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDetailDialogProps) {
   const { getLayBetsByParentId, deleteLayBet } = useLayBets();
+  const { updateBet } = useBets();
   const [showLayBetForm, setShowLayBetForm] = useState(false);
   const [editingLayBet, setEditingLayBet] = useState<any>(null);
 
   const layBets = bet ? getLayBetsByParentId(bet.id) : [];
+  
+  const isEditable = bet?.statoEvento === 'Bozza';
 
   // Calculate totals
   const calculations = useMemo(() => {
@@ -54,6 +60,17 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
     }
   };
 
+  const handleStatoEventoChange = async (newStato: string) => {
+    if (!bet) return;
+    
+    try {
+      await updateBet(bet.id, { statoEvento: newStato });
+      toast.success('Stato evento aggiornato');
+    } catch (error) {
+      toast.error('Errore durante l\'aggiornamento dello stato');
+    }
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -64,7 +81,7 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
 
           <div className="space-y-4">
             {/* Actions */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 justify-between items-center">
               <Button
                 size="sm"
                 variant="outline"
@@ -72,10 +89,30 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                   setEditingLayBet(null);
                   setShowLayBetForm(true);
                 }}
+                disabled={!isEditable}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Nuova Bancata
               </Button>
+              
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Stato Evento:</span>
+                <Select
+                  value={bet.statoEvento || 'Bozza'}
+                  onValueChange={handleStatoEventoChange}
+                >
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Bozza">Bozza</SelectItem>
+                    <SelectItem value="In Corso">In Corso</SelectItem>
+                    <SelectItem value="Vinta">Vinta</SelectItem>
+                    <SelectItem value="Persa">Persa</SelectItem>
+                    <SelectItem value="Annullata">Annullata</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Main Table */}
@@ -130,8 +167,14 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                     <TableCell>0,00</TableCell>
                     <TableCell>{formatCurrency(0)}</TableCell>
                     <TableCell>
-                      <Badge variant={bet.stato === 'In Corso' ? 'default' : 'secondary'}>
-                        {bet.stato}
+                      <Badge variant={
+                        bet.statoEvento === 'Bozza' ? 'outline' :
+                        bet.statoEvento === 'In Corso' ? 'default' :
+                        bet.statoEvento === 'Vinta' ? 'default' :
+                        bet.statoEvento === 'Persa' ? 'destructive' :
+                        'secondary'
+                      }>
+                        {bet.statoEvento || 'Bozza'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-primary text-sm">{bet.tag || '(non impostato)'}</TableCell>
