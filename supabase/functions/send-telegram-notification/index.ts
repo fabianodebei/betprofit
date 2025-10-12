@@ -12,7 +12,6 @@ const requestSchema = z.object({
     .trim()
     .min(1, 'Message cannot be empty')
     .max(4096, 'Message exceeds maximum length'),
-  user_id: z.string().uuid('Invalid user ID'),
 });
 
 const handler = async (req: Request): Promise<Response> => {
@@ -22,6 +21,40 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Extract user_id from JWT token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.error('Missing or invalid authorization header');
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+
+    const jwt = authHeader.replace('Bearer ', '');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify JWT and extract user
+    const { data: { user }, error: authError } = await supabase.auth.getUser(jwt);
+    
+    if (authError || !user) {
+      console.error('Authentication failed');
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+
+    const user_id = user.id;
+
     let body;
     try {
       body = await req.json();
@@ -49,13 +82,9 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { message, user_id } = validation.data;
+    const { message } = validation.data;
 
     // Get user's Telegram configuration
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
     const { data: config, error: configError } = await supabase
       .from('user_telegram_config')
       .select('*')

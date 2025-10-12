@@ -6,12 +6,33 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limiting: track last execution time
+let lastExecutionTime = 0;
+const RATE_LIMIT_MS = 50000; // 50 seconds minimum between calls
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Rate limiting check
+    const now = Date.now();
+    if (now - lastExecutionTime < RATE_LIMIT_MS) {
+      console.log('Rate limit exceeded, rejecting request');
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Rate limit exceeded',
+          retryAfter: Math.ceil((RATE_LIMIT_MS - (now - lastExecutionTime)) / 1000)
+        }),
+        {
+          status: 429,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+    lastExecutionTime = now;
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);

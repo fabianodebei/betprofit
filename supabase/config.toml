@@ -1,7 +1,7 @@
 project_id = "kykcanyioyzqctagrhud"
 
 [functions.send-telegram-notification]
-verify_jwt = false
+verify_jwt = true
 
 [functions.check-notifications]
 verify_jwt = false
