@@ -25,7 +25,6 @@ const casinoBetSchema = z.object({
   intestatario: z.string().min(1, 'Intestatario è obbligatorio'),
   conto: z.string().min(1, 'Conto è obbligatorio'),
   stake: z.number().positive('Lo stake deve essere positivo'),
-  quota: z.number().min(1.01, 'La quota deve essere almeno 1.01'),
   tipoBonus: z.enum(['Nessuno', 'Bonus', 'Rimborso', 'Free Bet']),
   bonus: z.number().optional(),
   rimborso: z.number().optional()
@@ -68,7 +67,6 @@ export function CasinoBetForm({
       intestatario: '',
       conto: '',
       stake: 0,
-      quota: 1.01,
       tipoBonus: 'Nessuno',
       bonus: 0,
       rimborso: 0
@@ -96,7 +94,6 @@ export function CasinoBetForm({
         intestatario: intestatario,
         conto: editingBet.conto,
         stake: editingBet.stake,
-        quota: editingBet.quota || 1.01,
         tipoBonus: convertBonusType(editingBet.tipoBonus),
         bonus: editingBet.bonus || 0,
         rimborso: editingBet.rimborso || 0
@@ -111,7 +108,6 @@ export function CasinoBetForm({
         intestatario: '',
         conto: '',
         stake: 0,
-        quota: 1.01,
         tipoBonus: 'Nessuno',
         bonus: 0,
         rimborso: 0
@@ -126,7 +122,6 @@ export function CasinoBetForm({
         tipo: 'Casino',
         conto: data.conto,
         stake: data.stake,
-        quota: data.quota,
         nomeGioco: data.nomeGioco,
         dataEvento: data.dataEvento,
         mercato: data.mercato,
@@ -147,7 +142,6 @@ export function CasinoBetForm({
         tipo: 'Casino',
         conto: data.conto,
         stake: data.stake,
-        quota: data.quota,
         nomeGioco: data.nomeGioco,
         dataEvento: data.dataEvento,
         mercato: data.mercato,
@@ -258,8 +252,7 @@ export function CasinoBetForm({
                   </Select>
                   <FormMessage />
                 </FormItem>} />
-            <div className="grid grid-cols-2 gap-4">
-              <FormField control={form.control} name="stake" render={({
+            <FormField control={form.control} name="stake" render={({
               field
             }) => <FormItem>
                     <FormLabel>Stake *</FormLabel>
@@ -271,16 +264,6 @@ export function CasinoBetForm({
                     </FormControl>
                     <FormMessage />
                   </FormItem>} />
-              <FormField control={form.control} name="quota" render={({
-              field
-            }) => <FormItem>
-                    <FormLabel>Quota *</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="0.01" placeholder="1.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 1.01)} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>} />
-            </div>
             <FormField control={form.control} name="tipoBonus" render={({
             field
           }) => <FormItem>
