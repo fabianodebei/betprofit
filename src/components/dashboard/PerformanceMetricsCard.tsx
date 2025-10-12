@@ -15,7 +15,7 @@ export function PerformanceMetricsCard({
   overallROI 
 }: PerformanceMetricsCardProps) {
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <CardTitle>Metriche Performance</CardTitle>
       </CardHeader>

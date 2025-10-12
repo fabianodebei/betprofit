@@ -61,12 +61,12 @@ export function ROIByBookmakerChart({ data }: ROIByBookmakerChartProps) {
   }
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <CardTitle>ROI per Bookmaker</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={360}>
           <BarChart data={sortedData} layout="horizontal">
             <XAxis type="number" />
             <YAxis dataKey="bookmaker" type="category" width={100} />
