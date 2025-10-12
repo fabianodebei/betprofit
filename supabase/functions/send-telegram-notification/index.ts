@@ -113,6 +113,24 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Validate token format before use
+    if (!config.telegram_bot_token.match(/^\d+:[A-Za-z0-9_-]{35,}$/)) {
+      console.error('Invalid bot token format in database');
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid bot token format' }),
+        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+
+    // Validate chat ID format
+    if (!config.telegram_chat_id.match(/^-?\d+$/)) {
+      console.error('Invalid chat ID format in database');
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid chat ID format' }),
+        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+
     const telegramUrl = `https://api.telegram.org/bot${config.telegram_bot_token}/sendMessage`;
 
     console.log('Sending notification');

@@ -77,26 +77,12 @@ export default function Admin() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.rpc('admin_get_all_users');
 
-      if (profilesError) throw profilesError;
+      if (error) throw error;
 
-      const { data: roles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
-
-      if (rolesError) throw rolesError;
-
-      const usersWithRoles = profiles.map(profile => ({
-        ...profile,
-        role: (roles.find(r => r.user_id === profile.id)?.role || 'free') as 'admin' | 'free'
-      }));
-
-      setUsers(usersWithRoles);
-      setFilteredUsers(usersWithRoles);
+      setUsers(data || []);
+      setFilteredUsers(data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Errore nel caricamento degli utenti');
@@ -107,52 +93,33 @@ export default function Admin() {
 
   const fetchSystemStats = async () => {
     try {
-      // Fetch all data
-      const [profilesRes, rolesRes, betsRes, transactionsRes, accountsRes, walletsRes, tagsRes] = await Promise.all([
-        supabase.from('profiles').select('*'),
-        supabase.from('user_roles').select('*'),
-        supabase.from('bets').select('*'),
-        supabase.from('transactions').select('*'),
-        supabase.from('accounts').select('*'),
-        supabase.from('wallets').select('*'),
-        supabase.from('tags').select('*'),
-      ]);
+      const { data, error } = await supabase.rpc('get_admin_stats');
 
-      const now = new Date();
-      const oneWeekAgo = subDays(now, 7);
-      const oneMonthAgo = subDays(now, 30);
+      if (error) throw error;
 
-      const newUsersThisWeek = profilesRes.data?.filter(
-        p => new Date(p.created_at) >= oneWeekAgo
-      ).length || 0;
+      if (data) {
+        // Type assertion for RPC response
+        const stats = data as any;
+        
+        // Map RPC response to SystemStats format
+        const roleDistribution = {
+          admin: users.filter(u => u.role === 'admin').length,
+          free: users.filter(u => u.role === 'free').length,
+        };
 
-      const newUsersThisMonth = profilesRes.data?.filter(
-        p => new Date(p.created_at) >= oneMonthAgo
-      ).length || 0;
-
-      // Count active users (users with bets or transactions in last 30 days)
-      const activeUserIds = new Set([
-        ...(betsRes.data?.filter(b => new Date(b.created_at) >= oneMonthAgo).map(b => b.user_id) || []),
-        ...(transactionsRes.data?.filter(t => new Date(t.registrato) >= oneMonthAgo).map(t => t.user_id) || [])
-      ]);
-
-      const roleDistribution = {
-        admin: rolesRes.data?.filter(r => r.role === 'admin').length || 0,
-        free: rolesRes.data?.filter(r => r.role === 'free').length || 0,
-      };
-
-      setSystemStats({
-        totalUsers: profilesRes.data?.length || 0,
-        newUsersThisWeek,
-        newUsersThisMonth,
-        activeUsers: activeUserIds.size,
-        totalBets: betsRes.data?.length || 0,
-        totalTransactions: transactionsRes.data?.length || 0,
-        totalAccounts: accountsRes.data?.length || 0,
-        totalWallets: walletsRes.data?.length || 0,
-        totalTags: tagsRes.data?.length || 0,
-        roleDistribution,
-      });
+        setSystemStats({
+          totalUsers: Number(stats.totalUsers) || 0,
+          newUsersThisWeek: 0, // Will be calculated from registration data
+          newUsersThisMonth: Number(stats.newUsersLast30Days) || 0,
+          activeUsers: Number(stats.activeUsersLast30Days) || 0,
+          totalBets: Number(stats.totalBets) || 0,
+          totalTransactions: Number(stats.totalTransactions) || 0,
+          totalAccounts: Number(stats.totalAccounts) || 0,
+          totalWallets: Number(stats.totalWallets) || 0,
+          totalTags: Number(stats.totalTags) || 0,
+          roleDistribution,
+        });
+      }
     } catch (error) {
       console.error('Error fetching system stats:', error);
     }
@@ -160,20 +127,16 @@ export default function Admin() {
 
   const fetchUserActivities = async () => {
     try {
-      const { data: profiles } = await supabase.from('profiles').select('*');
-      const { data: roles } = await supabase.from('user_roles').select('*');
-      const { data: bets } = await supabase.from('bets').select('user_id');
-      const { data: transactions } = await supabase.from('transactions').select('user_id');
-      const { data: accounts } = await supabase.from('accounts').select('user_id');
-      const { data: wallets } = await supabase.from('wallets').select('user_id');
+      const { data, error } = await supabase.rpc('admin_get_user_activities');
 
-      const activities = profiles?.map(profile => ({
-        ...profile,
-        role: (roles?.find(r => r.user_id === profile.id)?.role || 'free') as 'admin' | 'free',
-        betsCount: bets?.filter(b => b.user_id === profile.id).length || 0,
-        transactionsCount: transactions?.filter(t => t.user_id === profile.id).length || 0,
-        accountsCount: accounts?.filter(a => a.user_id === profile.id).length || 0,
-        walletsCount: wallets?.filter(w => w.user_id === profile.id).length || 0,
+      if (error) throw error;
+
+      const activities = data?.map(activity => ({
+        ...activity,
+        betsCount: Number(activity.bet_count),
+        transactionsCount: Number(activity.transaction_count),
+        accountsCount: Number(activity.account_count),
+        walletsCount: Number(activity.wallet_count),
       })) || [];
 
       setUserActivities(activities);
@@ -184,28 +147,14 @@ export default function Admin() {
 
   const fetchRegistrationData = async () => {
     try {
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('created_at')
-        .order('created_at', { ascending: true });
+      const { data, error } = await supabase.rpc('admin_get_registration_data');
 
-      if (!profiles) return;
+      if (error) throw error;
 
-      const now = new Date();
-      const thirtyDaysAgo = subDays(now, 30);
-      const days = eachDayOfInterval({ start: thirtyDaysAgo, end: now });
-
-      const registrationsByDay = days.map(day => {
-        const count = profiles.filter(p => {
-          const createdDate = new Date(p.created_at);
-          return createdDate.toDateString() === day.toDateString();
-        }).length;
-
-        return {
-          date: day.toISOString(),
-          count,
-        };
-      });
+      const registrationsByDay = data?.map(item => ({
+        date: new Date(item.date).toISOString(),
+        count: Number(item.count),
+      })) || [];
 
       setRegistrationData(registrationsByDay);
     } catch (error) {
@@ -223,28 +172,26 @@ export default function Admin() {
     if (!selectedUser) return;
 
     try {
-      // Verifica se è l'ultimo admin
-      if (selectedUser.role === 'admin' && newRole !== 'admin') {
-        const adminCount = users.filter(u => u.role === 'admin').length;
-        if (adminCount === 1) {
-          toast.error('Non puoi rimuovere l\'ultimo amministratore');
-          return;
-        }
-      }
-
-      const { error } = await supabase
-        .from('user_roles')
-        .update({ role: newRole })
-        .eq('user_id', selectedUser.id);
+      const { error } = await supabase.rpc('admin_update_user_role', {
+        target_user_id: selectedUser.id,
+        new_role: newRole,
+      });
 
       if (error) throw error;
 
       toast.success('Ruolo aggiornato con successo');
       setDialogOpen(false);
       fetchUsers();
-    } catch (error) {
+      fetchSystemStats();
+    } catch (error: any) {
       console.error('Error updating role:', error);
-      toast.error('Errore nell\'aggiornamento del ruolo');
+      if (error.message?.includes('Cannot remove the last admin')) {
+        toast.error('Non puoi rimuovere l\'ultimo amministratore');
+      } else if (error.message?.includes('Access denied')) {
+        toast.error('Accesso negato: privilegi amministrativi richiesti');
+      } else {
+        toast.error('Errore nell\'aggiornamento del ruolo');
+      }
     }
   };
 

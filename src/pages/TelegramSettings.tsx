@@ -12,8 +12,18 @@ import { useTelegramConfig } from '@/contexts/TelegramConfigContext';
 import { Info, MessageSquare } from 'lucide-react';
 
 const formSchema = z.object({
-  telegram_bot_token: z.string().optional(),
-  telegram_chat_id: z.string().optional(),
+  telegram_bot_token: z.string()
+    .refine(
+      (val) => !val || val === '' || /^\d+:[A-Za-z0-9_-]{35,}$/.test(val),
+      'Formato token non valido. Deve essere nel formato: 123456789:ABCdefGHIjklMNOpqrsTUVwxyz'
+    )
+    .optional(),
+  telegram_chat_id: z.string()
+    .refine(
+      (val) => !val || val === '' || /^-?\d+$/.test(val),
+      'Chat ID deve essere un numero (può essere negativo per i gruppi)'
+    )
+    .optional(),
   notifications_enabled: z.boolean(),
 });
 

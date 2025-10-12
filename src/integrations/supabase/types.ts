@@ -131,6 +131,7 @@ export type Database = {
           risultato: number | null
           stake: number
           stato: string
+          stato_evento: string | null
           tag: string | null
           tipo: string
           tipo_bonus: string | null
@@ -160,6 +161,7 @@ export type Database = {
           risultato?: number | null
           stake: number
           stato: string
+          stato_evento?: string | null
           tag?: string | null
           tipo: string
           tipo_bonus?: string | null
@@ -189,6 +191,7 @@ export type Database = {
           risultato?: number | null
           stake?: number
           stato?: string
+          stato_evento?: string | null
           tag?: string | null
           tipo?: string
           tipo_bonus?: string | null
@@ -553,6 +556,48 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_get_all_users: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+        }[]
+      }
+      admin_get_registration_data: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          count: number
+          date: string
+        }[]
+      }
+      admin_get_user_activities: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          account_count: number
+          bet_count: number
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          transaction_count: number
+          wallet_count: number
+        }[]
+      }
+      admin_update_user_role: {
+        Args: {
+          new_role: Database["public"]["Enums"]["app_role"]
+          target_user_id: string
+        }
+        Returns: undefined
+      }
+      get_admin_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
