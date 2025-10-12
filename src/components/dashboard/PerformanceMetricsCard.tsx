@@ -15,11 +15,11 @@ export function PerformanceMetricsCard({
   overallROI 
 }: PerformanceMetricsCardProps) {
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="h-[360px]">
       <CardHeader>
         <CardTitle>Metriche Performance</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 flex-1">
+      <CardContent className="space-y-4">
         <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
           <div className="flex items-center gap-3">
             <div className="rounded-full bg-primary/10 p-2">
