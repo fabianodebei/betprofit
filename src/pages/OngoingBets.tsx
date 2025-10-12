@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SingleBetForm } from '@/components/forms/SingleBetForm';
@@ -7,6 +7,8 @@ import { MultiplaBetForm } from '@/components/forms/MultiplaBetForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Badge } from '@/components/common/Badge';
+import { AdvancedFilterBar } from '@/components/filters/AdvancedFilterBar';
+import { useAdvancedFilters } from '@/hooks/useAdvancedFilters';
 import { useBets } from '@/contexts/BetContext';
 import { useYear } from '@/contexts/YearContext';
 import { formatDate } from '@/utils/dates';
@@ -19,7 +21,19 @@ export default function OngoingBets() {
   const { getOngoingBets, deleteBet, archiveBet } = useBets();
   const { selectedYear } = useYear();
   const allOngoingBets = getOngoingBets();
-  const ongoingBets = allOngoingBets.filter(bet => bet.dataEvento.getFullYear() === selectedYear);
+  const yearOngoingBets = allOngoingBets.filter(bet => bet.dataEvento.getFullYear() === selectedYear);
+  
+  const { filteredItems: ongoingBets, filters, setFilters } = useAdvancedFilters(yearOngoingBets, {
+    searchFields: ['evento', 'nomeGioco', 'conto', 'tag', 'note'],
+    dateField: 'dataEvento',
+  });
+
+  const availableBookmakers = useMemo(() => 
+    Array.from(new Set(yearOngoingBets.map(b => b.conto))), [yearOngoingBets]
+  );
+  const availableTags = useMemo(() => 
+    Array.from(new Set(yearOngoingBets.filter(b => b.tag).map(b => b.tag!))), [yearOngoingBets]
+  );
   const [activeTab, setActiveTab] = useState<'singola' | 'multipla' | 'casino'>('singola');
   const [showSingleBetForm, setShowSingleBetForm] = useState(false);
   const [showCasinoBetForm, setShowCasinoBetForm] = useState(false);

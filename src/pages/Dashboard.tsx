@@ -1,6 +1,11 @@
-import { useEffect } from 'react';
-import { TrendingUp, Calendar, Trophy, Wallet } from 'lucide-react';
-import { KPICard } from '@/components/dashboard/KPICard';
+import { useEffect, useMemo } from 'react';
+import { TrendingUp, Calendar, Trophy, Wallet, BarChart3, PieChart } from 'lucide-react';
+import { AdvancedKPICard } from '@/components/dashboard/AdvancedKPICard';
+import { ROIByBookmakerChart } from '@/components/dashboard/ROIByBookmakerChart';
+import { PerformanceMetricsCard } from '@/components/dashboard/PerformanceMetricsCard';
+import { BetTypeDistributionChart } from '@/components/dashboard/BetTypeDistributionChart';
+import { MonthlyComparisonChart } from '@/components/dashboard/MonthlyComparisonChart';
+import { QuickInsightsPanel, generateInsights } from '@/components/dashboard/QuickInsightsPanel';
 import { TrendChart } from '@/components/dashboard/TrendChart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -96,6 +101,85 @@ export default function Dashboard() {
   const monthlyAverage = totalYear / 12;
   const bestMonth = Math.max(...monthlyEarnings);
 
+  // Analytics calculations
+  const bookmakerStats = useMemo(() => {
+    const stats = new Map();
+    archivedBets.forEach(bet => {
+      if (!stats.has(bet.conto)) {
+        stats.set(bet.conto, { stake: 0, profitto: 0, count: 0 });
+      }
+      const s = stats.get(bet.conto);
+      s.stake += bet.stake;
+      s.profitto += bet.risultato || 0;
+      s.count += 1;
+    });
+    
+    return Array.from(stats.entries()).map(([bookmaker, data]) => ({
+      bookmaker,
+      ...data,
+      roi: data.stake > 0 ? (data.profitto / data.stake) * 100 : 0
+    }));
+  }, [archivedBets]);
+
+  const winRate = useMemo(() => {
+    const wins = archivedBets.filter(b => b.risultato && b.risultato > 0).length;
+    return archivedBets.length > 0 ? (wins / archivedBets.length) * 100 : 0;
+  }, [archivedBets]);
+
+  const averageOdds = useMemo(() => {
+    const withOdds = archivedBets.filter(b => b.quota);
+    return withOdds.length > 0 
+      ? withOdds.reduce((sum, b) => sum + (b.quota || 0), 0) / withOdds.length 
+      : 0;
+  }, [archivedBets]);
+
+  const currentStreak = useMemo(() => {
+    const sorted = [...archivedBets].sort((a, b) => b.dataEvento.getTime() - a.dataEvento.getTime());
+    let streak = 0;
+    let isWinning: boolean | null = null;
+    
+    for (const bet of sorted) {
+      const won = bet.risultato && bet.risultato > 0;
+      if (isWinning === null) {
+        isWinning = won;
+        streak = 1;
+      } else if (isWinning === won) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    
+    return { count: streak, type: isWinning ? 'vincente' as const : 'perdente' as const };
+  }, [archivedBets]);
+
+  const overallROI = useMemo(() => {
+    const totalStake = archivedBets.reduce((sum, b) => sum + b.stake, 0);
+    const totalProfitto = archivedBets.reduce((sum, b) => sum + (b.risultato || 0), 0);
+    return totalStake > 0 ? (totalProfitto / totalStake) * 100 : 0;
+  }, [archivedBets]);
+
+  const betTypeDistribution = useMemo(() => {
+    const types = new Map();
+    bets.forEach(bet => {
+      if (!types.has(bet.tipo)) {
+        types.set(bet.tipo, { value: 0, count: 0 });
+      }
+      const t = types.get(bet.tipo);
+      t.value += bet.stake;
+      t.count += 1;
+    });
+    
+    const total = Array.from(types.values()).reduce((sum, t) => sum + t.value, 0);
+    return Array.from(types.entries()).map(([name, data]) => ({
+      name,
+      ...data,
+      percentage: total > 0 ? (data.value / total) * 100 : 0
+    }));
+  }, [bets]);
+
+  const insights = useMemo(() => generateInsights(bets, selectedYear), [bets, selectedYear]);
+
   const chartData = [
     { month: 'Gen', earnings: monthlyEarnings[0] },
     { month: 'Feb', earnings: monthlyEarnings[1] },
@@ -130,31 +214,53 @@ export default function Dashboard() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* KPI Cards */}
+      {/* Advanced KPI Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-        <KPICard
+        <AdvancedKPICard
           title="Guadagni Mese Corrente"
           value={currentMonthEarnings}
-          change={0}
           icon={TrendingUp}
+          sparklineData={monthlyEarnings.slice(0, currentMonth + 1)}
+          trend={currentMonthEarnings >= monthlyAverage ? 'up' : 'down'}
         />
-        <KPICard
+        <AdvancedKPICard
           title="Media Mensile"
           value={monthlyAverage}
           icon={Calendar}
           subtitle="Confronto annuale"
         />
-        <KPICard
+        <AdvancedKPICard
           title="Miglior Mese"
           value={bestMonth}
           icon={Trophy}
-          subtitle="vs media"
+          subtitle="Performance massima"
+          trend="up"
         />
-        <KPICard
+        <AdvancedKPICard
           title={`Totale Anno ${selectedYear}`}
           value={totalYear}
           icon={Wallet}
+          trend={totalYear >= 0 ? 'up' : 'down'}
         />
+      </div>
+
+      {/* Performance Analysis Section */}
+      <div className="grid gap-6 lg:grid-cols-3 mb-8">
+        <PerformanceMetricsCard
+          winRate={winRate}
+          averageOdds={averageOdds}
+          currentStreak={currentStreak}
+          overallROI={overallROI}
+        />
+        <div className="lg:col-span-2">
+          <ROIByBookmakerChart data={bookmakerStats} />
+        </div>
+      </div>
+
+      {/* Distribution & Insights */}
+      <div className="grid gap-6 lg:grid-cols-2 mb-8">
+        <BetTypeDistributionChart data={betTypeDistribution} />
+        <QuickInsightsPanel insights={insights} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
