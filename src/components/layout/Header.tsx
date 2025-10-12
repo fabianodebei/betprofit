@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Zap, FileText, ArrowRightLeft, Scale, Archive, Wallet, Clock, Settings, Menu, X, ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
+import { Home, Zap, FileText, ArrowRightLeft, Scale, Archive, Wallet, Clock, Settings, Menu, X, ChevronLeft, ChevronRight, LogOut, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { GlobalSearchDialog } from '@/components/layout/GlobalSearchDialog';
 import { useYear } from '@/contexts/YearContext';
 import { useAuth } from '@/contexts/AuthContext';
 import logo from '@/assets/logo_centurion.webp';
@@ -44,10 +45,23 @@ const navigation = [{
 }];
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const { selectedYear, setSelectedYear } = useYear();
   const { signOut } = useAuth();
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
   return <header className="sticky top-0 z-50 w-full border-b shadow-sm rounded-none" style={{ backgroundColor: 'hsl(210, 33%, 15%)' }}>
       <div className="container mx-auto px-4 bg-transparent">
         <div className="flex h-20 items-center justify-between rounded-none bg-transparent">
@@ -65,14 +79,22 @@ export function Header() {
                   {item.name}
                 </Link>;
           })}
-            <Link to="/impostazioni" className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ml-2 ${isActive('/impostazioni') ? 'bg-primary-foreground/20 text-primary-foreground' : 'text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground'}`}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSearchOpen(true)}
+              className="ml-2 text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+            <Link to="/impostazioni" className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${isActive('/impostazioni') ? 'bg-primary-foreground/20 text-primary-foreground' : 'text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground'}`}>
               <Settings className="h-5 w-5" />
             </Link>
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={signOut}
-              className="ml-2 text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground"
+              className="text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground"
             >
               <LogOut className="h-4 w-4" />
             </Button>
@@ -138,5 +160,7 @@ export function Header() {
             </nav>
           </div>}
       </div>
+
+      <GlobalSearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
     </header>;
 }

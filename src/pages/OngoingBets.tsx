@@ -7,10 +7,14 @@ import { MultiplaBetForm } from '@/components/forms/MultiplaBetForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Badge } from '@/components/common/Badge';
+import { SortableTableHeader } from '@/components/common/SortableTableHeader';
+import { SmartPagination } from '@/components/common/SmartPagination';
+import { SkeletonTable } from '@/components/common/SkeletonTable';
 import { AdvancedFilterBar } from '@/components/filters/AdvancedFilterBar';
 import { useAdvancedFilters } from '@/hooks/useAdvancedFilters';
 import { useBets } from '@/contexts/BetContext';
 import { useYear } from '@/contexts/YearContext';
+import { useTags } from '@/contexts/TagContext';
 import { formatDate } from '@/utils/dates';
 import { ArchiveBetDialog } from '@/components/dialogs/ArchiveBetDialog';
 import { MultiplaDetailDialog } from '@/components/dialogs/MultiplaDetailDialog';
@@ -18,22 +22,31 @@ import { SingleBetDetailDialog } from '@/components/dialogs/SingleBetDetailDialo
 import { Bet } from '@/types';
 
 export default function OngoingBets() {
-  const { getOngoingBets, deleteBet, archiveBet } = useBets();
+  const { getOngoingBets, deleteBet, archiveBet, loading } = useBets();
   const { selectedYear } = useYear();
+  const { tags } = useTags();
   const allOngoingBets = getOngoingBets();
   const yearOngoingBets = allOngoingBets.filter(bet => bet.dataEvento.getFullYear() === selectedYear);
   
-  const { filteredItems: ongoingBets, filters, setFilters } = useAdvancedFilters(yearOngoingBets, {
+  const { filteredItems, filters, setFilters, sortBy, setSortBy, sortOrder, setSortOrder } = useAdvancedFilters(yearOngoingBets, {
     searchFields: ['evento', 'nomeGioco', 'conto', 'tag', 'note'],
     dateField: 'dataEvento',
   });
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+
   const availableBookmakers = useMemo(() => 
     Array.from(new Set(yearOngoingBets.map(b => b.conto))), [yearOngoingBets]
   );
-  const availableTags = useMemo(() => 
-    Array.from(new Set(yearOngoingBets.filter(b => b.tag).map(b => b.tag!))), [yearOngoingBets]
-  );
+  const availableTags = useMemo(() => tags.map(t => t.nome), [tags]);
+
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredItems.slice(start, start + pageSize);
+  }, [filteredItems, currentPage, pageSize]);
+
+  const totalPages = Math.ceil(filteredItems.length / pageSize);
   const [activeTab, setActiveTab] = useState<'singola' | 'multipla' | 'casino'>('singola');
   const [showSingleBetForm, setShowSingleBetForm] = useState(false);
   const [showCasinoBetForm, setShowCasinoBetForm] = useState(false);
@@ -98,8 +111,16 @@ export default function OngoingBets() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-foreground">Giocate In Corso</h1>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-foreground mb-4">Giocate In Corso</h1>
+        <AdvancedFilterBar
+          filters={filters}
+          onFilterChange={setFilters}
+          resultCount={filteredItems.length}
+          totalCount={yearOngoingBets.length}
+          availableBookmakers={availableBookmakers}
+          availableTags={availableTags}
+        />
       </div>
 
       {/* Tabs */}
@@ -141,7 +162,9 @@ export default function OngoingBets() {
           <CardTitle>Puntate Attive</CardTitle>
         </CardHeader>
         <CardContent>
-          {ongoingBets.length === 0 ? (
+          {loading ? (
+            <SkeletonTable rows={5} columns={9} />
+          ) : filteredItems.length === 0 ? (
             <EmptyState
               icon={Zap}
               title="Nessuna puntata in corso"
@@ -154,23 +177,24 @@ export default function OngoingBets() {
               }
             />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b bg-muted/50">
-                    <th className="p-3 text-left text-xs font-semibold uppercase">ID#</th>
-                    <th className="p-3 text-left text-xs font-semibold uppercase">Data Evento</th>
-                    <th className="p-3 text-left text-xs font-semibold uppercase">Tipo</th>
-                    <th className="p-3 text-left text-xs font-semibold uppercase">Evento</th>
-                    <th className="p-3 text-left text-xs font-semibold uppercase">Tipo Bonus</th>
-                    <th className="p-3 text-left text-xs font-semibold uppercase">Conto</th>
-                    <th className="p-3 text-left text-xs font-semibold uppercase">Tag</th>
-                    <th className="p-3 text-left text-xs font-semibold uppercase">Note</th>
-                    <th className="p-3 text-left text-xs font-semibold uppercase">Azioni</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ongoingBets.map((bet, idx) => (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b bg-muted/50">
+                      <th className="p-3 text-left text-xs font-semibold uppercase">ID#</th>
+                      <SortableTableHeader label="Data Evento" sortKey="dataEvento" currentSort={sortBy} currentOrder={sortOrder} onSort={setSortBy as any} />
+                      <SortableTableHeader label="Tipo" sortKey="tipo" currentSort={sortBy} currentOrder={sortOrder} onSort={setSortBy as any} />
+                      <SortableTableHeader label="Evento" sortKey="evento" currentSort={sortBy} currentOrder={sortOrder} onSort={setSortBy as any} />
+                      <th className="p-3 text-left text-xs font-semibold uppercase">Tipo Bonus</th>
+                      <SortableTableHeader label="Conto" sortKey="conto" currentSort={sortBy} currentOrder={sortOrder} onSort={setSortBy as any} />
+                      <th className="p-3 text-left text-xs font-semibold uppercase">Tag</th>
+                      <th className="p-3 text-left text-xs font-semibold uppercase">Note</th>
+                      <th className="p-3 text-left text-xs font-semibold uppercase">Azioni</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedItems.map((bet, idx) => (
                     <tr key={bet.id} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
                       <td className="p-3 text-sm font-medium">{bet.id}</td>
                       <td className="p-3 text-sm">{formatDate(bet.dataEvento)}</td>
@@ -204,10 +228,16 @@ export default function OngoingBets() {
                   ))}
                 </tbody>
               </table>
-              <div className="mt-4 text-sm text-muted-foreground">
-                Visualizzo 1-{ongoingBets.length} di {ongoingBets.length} elementi
               </div>
-            </div>
+              <SmartPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                totalItems={filteredItems.length}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+              />
+            </>
           )}
         </CardContent>
       </Card>
