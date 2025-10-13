@@ -287,7 +287,7 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                         .filter(account => account.stato === 'Abilitato')
                         .map((account) => (
                           <SelectItem key={account.id} value={account.conto}>
-                            {account.conto}
+                            {account.conto} - {account.intestatario}
                           </SelectItem>
                         ))}
                     </SelectContent>
