@@ -73,7 +73,9 @@ export const useAdminPreferences = () => {
         .upsert({
           user_id: user.id,
           preferences: newPreferences as any,
-        } as any);
+        }, {
+          onConflict: 'user_id'
+        });
 
       if (error) throw error;
     } catch (error) {
