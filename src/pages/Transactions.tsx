@@ -27,7 +27,7 @@ type Movement = {
 
 export default function Transactions() {
   const { bets } = useBets();
-  const { transactions, deleteTransaction } = useTransactions();
+  const { transactions } = useTransactions();
   const { accounts } = useAccounts();
   const { wallets } = useWallets();
   const { selectedYear } = useYear();
@@ -233,30 +233,14 @@ export default function Transactions() {
                       {formatCurrency(movement.movimento)}
                     </td>
                     <td className="p-3">
-                      <div className="flex items-center gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="link" 
-                          className="text-teal-600 hover:text-teal-700"
-                          onClick={(e) => { e.stopPropagation(); handleShowDetail(movement); }}
-                        >
-                          Dettaglio
-                        </Button>
-                        {movement.type === 'transaction' && (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              const ok = window.confirm('Eliminare questa transazione?');
-                              if (!ok) return;
-                              await deleteTransaction(movement.id);
-                            }}
-                          >
-                            Elimina
-                          </Button>
-                        )}
-                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="link" 
+                        className="text-teal-600 hover:text-teal-700"
+                        onClick={(e) => { e.stopPropagation(); handleShowDetail(movement); }}
+                      >
+                        Dettaglio
+                      </Button>
                     </td>
                   </tr>
                 ))}
