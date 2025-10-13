@@ -33,10 +33,12 @@ export const TagProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
 
   const fetchTags = async () => {
+    if (!user) return;
     try {
       const { data, error } = await supabase
         .from('tags')
         .select('*')
+        .eq('user_id', user.id)
         .order('nome', { ascending: true });
 
       if (error) throw error;
@@ -58,27 +60,33 @@ export const TagProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    fetchTags();
+    if (user) {
+      fetchTags();
 
-    const channel = supabase
-      .channel('tags-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'tags'
-        },
-        () => {
-          fetchTags();
-        }
-      )
-      .subscribe();
+      const channel = supabase
+        .channel('tags-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'tags',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            fetchTags();
+          }
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    } else {
+      setTags([]);
+      setLoading(false);
+    }
+  }, [user]);
 
   const addTag = async (tag: Omit<Tag, 'id' | 'created_at'>) => {
     try {

@@ -21,34 +21,42 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
 
   useEffect(() => {
-    fetchLayBets();
+    if (user) {
+      fetchLayBets();
 
-    // Listen to realtime changes
-    const channel = supabase
-      .channel('lay-bets-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'lay_bets'
-        },
-        () => {
-          fetchLayBets();
-        }
-      )
-      .subscribe();
+      // Listen to realtime changes
+      const channel = supabase
+        .channel('lay-bets-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'lay_bets',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            fetchLayBets();
+          }
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    } else {
+      setLayBets([]);
+      setLoading(false);
+    }
+  }, [user]);
 
   const fetchLayBets = async () => {
+    if (!user) return;
     try {
       const { data, error } = await supabase
         .from('lay_bets')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

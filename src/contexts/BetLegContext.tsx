@@ -35,6 +35,7 @@ export const BetLegProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const { data, error } = await supabase
         .from('bet_legs')
         .select('*')
+        .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -72,6 +73,7 @@ export const BetLegProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           event: '*',
           schema: 'public',
           table: 'bet_legs',
+          filter: user ? `user_id=eq.${user.id}` : undefined,
         },
         () => {
           fetchBetLegs();

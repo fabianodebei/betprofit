@@ -21,14 +21,21 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
 
   useEffect(() => {
-    fetchAccounts();
-  }, []);
+    if (user) {
+      fetchAccounts();
+    } else {
+      setAccounts([]);
+      setLoading(false);
+    }
+  }, [user]);
 
   const fetchAccounts = async () => {
+    if (!user) return;
     try {
       const { data, error } = await supabase
         .from('accounts')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

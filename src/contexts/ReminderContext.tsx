@@ -20,14 +20,21 @@ export function ReminderProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
 
   useEffect(() => {
-    fetchReminders();
-  }, []);
+    if (user) {
+      fetchReminders();
+    } else {
+      setReminders([]);
+      setLoading(false);
+    }
+  }, [user]);
 
   const fetchReminders = async () => {
+    if (!user) return;
     try {
       const { data, error } = await supabase
         .from('reminders')
         .select('*')
+        .eq('user_id', user.id)
         .order('data_di_scadenza', { ascending: true });
 
       if (error) throw error;

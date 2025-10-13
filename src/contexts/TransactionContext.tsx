@@ -20,22 +20,29 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
 
   useEffect(() => {
-    fetchTransactions();
-  }, []);
+    if (user) {
+      fetchTransactions();
+    } else {
+      setTransactions([]);
+      setLoading(false);
+    }
+  }, [user]);
 
   const fetchTransactions = async () => {
+    if (!user) return;
     try {
       const { data, error } = await supabase
         .from('transactions')
         .select('*')
+        .eq('user_id', user.id)
         .order('registrato', { ascending: false });
 
       if (error) throw error;
 
-      // Fetch all accounts to get intestatario
       const { data: accountsData } = await supabase
         .from('accounts')
-        .select('conto, intestatario');
+        .select('conto, intestatario')
+        .eq('user_id', user.id);
 
       const accountsMap = new Map(
         (accountsData || []).map(acc => [acc.conto, acc.intestatario])

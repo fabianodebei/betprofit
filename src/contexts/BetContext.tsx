@@ -26,34 +26,42 @@ export function BetProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
 
   useEffect(() => {
-    fetchBets();
+    if (user) {
+      fetchBets();
 
-    // Listen to realtime changes
-    const channel = supabase
-      .channel('bets-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'bets'
-        },
-        () => {
-          fetchBets();
-        }
-      )
-      .subscribe();
+      // Listen to realtime changes
+      const channel = supabase
+        .channel('bets-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'bets',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            fetchBets();
+          }
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    } else {
+      setBets([]);
+      setLoading(false);
+    }
+  }, [user]);
 
   const fetchBets = async () => {
+    if (!user) return;
     try {
       const { data, error } = await supabase
         .from('bets')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

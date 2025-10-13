@@ -28,33 +28,41 @@ export function IntestatariProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
 
   useEffect(() => {
-    fetchIntestatari();
+    if (user) {
+      fetchIntestatari();
 
-    const channel = supabase
-      .channel('intestatari-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'intestatari'
-        },
-        () => {
-          fetchIntestatari();
-        }
-      )
-      .subscribe();
+      const channel = supabase
+        .channel('intestatari-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'intestatari',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            fetchIntestatari();
+          }
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    } else {
+      setIntestatari([]);
+      setLoading(false);
+    }
+  }, [user]);
 
   const fetchIntestatari = async () => {
+    if (!user) return;
     try {
       const { data, error } = await supabase
         .from('intestatari')
         .select('*')
+        .eq('user_id', user.id)
         .order('nome', { ascending: true });
 
       if (error) throw error;
