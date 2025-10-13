@@ -83,10 +83,22 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
+      // Fetch intestatario for this conto to enrich local state
+      let txIntestatario: string | undefined = undefined;
+      try {
+        const { data: acc } = await supabase
+          .from('accounts')
+          .select('intestatario')
+          .eq('conto', data.conto)
+          .single();
+        txIntestatario = acc?.intestatario;
+      } catch {}
+
       const newTransaction: Transaction = {
         id: data.id,
         metodo: data.metodo as 'Deposito' | 'Spesa' | 'Prelievo',
         conto: data.conto,
+        intestatario: txIntestatario,
         wallet: data.wallet || undefined,
         addebito: data.addebito ? Number(data.addebito) : undefined,
         accredito: data.accredito ? Number(data.accredito) : undefined,
@@ -180,13 +192,26 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
       // Update wallet if transaction involved one
       if (transaction.wallet && transaction.metodo !== 'Riconciliazione') {
-        // Trova il wallet usando nome E intestatario per evitare di aggiornare il wallet sbagliato
-        const { data: walletData } = await supabaseClient
+        // Ensure we know the intestatario for correct wallet selection
+        let txIntestatario = transaction.intestatario as string | undefined;
+        if (!txIntestatario) {
+          const { data: acc } = await supabaseClient
+            .from('accounts')
+            .select('intestatario')
+            .eq('conto', transaction.conto)
+            .single();
+          txIntestatario = acc?.intestatario as string | undefined;
+        }
+
+        // Build wallet query using name and, if available, intestatario
+        let walletQuery = supabaseClient
           .from('wallets')
           .select('*')
-          .eq('nome', transaction.wallet)
-          .eq('intestatario', transaction.intestatario)
-          .single();
+          .eq('nome', transaction.wallet);
+        if (txIntestatario) {
+          walletQuery = walletQuery.eq('intestatario', txIntestatario as any);
+        }
+        const { data: walletData } = await walletQuery.single();
 
         if (walletData) {
           let walletAdjustment = 0;
