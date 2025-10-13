@@ -33,7 +33,6 @@ import Deposits from "./pages/Deposits";
 import Balance from "./pages/Balance";
 import Promemoria from "./pages/Promemoria";
 import Settings from "./pages/Settings";
-import GeneralSettings from "./pages/GeneralSettings";
 import TelegramSettings from "./pages/TelegramSettings";
 import Transactions from "./pages/Transactions";
 import Redditometro from "./pages/Redditometro";
@@ -93,7 +92,6 @@ const App = () => (
                                                 <Route path="/bilancio" element={<Balance />} />
                                                 <Route path="/promemoria" element={<Promemoria />} />
                                                 <Route path="/impostazioni" element={<Settings />} />
-                                                <Route path="/impostazioni/generali" element={<GeneralSettings />} />
                                                 <Route path="/impostazioni/telegram" element={<TelegramSettings />} />
                                                 <Route path="/impostazioni/transazioni" element={<Transactions />} />
                                                 <Route path="/impostazioni/redditometro" element={<Redditometro />} />

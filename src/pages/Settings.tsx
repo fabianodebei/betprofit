@@ -1,4 +1,4 @@
-import { Wrench, List, Euro, FileText, Users, BookOpen, Tag, MessageSquare, Shield, Database } from 'lucide-react';
+import { List, Euro, FileText, Users, BookOpen, Tag, MessageSquare, Shield, Database } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -8,12 +8,6 @@ export default function Settings() {
   const { isAdmin } = useUserRole();
   
   const settingsSections = [
-    {
-      icon: Wrench,
-      title: 'Impostazioni Generali',
-      description: 'Configura le impostazioni generali dell\'applicazione',
-      path: '/impostazioni/generali',
-    },
     {
       icon: MessageSquare,
       title: 'Telegram',
