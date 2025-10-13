@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Pencil, Trash2, Plus, Copy, Calculator, AlertCircle } from 'lucide-react';
+import { Plus, Copy, Calculator, AlertCircle, GripVertical } from 'lucide-react';
 import { Bet } from '@/types';
 import { useLayBets } from '@/contexts/LayBetContext';
 import { useBetLegs } from '@/contexts/BetLegContext';
@@ -15,11 +15,125 @@ import { formatCurrency } from '@/utils/currency';
 import { format } from 'date-fns';
 import { getMultiplaCalculations } from '@/utils/multiplaCalculations';
 import { computeBalancedLayStakes2Legs } from '@/utils/accaCalculations';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface MultiplaDetailDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   bet: Bet | null;
+}
+
+interface SortableRowProps {
+  layBet: any;
+  onEdit: (layBet: any) => void;
+  onDelete: (id: string) => void;
+}
+
+function SortableRow({ layBet, onEdit, onDelete }: SortableRowProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: layBet.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const rischio = layBet.stake * (layBet.quotaBanca - 1);
+  const tasse = layBet.stake * (layBet.quotaBanca - 1) * (layBet.tassePercentuale / 100);
+
+  return (
+    <TableRow
+      ref={setNodeRef}
+      style={style}
+      className="bg-accent/5 border-l-4 border-l-accent"
+    >
+      <TableCell>
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing inline-flex items-center justify-center p-1 hover:bg-accent/20 rounded"
+        >
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
+        </div>
+      </TableCell>
+      <TableCell>
+        {format(new Date(layBet.dataEvento), 'dd MMMM yyyy HH:mm')}
+      </TableCell>
+      <TableCell className="font-medium">{layBet.evento}</TableCell>
+      <TableCell>-</TableCell>
+      <TableCell>{layBet.mercato}</TableCell>
+      <TableCell>
+        <Badge variant="secondary">Banca</Badge>
+      </TableCell>
+      <TableCell>
+        <Badge variant="outline">
+          {layBet.metodo === 'Banca' ? '📝' : '✓'}
+        </Badge>
+      </TableCell>
+      <TableCell className="font-medium">{layBet.conto}</TableCell>
+      <TableCell className="font-semibold text-accent">{formatCurrency(layBet.stake)}</TableCell>
+      <TableCell className="font-semibold">{layBet.quotaPunta.toFixed(2)}</TableCell>
+      <TableCell className="font-semibold text-red-600">{layBet.quotaBanca.toFixed(2)}</TableCell>
+      <TableCell className="text-red-600 font-semibold">{formatCurrency(rischio)}</TableCell>
+      <TableCell>{formatCurrency(0)}</TableCell>
+      <TableCell>{formatCurrency(0)}</TableCell>
+      <TableCell className="text-accent">{formatCurrency(tasse)}</TableCell>
+      <TableCell>{formatCurrency(0)}</TableCell>
+      <TableCell>
+        <Badge>Bozza</Badge>
+      </TableCell>
+      <TableCell className="text-sm">-</TableCell>
+      <TableCell>
+        <div className="flex gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onEdit(layBet)}
+          >
+            Clona
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onEdit(layBet)}
+          >
+            Punta
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-destructive"
+            onClick={() => onDelete(layBet.id)}
+          >
+            Elimina
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
 }
 
 export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetailDialogProps) {
@@ -29,14 +143,27 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
   const [editingLayBet, setEditingLayBet] = useState<any>(null);
   const [showCalculator, setShowCalculator] = useState(false);
   const [targetLoss, setTargetLoss] = useState<number>(5);
+  const [orderedLayBets, setOrderedLayBets] = useState<any[]>([]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const layBets = bet ? getLayBetsByParentId(bet.id) : [];
   const betLegs = bet ? getBetLegsByBetId(bet.id) : [];
 
-  // Usa la funzione centralizzata per i calcoli
+  // Sync ordered lay bets with actual lay bets
+  useEffect(() => {
+    setOrderedLayBets(layBets);
+  }, [layBets]);
+
+  // Usa la funzione centralizzata per i calcoli con l'ordine attuale
   const calculations = useMemo(
-    () => getMultiplaCalculations(bet, layBets, betLegs),
-    [bet, layBets, betLegs]
+    () => getMultiplaCalculations(bet, orderedLayBets, betLegs),
+    [bet, orderedLayBets, betLegs]
   );
 
   // Calcola stake suggeriti e sbilanciamento
@@ -46,19 +173,18 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
     const quotaMultipla = bet.quotaCombinata || bet.quota || 
       betLegs.reduce((prod: number, leg: any) => prod * (Number(leg.quota) || 1), 1);
 
-    // Se ci sono già 2 lay bets, usa quelle quote, altrimenti usa le quote dei leg
     let quotaLay1 = betLegs[0]?.quota || 1.01;
     let quotaLay2 = betLegs[1]?.quota || 1.01;
-    let commission1 = 0.045; // default 4.5%
+    let commission1 = 0.045;
     let commission2 = 0.045;
 
-    if (layBets.length >= 1) {
-      quotaLay1 = layBets[0].quotaBanca || layBets[0].quotaPunta || quotaLay1;
-      commission1 = (layBets[0].tassePercentuale || 0) / 100;
+    if (orderedLayBets.length >= 1) {
+      quotaLay1 = orderedLayBets[0].quotaBanca || orderedLayBets[0].quotaPunta || quotaLay1;
+      commission1 = (orderedLayBets[0].tassePercentuale || 0) / 100;
     }
-    if (layBets.length >= 2) {
-      quotaLay2 = layBets[1].quotaBanca || layBets[1].quotaPunta || quotaLay2;
-      commission2 = (layBets[1].tassePercentuale || 0) / 100;
+    if (orderedLayBets.length >= 2) {
+      quotaLay2 = orderedLayBets[1].quotaBanca || orderedLayBets[1].quotaPunta || quotaLay2;
+      commission2 = (orderedLayBets[1].tassePercentuale || 0) / 100;
     }
 
     return computeBalancedLayStakes2Legs({
@@ -70,9 +196,8 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
       commission2,
       targetLoss: showCalculator ? targetLoss : undefined,
     });
-  }, [bet, betLegs, layBets, showCalculator, targetLoss]);
+  }, [bet, betLegs, orderedLayBets, showCalculator, targetLoss]);
 
-  // Calcola sbilanciamento attuale
   const currentImbalance = useMemo(() => {
     if (!calculations?.perGamba || calculations.perGamba.length < 2) return null;
     const diff = Math.abs(calculations.perGamba[0].risultato - calculations.perGamba[1].risultato);
@@ -89,6 +214,18 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
   const handleDeleteLayBet = async (id: string) => {
     if (confirm('Sei sicuro di voler eliminare questa bancata?')) {
       await deleteLayBet(id);
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setOrderedLayBets((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
     }
   };
 
@@ -209,136 +346,95 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
 
             {/* Main Table */}
             <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data Evento</TableHead>
-                    <TableHead>Evento</TableHead>
-                    <TableHead>Competizione</TableHead>
-                    <TableHead>Mercato</TableHead>
-                    <TableHead>Metodo</TableHead>
-                    <TableHead>Tipo Bonus</TableHead>
-                    <TableHead>Conto</TableHead>
-                    <TableHead>Stake</TableHead>
-                    <TableHead>Quota Punta</TableHead>
-                    <TableHead>Quota Banca</TableHead>
-                    <TableHead>Rischio</TableHead>
-                    <TableHead>Bonus</TableHead>
-                    <TableHead>Rimborso</TableHead>
-                    <TableHead>Tasse</TableHead>
-                    <TableHead>Mov.</TableHead>
-                    <TableHead>Stato Evento</TableHead>
-                    <TableHead>Tag</TableHead>
-                    <TableHead>Opzioni</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {/* Main Multipla Bet Row */}
-                  <TableRow className="bg-primary/5 border-l-4 border-l-primary">
-                    <TableCell>
-                      {format(new Date(bet.dataEvento), 'dd MMMM yyyy HH:mm')}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <Copy className="h-4 w-4" />
-                        {bet.evento || `MULTIPLA ${betLegs.length > 0 ? betLegs[0].competizione : ''}`}
-                      </div>
-                    </TableCell>
-                    <TableCell>{betLegs.length > 0 ? betLegs[0].competizione : '-'}</TableCell>
-                    <TableCell>Multipla</TableCell>
-                    <TableCell>
-                      <Badge>Punta</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{bet.tipoBonus || 'Nessuno'}</Badge>
-                    </TableCell>
-                    <TableCell className="font-medium">{bet.conto}</TableCell>
-                    <TableCell className="font-semibold text-primary">{formatCurrency(bet.stake)}</TableCell>
-                    <TableCell className="font-semibold">{bet.quotaCombinata?.toFixed(3) || bet.quota?.toFixed(3)}</TableCell>
-                    <TableCell>-</TableCell>
-                    <TableCell className="text-red-600">{formatCurrency(0)}</TableCell>
-                    <TableCell>{formatCurrency(bet.bonus || 0)}</TableCell>
-                    <TableCell>{formatCurrency(bet.rimborso || 0)}</TableCell>
-                    <TableCell>0,00</TableCell>
-                    <TableCell>{formatCurrency(0)}</TableCell>
-                    <TableCell>
-                      <Badge variant={bet.stato === 'In Corso' ? 'default' : 'secondary'}>
-                        {bet.stato}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-primary text-sm">{bet.tag || '(non impostato)'}</TableCell>
-                    <TableCell>
-                      <Button size="sm" variant="ghost">
-                        Clona
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-10"></TableHead>
+                      <TableHead>Data Evento</TableHead>
+                      <TableHead>Evento</TableHead>
+                      <TableHead>Competizione</TableHead>
+                      <TableHead>Mercato</TableHead>
+                      <TableHead>Metodo</TableHead>
+                      <TableHead>Tipo Bonus</TableHead>
+                      <TableHead>Conto</TableHead>
+                      <TableHead>Stake</TableHead>
+                      <TableHead>Quota Punta</TableHead>
+                      <TableHead>Quota Banca</TableHead>
+                      <TableHead>Rischio</TableHead>
+                      <TableHead>Bonus</TableHead>
+                      <TableHead>Rimborso</TableHead>
+                      <TableHead>Tasse</TableHead>
+                      <TableHead>Mov.</TableHead>
+                      <TableHead>Stato Evento</TableHead>
+                      <TableHead>Tag</TableHead>
+                      <TableHead>Opzioni</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {/* Main Multipla Bet Row */}
+                    <TableRow className="bg-primary/5 border-l-4 border-l-primary">
+                      <TableCell></TableCell>
+                      <TableCell>
+                        {format(new Date(bet.dataEvento), 'dd MMMM yyyy HH:mm')}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <Copy className="h-4 w-4" />
+                          {bet.evento || `MULTIPLA ${betLegs.length > 0 ? betLegs[0].competizione : ''}`}
+                        </div>
+                      </TableCell>
+                      <TableCell>{betLegs.length > 0 ? betLegs[0].competizione : '-'}</TableCell>
+                      <TableCell>Multipla</TableCell>
+                      <TableCell>
+                        <Badge>Punta</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{bet.tipoBonus || 'Nessuno'}</Badge>
+                      </TableCell>
+                      <TableCell className="font-medium">{bet.conto}</TableCell>
+                      <TableCell className="font-semibold text-primary">{formatCurrency(bet.stake)}</TableCell>
+                      <TableCell className="font-semibold">{bet.quotaCombinata?.toFixed(3) || bet.quota?.toFixed(3)}</TableCell>
+                      <TableCell>-</TableCell>
+                      <TableCell className="text-red-600">{formatCurrency(0)}</TableCell>
+                      <TableCell>{formatCurrency(bet.bonus || 0)}</TableCell>
+                      <TableCell>{formatCurrency(bet.rimborso || 0)}</TableCell>
+                      <TableCell>0,00</TableCell>
+                      <TableCell>{formatCurrency(0)}</TableCell>
+                      <TableCell>
+                        <Badge variant={bet.stato === 'In Corso' ? 'default' : 'secondary'}>
+                          {bet.stato}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-primary text-sm">{bet.tag || '(non impostato)'}</TableCell>
+                      <TableCell>
+                        <Button size="sm" variant="ghost">
+                          Clona
+                        </Button>
+                      </TableCell>
+                    </TableRow>
 
-                  {/* Lay Bets Rows */}
-                  {layBets.map((layBet) => {
-                    const rischio = layBet.stake * (layBet.quotaBanca - 1);
-                    const tasse = layBet.stake * (layBet.quotaBanca - 1) * (layBet.tassePercentuale / 100);
-                    
-                    return (
-                      <TableRow key={layBet.id} className="bg-accent/5 border-l-4 border-l-accent">
-                        <TableCell>
-                          {format(new Date(layBet.dataEvento), 'dd MMMM yyyy HH:mm')}
-                        </TableCell>
-                        <TableCell className="font-medium">{layBet.evento}</TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell>{layBet.mercato}</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">Banca</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {layBet.metodo === 'Banca' ? '📝' : '✓'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-medium">{layBet.conto}</TableCell>
-                        <TableCell className="font-semibold text-accent">{formatCurrency(layBet.stake)}</TableCell>
-                        <TableCell className="font-semibold">{layBet.quotaPunta.toFixed(2)}</TableCell>
-                        <TableCell className="font-semibold text-red-600">{layBet.quotaBanca.toFixed(2)}</TableCell>
-                        <TableCell className="text-red-600 font-semibold">{formatCurrency(rischio)}</TableCell>
-                        <TableCell>{formatCurrency(0)}</TableCell>
-                        <TableCell>{formatCurrency(0)}</TableCell>
-                        <TableCell className="text-accent">{formatCurrency(tasse)}</TableCell>
-                        <TableCell>{formatCurrency(0)}</TableCell>
-                        <TableCell>
-                          <Badge>Bozza</Badge>
-                        </TableCell>
-                        <TableCell className="text-sm">-</TableCell>
-                        <TableCell>
-                          <div className="flex gap-1">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleEditLayBet(layBet)}
-                            >
-                              Clona
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleEditLayBet(layBet)}
-                            >
-                              Punta
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="text-destructive"
-                              onClick={() => handleDeleteLayBet(layBet.id)}
-                            >
-                              Elimina
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+                    {/* Lay Bets Rows - Sortable */}
+                    <SortableContext
+                      items={orderedLayBets.map((lb) => lb.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {orderedLayBets.map((layBet) => (
+                        <SortableRow
+                          key={layBet.id}
+                          layBet={layBet}
+                          onEdit={handleEditLayBet}
+                          onDelete={handleDeleteLayBet}
+                        />
+                      ))}
+                    </SortableContext>
+                  </TableBody>
+                </Table>
+              </DndContext>
             </div>
 
             {/* Totals with Scenarios */}
@@ -378,32 +474,41 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
               {calculations.perGamba.length > 0 && (
                 <div className="px-4 py-3 bg-muted/20 rounded-lg border border-border">
                   <div className="text-xs text-muted-foreground mb-2">Se multipla perde per gamba:</div>
-                  <div className="space-y-1">
-                    {calculations.perGamba.map((gamba: any) => (
-                      <div key={gamba.id} className="text-sm flex justify-between">
-                        <span className="text-muted-foreground">{gamba.evento}</span>
-                        <span className={`font-medium ${gamba.risultato >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <div className="grid grid-cols-2 gap-2">
+                    {calculations.perGamba.map((gamba: any, idx: number) => (
+                      <div key={idx} className="text-sm">
+                        <span className="text-muted-foreground">Gamba {idx + 1}: </span>
+                        <span className={`font-semibold ${gamba.risultato >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {formatCurrency(gamba.risultato)}
                         </span>
+                        {gamba.label && (
+                          <span className="text-xs text-muted-foreground ml-1">({gamba.label})</span>
+                        )}
                       </div>
                     ))}
                   </div>
                 </div>
               )}
-              
-              {/* Final totals */}
-              <div className="flex justify-end gap-8 px-4 py-2 bg-muted/50 rounded-lg">
-                <div>
-                  <span className="text-sm text-muted-foreground">Totale Rischio: </span>
-                  <span className="font-bold text-red-600">{formatCurrency(calculations.totalRisk)}</span>
+
+              {/* Detailed summary sections */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="px-4 py-2 bg-muted/10 rounded border">
+                  <div className="text-xs text-muted-foreground mb-1">Stake Totale Puntato</div>
+                  <div className="text-lg font-bold text-primary">
+                    {formatCurrency(calculations.stakeMultipla)}
+                  </div>
                 </div>
-                <div>
-                  <span className="text-sm text-muted-foreground">
-                    {calculations.guadagnoTotale >= 0 ? 'Guadagno Garantito' : 'Perdita Massima'}: 
-                  </span>
-                  <span className={`font-bold ${calculations.guadagnoTotale >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {formatCurrency(calculations.guadagnoTotale)}
-                  </span>
+                <div className="px-4 py-2 bg-muted/10 rounded border">
+                  <div className="text-xs text-muted-foreground mb-1">Stake Totale Bancato</div>
+                  <div className="text-lg font-bold text-accent">
+                    {formatCurrency(calculations.stakeTotaleBancato)}
+                  </div>
+                </div>
+                <div className="px-4 py-2 bg-muted/10 rounded border">
+                  <div className="text-xs text-muted-foreground mb-1">Rischio Totale</div>
+                  <div className="text-lg font-bold text-red-600">
+                    {formatCurrency(calculations.rischioTotale)}
+                  </div>
                 </div>
               </div>
             </div>
@@ -411,18 +516,16 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
         </DialogContent>
       </Dialog>
 
-      <LayBetForm
-        open={showLayBetForm}
-        onOpenChange={(open) => {
-          setShowLayBetForm(open);
-          if (!open) setEditingLayBet(null);
-        }}
-        parentBetId={bet.id}
-        editingLayBet={editingLayBet}
-        mode={editingLayBet ? 'edit' : 'create'}
-        parentBet={bet}
-        betLegs={betLegs}
-      />
+      {/* Lay Bet Form Dialog */}
+      {showLayBetForm && (
+        <LayBetForm
+          open={showLayBetForm}
+          onOpenChange={setShowLayBetForm}
+          parentBet={bet}
+          editingBet={editingLayBet}
+          betLegs={betLegs}
+        />
+      )}
     </>
   );
 }
