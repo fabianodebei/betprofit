@@ -188,7 +188,6 @@ export default function OngoingBets() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b bg-muted/50">
-                      <th className="p-3 text-left text-xs font-semibold uppercase">ID#</th>
                       <SortableTableHeader label="Data Evento" sortKey="dataEvento" currentSort={sortBy} currentOrder={sortOrder} onSort={setSortBy as any} />
                       <SortableTableHeader label="Tipo" sortKey="tipo" currentSort={sortBy} currentOrder={sortOrder} onSort={setSortBy as any} />
                       <SortableTableHeader label="Evento" sortKey="evento" currentSort={sortBy} currentOrder={sortOrder} onSort={setSortBy as any} />
@@ -202,7 +201,6 @@ export default function OngoingBets() {
                   <tbody>
                     {paginatedItems.map((bet, idx) => (
                     <tr key={bet.id} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
-                      <td className="p-3 text-sm font-medium">{bet.id}</td>
                       <td className="p-3 text-sm">{formatDate(bet.dataEvento)}</td>
                       <td className="p-3">
                         <Badge variant="info">{bet.tipo}</Badge>
