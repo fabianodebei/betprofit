@@ -5,8 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Plus, Copy, Calculator, AlertCircle } from 'lucide-react';
+import { Plus, Copy } from 'lucide-react';
 import { Bet } from '@/types';
 import { useLayBets } from '@/contexts/LayBetContext';
 import { useBetLegs } from '@/contexts/BetLegContext';
@@ -14,7 +13,6 @@ import { LayBetForm } from '@/components/forms/LayBetForm';
 import { formatCurrency } from '@/utils/currency';
 import { format } from 'date-fns';
 import { getMultiplaCalculations } from '@/utils/multiplaCalculations';
-import { computeBalancedLayStakes2Legs } from '@/utils/accaCalculations';
 
 interface MultiplaDetailDialogProps {
   open: boolean;
@@ -27,8 +25,6 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
   const { getBetLegsByBetId } = useBetLegs();
   const [showLayBetForm, setShowLayBetForm] = useState(false);
   const [editingLayBet, setEditingLayBet] = useState<any>(null);
-  const [showCalculator, setShowCalculator] = useState(false);
-  const [targetLoss, setTargetLoss] = useState<number>(5);
 
   const layBets = bet 
     ? getLayBetsByParentId(bet.id).sort((a, b) => 
@@ -42,45 +38,6 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
     () => getMultiplaCalculations(bet, layBets, betLegs),
     [bet, layBets, betLegs]
   );
-
-  // Calcola stake suggeriti e sbilanciamento
-  const suggestedStakes = useMemo(() => {
-    if (!bet || !betLegs || betLegs.length !== 2) return null;
-    
-    const quotaMultipla = bet.quotaCombinata || bet.quota || 
-      betLegs.reduce((prod: number, leg: any) => prod * (Number(leg.quota) || 1), 1);
-
-    // Se ci sono già 2 lay bets, usa quelle quote, altrimenti usa le quote dei leg
-    let quotaLay1 = betLegs[0]?.quota || 1.01;
-    let quotaLay2 = betLegs[1]?.quota || 1.01;
-    let commission1 = 0.045; // default 4.5%
-    let commission2 = 0.045;
-
-    if (layBets.length >= 1) {
-      quotaLay1 = layBets[0].quotaBanca || layBets[0].quotaPunta || quotaLay1;
-      commission1 = (layBets[0].tassePercentuale || 0) / 100;
-    }
-    if (layBets.length >= 2) {
-      quotaLay2 = layBets[1].quotaBanca || layBets[1].quotaPunta || quotaLay2;
-      commission2 = (layBets[1].tassePercentuale || 0) / 100;
-    }
-
-    return computeBalancedLayStakes2Legs({
-      stakeMultipla: bet.stake,
-      quotaMultipla,
-      quotaLay1,
-      quotaLay2,
-      commission1,
-      commission2,
-      targetLoss: showCalculator ? targetLoss : undefined,
-    });
-  }, [bet, betLegs, layBets, showCalculator, targetLoss]);
-
-  const currentImbalance = useMemo(() => {
-    if (!calculations?.perGamba || calculations.perGamba.length < 2) return null;
-    const diff = Math.abs(calculations.perGamba[0].risultato - calculations.perGamba[1].risultato);
-    return diff;
-  }, [calculations]);
 
   if (!bet) return null;
 
@@ -101,101 +58,12 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span>Dettaglio Puntata #{bet.id.substring(0, 7)}</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowCalculator(!showCalculator)}
-              >
-                <Calculator className="h-4 w-4 mr-2" />
-                {showCalculator ? 'Nascondi' : 'Calcolatore'}
-              </Button>
+            <DialogTitle>
+              Dettaglio Puntata #{bet.id.substring(0, 7)}
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Calcolatore Stake Suggeriti */}
-            {showCalculator && betLegs && betLegs.length === 2 && (
-              <div className="bg-muted/50 p-4 rounded-lg space-y-4">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <Calculator className="h-5 w-5" />
-                  Calcolatore Stake Bilanciati
-                </h3>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="targetLoss">Perdita Target (€)</Label>
-                    <Input
-                      id="targetLoss"
-                      type="number"
-                      step="0.01"
-                      value={targetLoss}
-                      onChange={(e) => setTargetLoss(Number(e.target.value))}
-                      placeholder="5.00"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Inserisci una perdita target o lascia vuoto per bilanciare automaticamente
-                    </p>
-                  </div>
-                </div>
-
-                {suggestedStakes && (
-                  <div className="space-y-3 bg-background p-3 rounded border">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm font-medium">Stake Lay Gamba 1</p>
-                        <p className="text-2xl font-bold text-primary">{formatCurrency(suggestedStakes.stake1)}</p>
-                        <p className="text-xs text-muted-foreground">Liability: {formatCurrency(suggestedStakes.liability1)}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Stake Lay Gamba 2</p>
-                        <p className="text-2xl font-bold text-primary">{formatCurrency(suggestedStakes.stake2)}</p>
-                        <p className="text-xs text-muted-foreground">Liability: {formatCurrency(suggestedStakes.liability2)}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-2 text-sm">
-                      <div className="bg-green-500/10 p-2 rounded">
-                        <p className="text-xs text-muted-foreground">Se vinci multipla</p>
-                        <p className="font-semibold text-green-600">{formatCurrency(suggestedStakes.scenarioWin)}</p>
-                      </div>
-                      <div className="bg-red-500/10 p-2 rounded">
-                        <p className="text-xs text-muted-foreground">Se perde gamba 1</p>
-                        <p className="font-semibold text-red-600">{formatCurrency(suggestedStakes.scenarioLossLeg1)}</p>
-                      </div>
-                      <div className="bg-red-500/10 p-2 rounded">
-                        <p className="text-xs text-muted-foreground">Se perde gamba 2</p>
-                        <p className="font-semibold text-red-600">{formatCurrency(suggestedStakes.scenarioLossLeg2)}</p>
-                      </div>
-                    </div>
-
-                    <Alert>
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        <strong>Sbilanciamento: {formatCurrency(suggestedStakes.imbalance)}</strong>
-                        <br />
-                        Usa questi stake quando crei le bancate per minimizzare la perdita massima.
-                      </AlertDescription>
-                    </Alert>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Sbilanciamento Attuale */}
-            {currentImbalance !== null && currentImbalance > 5 && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Sbilanciamento rilevato: {formatCurrency(currentImbalance)}</strong>
-                  <br />
-                  Le tue bancate attuali hanno una differenza significativa tra gli scenari di perdita.
-                  Usa il calcolatore per bilanciare gli stake.
-                </AlertDescription>
-              </Alert>
-            )}
-
             {/* Actions */}
             <div className="flex gap-2">
               <Button
