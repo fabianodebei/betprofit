@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -10,7 +10,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { TimePicker } from '@/components/ui/time-picker';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { checkMarketCompatibility } from '@/utils/accaCalculations';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useLayBets } from '@/contexts/LayBetContext';
@@ -64,6 +66,13 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
       urlEvento: '',
     },
   });
+
+  // Verifica compatibilità mercato (dopo form.watch disponibile)
+  const mercato = form.watch('mercato');
+  const marketCompatibility = useMemo(() => {
+    if (!selectedBetLeg?.selezione || !mercato) return { compatible: true };
+    return checkMarketCompatibility(selectedBetLeg.selezione, mercato);
+  }, [selectedBetLeg, mercato]);
 
   useEffect(() => {
     if (editingLayBet && open) {
@@ -195,42 +204,56 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
               )}
             />
             {betLegs.length > 0 && (
-              <FormField
-                control={form.control}
-                name="evento"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Selezione della Multipla *</FormLabel>
-                    <Select 
-                      onValueChange={(value) => {
-                        const leg = betLegs.find(l => l.id === value);
-                        if (leg) {
-                          setSelectedBetLeg(leg);
-                          form.setValue('evento', leg.evento);
-                          form.setValue('dataEvento', new Date(leg.dataEvento));
-                          form.setValue('mercato', leg.mercato);
-                          form.setValue('quotaPunta', leg.quota);
-                        }
-                      }}
-                      defaultValue={selectedBetLeg?.id}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Seleziona selezione" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {betLegs.map((leg) => (
-                          <SelectItem key={leg.id} value={leg.id}>
-                            {leg.evento} - Quota {leg.quota?.toFixed(2)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
+              <>
+                <FormField
+                  control={form.control}
+                  name="evento"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Selezione della Multipla * (Obbligatorio)</FormLabel>
+                      <Select 
+                        onValueChange={(value) => {
+                          const leg = betLegs.find(l => l.id === value);
+                          if (leg) {
+                            setSelectedBetLeg(leg);
+                            form.setValue('evento', leg.evento);
+                            form.setValue('dataEvento', new Date(leg.dataEvento));
+                            // Suggerisci mercato corretto
+                            const suggestedMarket = `Esito Finale - ${leg.selezione || leg.mercato}`;
+                            form.setValue('mercato', suggestedMarket);
+                            form.setValue('quotaPunta', leg.quota);
+                          }
+                        }}
+                        defaultValue={selectedBetLeg?.id}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleziona gamba da bancare" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {betLegs.map((leg) => (
+                            <SelectItem key={leg.id} value={leg.id}>
+                              {leg.evento} - {leg.selezione || leg.mercato} @ {leg.quota?.toFixed(2)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Warning se mercato incompatibile */}
+                {!marketCompatibility.compatible && (
+                  <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      <strong>Attenzione:</strong> {marketCompatibility.warning}
+                    </AlertDescription>
+                  </Alert>
                 )}
-              />
+              </>
             )}
             <FormField
               control={form.control}
