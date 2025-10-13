@@ -105,25 +105,21 @@ export default function Dashboard() {
   const bookmakerStats = useMemo(() => {
     const stats = new Map();
     
-    // Add archived bets (excluding quick bets)
-    archivedBets.filter(bet => bet.tipo !== 'Rapida').forEach(bet => {
+    // Add ALL bets (archived + ongoing)
+    bets.forEach(bet => {
       if (!stats.has(bet.conto)) {
         stats.set(bet.conto, { stake: 0, profitto: 0, count: 0 });
       }
       const s = stats.get(bet.conto);
       s.stake += bet.stake;
-      s.profitto += bet.risultato || 0;
-      s.count += 1;
-    });
-    
-    // Add archived quick bets
-    archivedBets.filter(bet => bet.tipo === 'Rapida').forEach(bet => {
-      if (!stats.has(bet.conto)) {
-        stats.set(bet.conto, { stake: 0, profitto: 0, count: 0 });
+      
+      // For quick bets, profitto is the stake itself
+      // For other bets, profitto is the risultato
+      if (bet.tipo === 'Rapida') {
+        s.profitto += bet.stake;
+      } else {
+        s.profitto += bet.risultato || 0;
       }
-      const s = stats.get(bet.conto);
-      s.stake += bet.stake;
-      s.profitto += bet.risultato || 0;
       s.count += 1;
     });
     
@@ -132,7 +128,7 @@ export default function Dashboard() {
       ...data,
       roi: data.stake > 0 ? (data.profitto / data.stake) * 100 : 0
     }));
-  }, [archivedBets]);
+  }, [bets]);
 
   const winRate = useMemo(() => {
     const wins = archivedBets.filter(b => b.risultato && b.risultato > 0).length;
