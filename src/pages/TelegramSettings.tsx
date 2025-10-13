@@ -94,7 +94,7 @@ const TelegramSettings = () => {
         </Button>
       </div>
 
-      <div className="grid gap-6 max-w-2xl">
+      <div className="grid gap-6 max-w-2xl mx-auto">
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
