@@ -41,6 +41,7 @@ import Report from "./pages/Report";
 import Intestatari from "./pages/Intestatari";
 import Books from "./pages/Books";
 import Tags from "./pages/Tags";
+import ImportExport from "./pages/ImportExport";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 
@@ -100,6 +101,7 @@ const App = () => (
                                                 <Route path="/impostazioni/intestatari" element={<Intestatari />} />
                                                 <Route path="/impostazioni/books" element={<Books />} />
                                                 <Route path="/impostazioni/tags" element={<Tags />} />
+                                                <Route path="/impostazioni/import-export" element={<ImportExport />} />
                                                 <Route path="*" element={<NotFound />} />
                                               </Routes>
                                             </main>

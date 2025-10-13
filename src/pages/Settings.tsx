@@ -1,4 +1,4 @@
-import { Wrench, List, Euro, FileText, Users, BookOpen, Tag, MessageSquare, Shield } from 'lucide-react';
+import { Wrench, List, Euro, FileText, Users, BookOpen, Tag, MessageSquare, Shield, Database } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -55,6 +55,12 @@ export default function Settings() {
       title: 'Tag Personali',
       description: 'Gestisci i tag personalizzati',
       path: '/impostazioni/tags',
+    },
+    {
+      icon: Database,
+      title: 'Import/Export',
+      description: 'Esporta o importa tutti i tuoi dati',
+      path: '/impostazioni/import-export',
     },
     ...(isAdmin ? [{
       icon: Shield,
