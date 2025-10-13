@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -34,9 +34,10 @@ type TransactionFormData = z.infer<typeof transactionSchema>;
 interface TransactionFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  preselectedAccount?: { id: string; conto: string; intestatario: string } | null;
 }
 
-export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
+export function TransactionForm({ open, onOpenChange, preselectedAccount }: TransactionFormProps) {
   const { addTransaction } = useTransactions();
   const { accounts, updateAccount } = useAccounts();
   const { wallets, updateWallet } = useWallets();
@@ -55,6 +56,15 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
       descrizione: '',
     },
   });
+
+  // Preseleziona il conto quando viene passato
+  useEffect(() => {
+    if (open && preselectedAccount) {
+      form.setValue('conto', preselectedAccount.conto);
+      setSelectedIntestatario(preselectedAccount.intestatario);
+      setSelectedAccountId(preselectedAccount.id);
+    }
+  }, [open, preselectedAccount, form]);
 
   // Get filtered wallets based on selected intestatario
   const filteredWallets = selectedIntestatario 

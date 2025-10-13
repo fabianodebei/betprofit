@@ -27,6 +27,7 @@ export default function Accounts() {
   const [showTransactionForm, setShowTransactionForm] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [deletingAccount, setDeletingAccount] = useState<Account | null>(null);
+  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
 
   const handleEdit = (account: Account) => {
     setEditingAccount(account);
@@ -104,7 +105,10 @@ export default function Accounts() {
                       </td>
                       <td className="p-3">
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline" onClick={() => setShowTransactionForm(true)}>
+                          <Button size="sm" variant="outline" onClick={() => {
+                            setSelectedAccount(account);
+                            setShowTransactionForm(true);
+                          }}>
                             Nuovo Movimento
                           </Button>
                           <Button size="sm" variant="outline" onClick={() => handleEdit(account)}>
@@ -140,7 +144,14 @@ export default function Accounts() {
         }} 
         editingAccount={editingAccount}
       />
-      <TransactionForm open={showTransactionForm} onOpenChange={setShowTransactionForm} />
+      <TransactionForm 
+        open={showTransactionForm} 
+        onOpenChange={(open) => {
+          setShowTransactionForm(open);
+          if (!open) setSelectedAccount(null);
+        }}
+        preselectedAccount={selectedAccount}
+      />
       
       <AlertDialog open={!!deletingAccount} onOpenChange={(open) => !open && setDeletingAccount(null)}>
         <AlertDialogContent>
