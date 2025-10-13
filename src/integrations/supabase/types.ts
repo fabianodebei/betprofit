@@ -435,6 +435,7 @@ export type Database = {
         Row: {
           accredito: number | null
           addebito: number | null
+          bet_id: string | null
           conto: string
           descrizione: string | null
           id: string
@@ -446,6 +447,7 @@ export type Database = {
         Insert: {
           accredito?: number | null
           addebito?: number | null
+          bet_id?: string | null
           conto: string
           descrizione?: string | null
           id?: string
@@ -457,6 +459,7 @@ export type Database = {
         Update: {
           accredito?: number | null
           addebito?: number | null
+          bet_id?: string | null
           conto?: string
           descrizione?: string | null
           id?: string
@@ -465,7 +468,15 @@ export type Database = {
           user_id?: string
           wallet?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "transactions_bet_id_fkey"
+            columns: ["bet_id"]
+            isOneToOne: false
+            referencedRelation: "bets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
