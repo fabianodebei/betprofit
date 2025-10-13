@@ -289,7 +289,37 @@ export function BetProvider({ children }: { children: ReactNode }) {
   };
 
   const archiveBet = async (id: string, risultato: number) => {
+    const bet = bets.find(b => b.id === id);
+    
+    // Update bet status and result
     await updateBet(id, { stato: 'Archiviata', risultato });
+    
+    // If it's a quick bet, update account saldo_attuale
+    if (bet && bet.tipo === 'Rapida') {
+      const { data: account, error: accountError } = await supabase
+        .from('accounts')
+        .select('*')
+        .eq('conto', bet.conto)
+        .eq('user_id', user?.id)
+        .single();
+      
+      if (accountError) {
+        console.error('Error fetching account:', accountError);
+        return;
+      }
+      
+      // Update saldo_attuale with the result
+      const newSaldoAttuale = Number(account.saldo_attuale) + risultato;
+      
+      const { error: updateError } = await supabase
+        .from('accounts')
+        .update({ saldo_attuale: newSaldoAttuale })
+        .eq('id', account.id);
+      
+      if (updateError) {
+        console.error('Error updating account:', updateError);
+      }
+    }
   };
 
   const reopenBet = async (id: string) => {
