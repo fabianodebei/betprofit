@@ -18,6 +18,7 @@ import { useTags } from '@/contexts/TagContext';
 import { formatDate } from '@/utils/dates';
 import { ArchiveBetDialog } from '@/components/dialogs/ArchiveBetDialog';
 import { MultiplaDetailDialog } from '@/components/dialogs/MultiplaDetailDialog';
+import { MultiplaArchiveDialog } from '@/components/dialogs/MultiplaArchiveDialog';
 import { SingleBetDetailDialog } from '@/components/dialogs/SingleBetDetailDialog';
 import { Bet } from '@/types';
 
@@ -55,12 +56,17 @@ export default function OngoingBets() {
   const [showSingleBetDetailDialog, setShowSingleBetDetailDialog] = useState(false);
   const [selectedBet, setSelectedBet] = useState<Bet | null>(null);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
+  const [showMultiplaArchiveDialog, setShowMultiplaArchiveDialog] = useState(false);
   const [editingBet, setEditingBet] = useState<Bet | null>(null);
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'clone'>('create');
 
   const handleArchive = (bet: Bet) => {
     setSelectedBet(bet);
-    setShowArchiveDialog(true);
+    if (bet.tipo === 'Multipla') {
+      setShowMultiplaArchiveDialog(true);
+    } else {
+      setShowArchiveDialog(true);
+    }
   };
 
   const handleConfirmArchive = (risultato: number) => {
@@ -287,6 +293,12 @@ export default function OngoingBets() {
         open={showSingleBetDetailDialog}
         onOpenChange={setShowSingleBetDetailDialog}
         bet={selectedBet}
+      />
+      <MultiplaArchiveDialog
+        bet={selectedBet}
+        open={showMultiplaArchiveDialog}
+        onOpenChange={setShowMultiplaArchiveDialog}
+        onConfirm={handleConfirmArchive}
       />
       <ArchiveBetDialog
         bet={selectedBet}

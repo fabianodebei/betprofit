@@ -10,6 +10,7 @@ import { useBetLegs } from '@/contexts/BetLegContext';
 import { LayBetForm } from '@/components/forms/LayBetForm';
 import { formatCurrency } from '@/utils/currency';
 import { format } from 'date-fns';
+import { getMultiplaCalculations } from '@/utils/multiplaCalculations';
 
 interface MultiplaDetailDialogProps {
   open: boolean;
@@ -26,59 +27,11 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
   const layBets = bet ? getLayBetsByParentId(bet.id) : [];
   const betLegs = bet ? getBetLegsByBetId(bet.id) : [];
 
-  // Calculate totals with correct profit tracker logic
-  const calculations = useMemo(() => {
-    if (!bet) {
-      return {
-        totalRisk: 0,
-        guadagnoTotale: 0,
-        scenarioVincita: 0,
-        scenarioPerditaBest: 0,
-        scenarioPerditaWorst: 0,
-        perGamba: [],
-      };
-    }
-
-    // Helper functions
-    const liability = (lb: any) => lb.stake * (lb.quotaBanca - 1);
-    const layWinNet = (lb: any) => lb.stake * (1 - (lb.tassePercentuale || 0) / 100);
-
-    // Calculate total liability (sum of all lay bet liabilities)
-    const sumLiability = layBets.reduce((s, lb) => s + liability(lb), 0);
-    
-    // Calculate profit/loss for main bet
-    const quotaEffettiva = bet.quotaCombinata || bet.quota || 1;
-    const puntaWin = bet.stake * (quotaEffettiva - 1) + (bet.bonus || 0);
-    const puntaLoss = -(bet.stake - (bet.rimborso || 0));
-
-    // Scenario 1: Multipla wins (you win the bet, lose all lay bets)
-    const scenarioVinceMultipla = puntaWin - sumLiability;
-
-    // Scenario 2: Multipla loses for each leg (you lose the bet, win that specific lay bet, lose others)
-    const perGamba = layBets.map((lb) => {
-      const risultato = puntaLoss + layWinNet(lb) - (sumLiability - liability(lb));
-      return { id: lb.id, evento: lb.evento, risultato };
-    });
-
-    // Best and worst case when multipla loses
-    const scenarioPerditaBest = perGamba.length ? Math.max(...perGamba.map(x => x.risultato)) : puntaLoss;
-    const scenarioPerditaWorst = perGamba.length ? Math.min(...perGamba.map(x => x.risultato)) : puntaLoss;
-
-    // Total risk is the sum of all liabilities
-    const totalRisk = sumLiability;
-    
-    // Overall profit/loss is the worst case between winning and losing
-    const guadagnoTotale = Math.min(scenarioVinceMultipla, scenarioPerditaWorst);
-
-    return {
-      totalRisk,
-      guadagnoTotale,
-      scenarioVincita: scenarioVinceMultipla,
-      scenarioPerditaBest,
-      scenarioPerditaWorst,
-      perGamba,
-    };
-  }, [bet, layBets]);
+  // Usa la funzione centralizzata per i calcoli
+  const calculations = useMemo(
+    () => getMultiplaCalculations(bet, layBets),
+    [bet, layBets]
+  );
 
   if (!bet) return null;
 
