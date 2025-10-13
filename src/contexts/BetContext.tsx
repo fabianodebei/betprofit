@@ -236,22 +236,36 @@ export function BetProvider({ children }: { children: ReactNode }) {
 
       if (accountError) throw accountError;
 
-      // Ripristina il saldo dell'account
-      const newSaldoAttuale = Number(accounts.saldo_attuale) + betToDelete.stake;
-      const newBilancioGiocate = Number(accounts.bilancio_giocate) - betToDelete.stake;
+      // Ripristina il saldo dell'account in base al tipo di scommessa
+      let updateData: any = {};
+      
+      if (betToDelete.tipo === 'Rapida') {
+        // Per giocate rapide
+        const newBilancioGiocateRapide = Number(accounts.bilancio_giocate_rapide) - betToDelete.stake;
+        updateData.bilancio_giocate_rapide = newBilancioGiocateRapide;
+        
+        // Se la scommessa è archiviata, ripristina anche il saldo sottraendo il risultato
+        if (betToDelete.stato === 'Archiviata' && betToDelete.risultato) {
+          const newSaldoAttuale = Number(accounts.saldo_attuale) - betToDelete.risultato;
+          updateData.saldo_attuale = newSaldoAttuale;
+        }
+      } else {
+        // Per altre scommesse
+        const newSaldoAttuale = Number(accounts.saldo_attuale) + betToDelete.stake;
+        const newBilancioGiocate = Number(accounts.bilancio_giocate) - betToDelete.stake;
+        updateData.saldo_attuale = newSaldoAttuale;
+        updateData.bilancio_giocate = newBilancioGiocate;
+      }
 
       const { error: updateAccountError } = await supabase
         .from('accounts')
-        .update({
-          saldo_attuale: newSaldoAttuale,
-          bilancio_giocate: newBilancioGiocate
-        })
+        .update(updateData)
         .eq('id', accounts.id);
 
       if (updateAccountError) throw updateAccountError;
 
-      // Se c'è un wallet associato, ripristina anche quello
-      if (betToDelete.walletId) {
+      // Se c'è un wallet associato e NON è una giocata rapida, ripristina anche quello
+      if (betToDelete.walletId && betToDelete.tipo !== 'Rapida') {
         const { data: wallet, error: walletError } = await supabase
           .from('wallets')
           .select('*')
