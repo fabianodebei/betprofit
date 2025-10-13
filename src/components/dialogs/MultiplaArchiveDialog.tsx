@@ -112,7 +112,7 @@ export function MultiplaArchiveDialog({
                                   Multipla Persa su: {layBet.evento}
                                 </Label>
                                 <p className="text-sm text-muted-foreground mt-1">
-                                  Questa specifica selezione non è andata a segno. Vinci questa bancata, perdi tutte le altre.
+                                  Questa specifica selezione non è andata a segno. Vinci questa bancata, perdi le bancate precedenti.
                                 </p>
                                 <p className="text-lg font-bold mt-2" style={{ color: risultato >= 0 ? 'green' : 'red' }}>
                                   Risultato: {formatCurrency(risultato)}
