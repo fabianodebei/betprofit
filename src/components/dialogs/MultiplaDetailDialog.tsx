@@ -59,7 +59,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
         <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              Dettaglio Puntata #{bet.id.substring(0, 7)}
+              Dettaglio Puntata
             </DialogTitle>
           </DialogHeader>
 
@@ -99,7 +99,6 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                       <TableHead>Rimborso</TableHead>
                       <TableHead>Tasse</TableHead>
                       <TableHead>Mov.</TableHead>
-                      <TableHead>Stato Evento</TableHead>
                       <TableHead>Tag</TableHead>
                       <TableHead>Opzioni</TableHead>
                     </TableRow>
@@ -133,11 +132,6 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                       <TableCell>{formatCurrency(bet.rimborso || 0)}</TableCell>
                       <TableCell>0,00</TableCell>
                       <TableCell>{formatCurrency(0)}</TableCell>
-                      <TableCell>
-                        <Badge variant={bet.stato === 'In Corso' ? 'default' : 'secondary'}>
-                          {bet.stato}
-                        </Badge>
-                      </TableCell>
                       <TableCell className="text-primary text-sm">{bet.tag || '(non impostato)'}</TableCell>
                       <TableCell>
                         <Button size="sm" variant="ghost">
@@ -173,13 +167,10 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                         <TableCell className="font-semibold text-red-600">{layBet.quotaBanca.toFixed(2)}</TableCell>
                         <TableCell className="text-red-600 font-semibold">{formatCurrency(rischio)}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
-                        <TableCell>{formatCurrency(0)}</TableCell>
-                        <TableCell className="text-accent">{formatCurrency(tasse)}</TableCell>
-                        <TableCell>{formatCurrency(0)}</TableCell>
-                        <TableCell>
-                          <Badge>Bozza</Badge>
-                        </TableCell>
-                        <TableCell className="text-sm">-</TableCell>
+                         <TableCell>{formatCurrency(0)}</TableCell>
+                         <TableCell className="text-accent">{formatCurrency(tasse)}</TableCell>
+                         <TableCell>{formatCurrency(0)}</TableCell>
+                         <TableCell className="text-sm">-</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
                             <Button
