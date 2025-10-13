@@ -4,6 +4,34 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+// Funzione per tradurre i messaggi di errore di Supabase in italiano
+const translateAuthError = (errorMessage: string): string => {
+  const translations: Record<string, string> = {
+    'Password should be at least 6 characters': 'La password deve essere di almeno 6 caratteri',
+    'Password is too weak': 'La password è troppo debole',
+    'User already registered': 'Utente già registrato',
+    'Invalid login credentials': 'Credenziali non valide',
+    'Email not confirmed': 'Email non confermata',
+    'Invalid email': 'Email non valida',
+    'Password should be at least': 'La password deve essere di almeno',
+    'characters': 'caratteri',
+  };
+
+  // Cerca una corrispondenza esatta
+  if (translations[errorMessage]) {
+    return translations[errorMessage];
+  }
+
+  // Cerca una corrispondenza parziale
+  for (const [english, italian] of Object.entries(translations)) {
+    if (errorMessage.includes(english)) {
+      return errorMessage.replace(english, italian);
+    }
+  }
+
+  return errorMessage;
+};
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -57,7 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(translateAuthError(error.message));
       return { error };
     }
 
@@ -73,7 +101,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(translateAuthError(error.message));
       return { error };
     }
 
@@ -85,7 +113,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
-      toast.error(error.message);
+      toast.error(translateAuthError(error.message));
       return;
     }
     toast.success('Logout effettuato');
@@ -100,7 +128,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(translateAuthError(error.message));
       return { error };
     }
 
