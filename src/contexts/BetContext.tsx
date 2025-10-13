@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 
 interface BetContextType {
   bets: Bet[];
-  addBet: (bet: Omit<Bet, 'id' | 'createdAt'>) => Promise<void>;
+  addBet: (bet: Omit<Bet, 'id' | 'createdAt'>) => Promise<string>;
   updateBet: (id: string, bet: Partial<Bet>) => Promise<void>;
   deleteBet: (id: string) => Promise<void>;
   archiveBet: (id: string, risultato: number) => Promise<void>;
@@ -80,6 +80,10 @@ export function BetProvider({ children }: { children: ReactNode }) {
         urlEvento: b.url_evento || undefined,
         nomeGioco: b.nome_gioco || undefined,
         quotaPunta: b.quota_punta ? Number(b.quota_punta) : undefined,
+        percentualeBonus: b.percentuale_bonus ? Number(b.percentuale_bonus) : undefined,
+        numeroMinimoSelezioni: b.numero_minimo_selezioni ? Number(b.numero_minimo_selezioni) : undefined,
+        quotaCombinata: b.quota_combinata ? Number(b.quota_combinata) : undefined,
+        vincitaPotenziale: b.vincita_potenziale ? Number(b.vincita_potenziale) : undefined,
         createdAt: new Date(b.created_at),
       }));
 
@@ -92,7 +96,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const addBet = async (bet: Omit<Bet, 'id' | 'createdAt'>) => {
+  const addBet = async (bet: Omit<Bet, 'id' | 'createdAt'>): Promise<string> => {
     try {
       if (!user) throw new Error('User not authenticated');
       
@@ -119,6 +123,10 @@ export function BetProvider({ children }: { children: ReactNode }) {
           url_evento: bet.urlEvento || null,
           nome_gioco: bet.nomeGioco || null,
           quota_punta: bet.quotaPunta || null,
+          percentuale_bonus: bet.percentualeBonus || null,
+          numero_minimo_selezioni: bet.numeroMinimoSelezioni || null,
+          quota_combinata: bet.quotaCombinata || null,
+          vincita_potenziale: bet.vincitaPotenziale || null,
           user_id: user.id,
         })
         .select()
@@ -148,14 +156,20 @@ export function BetProvider({ children }: { children: ReactNode }) {
         urlEvento: data.url_evento || undefined,
         nomeGioco: data.nome_gioco || undefined,
         quotaPunta: data.quota_punta ? Number(data.quota_punta) : undefined,
+        percentualeBonus: data.percentuale_bonus ? Number(data.percentuale_bonus) : undefined,
+        numeroMinimoSelezioni: data.numero_minimo_selezioni ? Number(data.numero_minimo_selezioni) : undefined,
+        quotaCombinata: data.quota_combinata ? Number(data.quota_combinata) : undefined,
+        vincitaPotenziale: data.vincita_potenziale ? Number(data.vincita_potenziale) : undefined,
         createdAt: new Date(data.created_at),
       };
 
       setBets((prev) => [newBet, ...prev]);
       toast.success('Puntata aggiunta con successo');
+      return data.id;
     } catch (error: any) {
       toast.error('Errore durante l\'aggiunta della puntata');
       console.error('Error adding bet:', error);
+      throw error;
     }
   };
 
@@ -182,6 +196,10 @@ export function BetProvider({ children }: { children: ReactNode }) {
       if (updates.urlEvento !== undefined) dbUpdates.url_evento = updates.urlEvento;
       if (updates.nomeGioco !== undefined) dbUpdates.nome_gioco = updates.nomeGioco;
       if (updates.quotaPunta !== undefined) dbUpdates.quota_punta = updates.quotaPunta;
+      if (updates.percentualeBonus !== undefined) dbUpdates.percentuale_bonus = updates.percentualeBonus;
+      if (updates.numeroMinimoSelezioni !== undefined) dbUpdates.numero_minimo_selezioni = updates.numeroMinimoSelezioni;
+      if (updates.quotaCombinata !== undefined) dbUpdates.quota_combinata = updates.quotaCombinata;
+      if (updates.vincitaPotenziale !== undefined) dbUpdates.vincita_potenziale = updates.vincitaPotenziale;
 
       const { error } = await supabase
         .from('bets')

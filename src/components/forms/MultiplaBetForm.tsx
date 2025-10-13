@@ -269,7 +269,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
 
         toast.success('Multipla aggiornata');
       } else {
-        await addBet({
+        const betId = await addBet({
           tipo: 'Multipla',
           conto: data.conto,
           stake: data.stake,
@@ -287,6 +287,21 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
           quotaCombinata: quotaCombinata,
           vincitaPotenziale: vincitaPotenziale,
         });
+
+        // Save all selections as bet legs
+        for (const selection of selections) {
+          await addBetLeg({
+            betId: betId,
+            evento: selection.evento,
+            competizione: selection.competizione || undefined,
+            mercato: selection.mercato || undefined,
+            selezione: selection.selezione,
+            quota: selection.quota,
+            stato: 'In Corso',
+            dataEvento: selection.dataEvento,
+          });
+        }
+        
         // Update account balance
         const newBalance = account.saldoAttuale - data.stake;
         const newBilancioGiocate = account.bilancioGiocate + data.stake;
