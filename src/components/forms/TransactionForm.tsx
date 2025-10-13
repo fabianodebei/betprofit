@@ -74,7 +74,10 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
   const onSubmit = async (data: TransactionFormData) => {
     const metodo = data.metodo;
     const account = accounts.find((a) => a.conto === data.conto);
-    const wallet = wallets.find((w) => w.nome === data.wallet);
+    // Trova il wallet usando nome E intestatario per evitare wallet sbagliati
+    const wallet = data.wallet && selectedIntestatario
+      ? wallets.find((w) => w.nome === data.wallet && w.intestatario === selectedIntestatario)
+      : undefined;
 
     // Verifica saldo wallet per movimenti in uscita (Deposito)
     if (wallet && data.wallet && metodo === 'Deposito') {

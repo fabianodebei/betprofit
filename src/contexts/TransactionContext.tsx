@@ -175,10 +175,12 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
       // Update wallet if transaction involved one
       if (transaction.wallet && transaction.metodo !== 'Riconciliazione') {
+        // Trova il wallet usando nome E intestatario per evitare di aggiornare il wallet sbagliato
         const { data: walletData } = await supabaseClient
           .from('wallets')
           .select('*')
           .eq('nome', transaction.wallet)
+          .eq('intestatario', transaction.intestatario)
           .single();
 
         if (walletData) {
