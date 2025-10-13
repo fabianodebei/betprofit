@@ -140,7 +140,8 @@ export default function Dashboard() {
   }, [archivedBets]);
 
   const averageOdds = useMemo(() => {
-    const withOdds = archivedBets.filter(b => b.quota);
+    // Exclude quick bets from average odds calculation (they don't have odds)
+    const withOdds = archivedBets.filter(b => b.quota && b.tipo !== 'Rapida');
     return withOdds.length > 0 
       ? withOdds.reduce((sum, b) => sum + (b.quota || 0), 0) / withOdds.length 
       : 0;
