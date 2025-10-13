@@ -177,7 +177,10 @@ export default function Deposits() {
                 <tbody>
                   {filteredTransactions.map((transaction, idx) => {
                     const account = accounts.find(acc => acc.conto === transaction.conto);
-                    const wallet = wallets.find(w => w.nome === transaction.wallet);
+                    const wallet = wallets.find(w => 
+                      w.nome === transaction.wallet && 
+                      w.intestatario === transaction.intestatario
+                    );
                     return (
                       <tr key={transaction.id} className="border-b hover:bg-muted/20">
                         <td className="p-3 text-sm">{idx + 1}</td>
