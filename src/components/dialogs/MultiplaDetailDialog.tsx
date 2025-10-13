@@ -345,78 +345,18 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
               </Table>
             </div>
 
-            {/* Totals with Scenarios */}
-            <div className="space-y-3">
-              {/* Main scenarios */}
-              <div className="grid grid-cols-3 gap-4 px-4 py-3 bg-muted/30 rounded-lg border border-border">
-                <div>
-                  <div className="text-xs text-muted-foreground mb-1">Multipla Vinta</div>
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">Risultato: </span>
-                    <span className={`font-semibold ${calculations.scenarioVincita >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatCurrency(calculations.scenarioVincita)}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground mb-1">Multipla Persa (Migliore)</div>
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">Risultato: </span>
-                    <span className={`font-semibold ${calculations.scenarioPerditaBest >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatCurrency(calculations.scenarioPerditaBest)}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground mb-1">Multipla Persa (Peggiore)</div>
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">Risultato: </span>
-                    <span className={`font-semibold ${calculations.scenarioPerditaWorst >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatCurrency(calculations.scenarioPerditaWorst)}
-                    </span>
-                  </div>
+            {/* Summary */}
+            <div className="grid grid-cols-2 gap-4 px-4 py-3 bg-muted/30 rounded-lg border border-border">
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Totale Rischio</div>
+                <div className="text-lg font-bold text-red-600">
+                  {formatCurrency(calculations.totalRisk)}
                 </div>
               </div>
-
-              {/* Per-leg breakdown */}
-              {calculations.perGamba.length > 0 && (
-                <div className="px-4 py-3 bg-muted/20 rounded-lg border border-border">
-                  <div className="text-xs text-muted-foreground mb-2">Se multipla perde per gamba:</div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {calculations.perGamba.map((gamba: any, idx: number) => (
-                      <div key={idx} className="text-sm">
-                        <span className="text-muted-foreground">Gamba {idx + 1}: </span>
-                        <span className={`font-semibold ${gamba.risultato >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {formatCurrency(gamba.risultato)}
-                        </span>
-                        {gamba.label && (
-                          <span className="text-xs text-muted-foreground ml-1">({gamba.label})</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Detailed summary sections */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="px-4 py-2 bg-muted/10 rounded border">
-                  <div className="text-xs text-muted-foreground mb-1">Stake Totale Puntato</div>
-                  <div className="text-lg font-bold text-primary">
-                    {formatCurrency(bet.stake)}
-                  </div>
-                </div>
-                <div className="px-4 py-2 bg-muted/10 rounded border">
-                  <div className="text-xs text-muted-foreground mb-1">Stake Totale Bancato</div>
-                  <div className="text-lg font-bold text-accent">
-                    {formatCurrency(layBets.reduce((sum, lb) => sum + lb.stake, 0))}
-                  </div>
-                </div>
-                <div className="px-4 py-2 bg-muted/10 rounded border">
-                  <div className="text-xs text-muted-foreground mb-1">Rischio Totale</div>
-                  <div className="text-lg font-bold text-red-600">
-                    {formatCurrency(calculations.totalRisk)}
-                  </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Guadagno Totale</div>
+                <div className={`text-lg font-bold ${calculations.guadagnoTotale >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {formatCurrency(calculations.guadagnoTotale)}
                 </div>
               </div>
             </div>
