@@ -32,8 +32,8 @@ const createQuickBetSchema = (tagRequired: boolean) => z.object({
   registrato: z.date(),
   note: z.string().trim().max(500).optional(),
   tag: tagRequired 
-    ? z.string().min(1, 'Tag è obbligatorio').refine(val => val !== 'none', 'Seleziona un tag valido')
-    : z.string().optional()
+    ? z.string().trim().min(1, 'Tag è obbligatorio').max(100)
+    : z.string().trim().max(100).optional()
 });
 
 type QuickBetFormData = z.infer<ReturnType<typeof createQuickBetSchema>>;
@@ -73,7 +73,7 @@ export function QuickBetForm({
       movimento: 0,
       registrato: new Date(),
       note: '',
-      tag: 'none'
+      tag: ''
     }
   });
 
@@ -99,7 +99,7 @@ export function QuickBetForm({
         movimento: editingBet.stake || 0,
         registrato: editingBet.dataEvento || new Date(),
         note: editingBet.note || '',
-        tag: editingBet.tag || 'none'
+        tag: editingBet.tag || ''
       });
       setSelectedIntestatario(intestatario);
       setSelectedConto(editingBet.conto || '');
@@ -111,7 +111,7 @@ export function QuickBetForm({
         movimento: 0,
         registrato: new Date(),
         note: '',
-        tag: 'none'
+        tag: ''
       });
       setSelectedIntestatario('');
       setSelectedConto('');
@@ -128,7 +128,7 @@ export function QuickBetForm({
         dataEvento: data.registrato,
         note: data.note,
         walletId: account?.walletId || undefined,
-        tag: data.tag === 'none' ? '' : data.tag
+        tag: data.tag || ''
       });
       if (account) {
         const oldStake = editingBet.stake || 0;
@@ -153,7 +153,7 @@ export function QuickBetForm({
         dataEvento: data.registrato,
         note: data.note,
         walletId: account?.walletId || undefined,
-        tag: data.tag === 'none' ? '' : data.tag
+        tag: data.tag || ''
       });
     }
     form.reset();
@@ -297,36 +297,12 @@ export function QuickBetForm({
             field
           }) => <FormItem>
                   <FormLabel>Tag{settings.tag && ' *'}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={settings.tag ? "Seleziona tag" : "Seleziona tag (opzionale)"} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {!settings.tag && <SelectItem value="none">Nessuno</SelectItem>}
-                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase">
-                        Predefinito
-                      </div>
-                      {PREDEFINED_TAGS.map((tag) => (
-                        <SelectItem key={tag} value={tag}>
-                          {tag}
-                        </SelectItem>
-                      ))}
-                      {tags.length > 0 && (
-                        <>
-                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase mt-2">
-                            Tag Personali
-                          </div>
-                          {tags.map((tag) => (
-                            <SelectItem key={tag.id} value={tag.nome}>
-                              {tag.nome}
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <Input 
+                      placeholder={settings.tag ? "Inserisci tag" : "Inserisci tag (opzionale)"} 
+                      {...field} 
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>} />
             <DialogFooter>
