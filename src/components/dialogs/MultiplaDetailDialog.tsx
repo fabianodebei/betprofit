@@ -26,40 +26,57 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
   const layBets = bet ? getLayBetsByParentId(bet.id) : [];
   const betLegs = bet ? getBetLegsByBetId(bet.id) : [];
 
-  // Calculate totals with correct scenarios
+  // Calculate totals with correct profit tracker logic
   const calculations = useMemo(() => {
-    if (!bet) return { 
-      totalRisk: 0, 
-      guadagnoTotale: 0, 
-      scenarioPerdita: 0, 
-      scenarioVincita: 0 
-    };
+    if (!bet) {
+      return {
+        totalRisk: 0,
+        guadagnoTotale: 0,
+        scenarioVincita: 0,
+        scenarioPerditaBest: 0,
+        scenarioPerditaWorst: 0,
+        perGamba: [],
+      };
+    }
 
-    // Scenario 1: Perdi la Multipla (perdi la punta, vinci le bancate)
-    const perditaMultipla = -(bet.stake - (bet.rimborso || 0));
-    const vincitaBancate = layBets.reduce((sum, lb) => sum + lb.stake, 0);
-    const scenarioPerdita = perditaMultipla + vincitaBancate;
+    // Helper functions
+    const liability = (lb: any) => lb.stake * (lb.quotaBanca - 1);
+    const layWinNet = (lb: any) => lb.stake * (1 - (lb.tassePercentuale || 0) / 100);
 
-    // Scenario 2: Vinci la Multipla (vinci la punta, perdi le bancate)
+    // Calculate total liability (sum of all lay bet liabilities)
+    const sumLiability = layBets.reduce((s, lb) => s + liability(lb), 0);
+    
+    // Calculate profit/loss for main bet
     const quotaEffettiva = bet.quotaCombinata || bet.quota || 1;
-    const vincitaMultipla = (bet.stake * quotaEffettiva) - bet.stake + (bet.bonus || 0);
-    const perditaBancate = layBets.reduce((sum, lb) => {
-      const rischio = lb.stake * (lb.quotaBanca - 1) * (1 + lb.tassePercentuale / 100);
-      return sum + rischio;
-    }, 0);
-    const scenarioVincita = vincitaMultipla - perditaBancate;
+    const puntaWin = bet.stake * (quotaEffettiva - 1) + (bet.bonus || 0);
+    const puntaLoss = -(bet.stake - (bet.rimborso || 0));
 
-    // Rischio Totale: massima esposizione tra i due scenari
-    const totalRisk = Math.max(Math.abs(scenarioPerdita), Math.abs(scenarioVincita));
+    // Scenario 1: Multipla wins (you win the bet, lose all lay bets)
+    const scenarioVinceMultipla = puntaWin - sumLiability;
 
-    // Guadagno Totale: il risultato peggiore (minimo tra i due scenari)
-    const guadagnoTotale = Math.min(scenarioPerdita, scenarioVincita);
+    // Scenario 2: Multipla loses for each leg (you lose the bet, win that specific lay bet, lose others)
+    const perGamba = layBets.map((lb) => {
+      const risultato = puntaLoss + layWinNet(lb) - (sumLiability - liability(lb));
+      return { id: lb.id, evento: lb.evento, risultato };
+    });
+
+    // Best and worst case when multipla loses
+    const scenarioPerditaBest = perGamba.length ? Math.max(...perGamba.map(x => x.risultato)) : puntaLoss;
+    const scenarioPerditaWorst = perGamba.length ? Math.min(...perGamba.map(x => x.risultato)) : puntaLoss;
+
+    // Total risk is the sum of all liabilities
+    const totalRisk = sumLiability;
+    
+    // Overall profit/loss is the worst case between winning and losing
+    const guadagnoTotale = Math.min(scenarioVinceMultipla, scenarioPerditaWorst);
 
     return {
       totalRisk,
       guadagnoTotale,
-      scenarioPerdita,
-      scenarioVincita,
+      scenarioVincita: scenarioVinceMultipla,
+      scenarioPerditaBest,
+      scenarioPerditaWorst,
+      perGamba,
     };
   }, [bet, layBets]);
 
@@ -169,7 +186,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
 
                   {/* Lay Bets Rows */}
                   {layBets.map((layBet) => {
-                    const rischio = layBet.stake * (layBet.quotaBanca - 1) * (1 + layBet.tassePercentuale / 100);
+                    const rischio = layBet.stake * (layBet.quotaBanca - 1);
                     const tasse = layBet.stake * (layBet.quotaBanca - 1) * (layBet.tassePercentuale / 100);
                     
                     return (
@@ -236,18 +253,10 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
 
             {/* Totals with Scenarios */}
             <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-4 px-4 py-3 bg-muted/30 rounded-lg border border-border">
+              {/* Main scenarios */}
+              <div className="grid grid-cols-3 gap-4 px-4 py-3 bg-muted/30 rounded-lg border border-border">
                 <div>
-                  <div className="text-xs text-muted-foreground mb-1">Scenario Perdita Multipla</div>
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">Risultato: </span>
-                    <span className={`font-semibold ${calculations.scenarioPerdita >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatCurrency(calculations.scenarioPerdita)}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground mb-1">Scenario Vincita Multipla</div>
+                  <div className="text-xs text-muted-foreground mb-1">Multipla Vinta</div>
                   <div className="text-sm">
                     <span className="text-muted-foreground">Risultato: </span>
                     <span className={`font-semibold ${calculations.scenarioVincita >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -255,8 +264,44 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                     </span>
                   </div>
                 </div>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">Multipla Persa (Migliore)</div>
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">Risultato: </span>
+                    <span className={`font-semibold ${calculations.scenarioPerditaBest >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(calculations.scenarioPerditaBest)}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">Multipla Persa (Peggiore)</div>
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">Risultato: </span>
+                    <span className={`font-semibold ${calculations.scenarioPerditaWorst >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(calculations.scenarioPerditaWorst)}
+                    </span>
+                  </div>
+                </div>
               </div>
+
+              {/* Per-leg breakdown */}
+              {calculations.perGamba.length > 0 && (
+                <div className="px-4 py-3 bg-muted/20 rounded-lg border border-border">
+                  <div className="text-xs text-muted-foreground mb-2">Se multipla perde per gamba:</div>
+                  <div className="space-y-1">
+                    {calculations.perGamba.map((gamba: any) => (
+                      <div key={gamba.id} className="text-sm flex justify-between">
+                        <span className="text-muted-foreground">{gamba.evento}</span>
+                        <span className={`font-medium ${gamba.risultato >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatCurrency(gamba.risultato)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               
+              {/* Final totals */}
               <div className="flex justify-end gap-8 px-4 py-2 bg-muted/50 rounded-lg">
                 <div>
                   <span className="text-sm text-muted-foreground">Totale Rischio: </span>
