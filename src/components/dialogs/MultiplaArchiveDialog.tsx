@@ -74,12 +74,15 @@ export function MultiplaArchiveDialog({
               <RadioGroup value={selectedOption} onValueChange={setSelectedOption}>
                 <div className="space-y-4">
                   {/* Opzione: Multipla Vinta */}
-                  <div className="flex items-start space-x-3 p-4 rounded-lg border-2 border-muted hover:border-primary transition-colors">
+                  <Label 
+                    htmlFor="win" 
+                    className="flex items-start space-x-3 p-4 rounded-lg border-2 border-muted hover:border-primary transition-colors cursor-pointer"
+                  >
                     <RadioGroupItem value="win" id="win" className="mt-1" />
                     <div className="flex-1">
-                      <Label htmlFor="win" className="text-base font-semibold cursor-pointer">
+                      <div className="text-base font-semibold">
                         Multipla Vinta
-                      </Label>
+                      </div>
                       <p className="text-sm text-muted-foreground mt-1">
                         Tutte le selezioni sono andate a segno. Perdi tutte le bancate.
                       </p>
@@ -87,7 +90,7 @@ export function MultiplaArchiveDialog({
                         Risultato: {formatCurrency(calculations.scenarioVincita)}
                       </p>
                     </div>
-                  </div>
+                  </Label>
 
                   {/* Opzioni: Multipla Persa per ciascuna gamba */}
                   {layBets.length > 0 && (
@@ -102,15 +105,16 @@ export function MultiplaArchiveDialog({
                           const risultato = gambaResult?.risultato || 0;
 
                           return (
-                            <div
+                            <Label
                               key={layBet.id}
-                              className="flex items-start space-x-3 p-4 rounded-lg border-2 border-muted hover:border-primary transition-colors"
+                              htmlFor={layBet.id}
+                              className="flex items-start space-x-3 p-4 rounded-lg border-2 border-muted hover:border-primary transition-colors cursor-pointer"
                             >
                               <RadioGroupItem value={layBet.id} id={layBet.id} className="mt-1" />
                               <div className="flex-1">
-                                <Label htmlFor={layBet.id} className="text-base font-semibold cursor-pointer">
+                                <div className="text-base font-semibold">
                                   Multipla Persa su: {layBet.evento}
-                                </Label>
+                                </div>
                                 <p className="text-sm text-muted-foreground mt-1">
                                   Questa specifica selezione non è andata a segno. Vinci questa bancata, perdi le bancate precedenti.
                                 </p>
@@ -118,7 +122,7 @@ export function MultiplaArchiveDialog({
                                   Risultato: {formatCurrency(risultato)}
                                 </p>
                               </div>
-                            </div>
+                            </Label>
                           );
                         })}
                       </div>
