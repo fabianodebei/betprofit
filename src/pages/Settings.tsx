@@ -8,17 +8,29 @@ export default function Settings() {
   const { isAdmin } = useUserRole();
   
   const settingsSections = [
+    ...(isAdmin ? [{
+      icon: Shield,
+      title: 'Admin Panel',
+      description: 'Gestisci utenti e permessi',
+      path: '/admin',
+    }] : []),
     {
-      icon: MessageSquare,
-      title: 'Telegram',
-      description: 'Configura il tuo BOT Telegram per ricevere notifiche',
-      path: '/impostazioni/telegram',
+      icon: BookOpen,
+      title: 'Book Personali',
+      description: 'Configura i tuoi book personali',
+      path: '/impostazioni/books',
     },
     {
-      icon: List,
-      title: 'Transazioni',
-      description: 'Gestisci le impostazioni delle transazioni',
-      path: '/impostazioni/transazioni',
+      icon: Database,
+      title: 'Import/Export',
+      description: 'Esporta o importa tutti i tuoi dati',
+      path: '/impostazioni/import-export',
+    },
+    {
+      icon: Users,
+      title: 'Intestatari',
+      description: 'Gestisci gli intestatari dei conti',
+      path: '/impostazioni/intestatari',
     },
     {
       icon: Euro,
@@ -33,35 +45,23 @@ export default function Settings() {
       path: '/impostazioni/report',
     },
     {
-      icon: Users,
-      title: 'Intestatari',
-      description: 'Gestisci gli intestatari dei conti',
-      path: '/impostazioni/intestatari',
-    },
-    {
-      icon: BookOpen,
-      title: 'Book Personali',
-      description: 'Configura i tuoi book personali',
-      path: '/impostazioni/books',
-    },
-    {
       icon: Tag,
       title: 'Tag Personali',
       description: 'Gestisci i tag personalizzati',
       path: '/impostazioni/tags',
     },
     {
-      icon: Database,
-      title: 'Import/Export',
-      description: 'Esporta o importa tutti i tuoi dati',
-      path: '/impostazioni/import-export',
+      icon: MessageSquare,
+      title: 'Telegram',
+      description: 'Configura il tuo BOT Telegram per ricevere notifiche',
+      path: '/impostazioni/telegram',
     },
-    ...(isAdmin ? [{
-      icon: Shield,
-      title: 'Admin Panel',
-      description: 'Gestisci utenti e permessi',
-      path: '/admin',
-    }] : []),
+    {
+      icon: List,
+      title: 'Transazioni',
+      description: 'Gestisci le impostazioni delle transazioni',
+      path: '/impostazioni/transazioni',
+    },
   ];
 
   const handleCardClick = (path?: string) => {
