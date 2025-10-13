@@ -26,22 +26,40 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
   const layBets = bet ? getLayBetsByParentId(bet.id) : [];
   const betLegs = bet ? getBetLegsByBetId(bet.id) : [];
 
-  // Calculate totals
+  // Calculate totals with correct scenarios
   const calculations = useMemo(() => {
-    if (!bet) return { totalRisk: 0, guadagnoTotale: 0 };
+    if (!bet) return { 
+      totalRisk: 0, 
+      guadagnoTotale: 0, 
+      scenarioPerdita: 0, 
+      scenarioVincita: 0 
+    };
 
-    const totalRisk = bet.stake + layBets.reduce((sum, lb) => sum + lb.stake, 0);
-    
-    // Guadagno totale calculation
-    const guadagnoTotale = layBets.reduce((sum, lb) => {
-      // For each lay bet, calculate the difference
+    // Scenario 1: Perdi la Multipla (perdi la punta, vinci le bancate)
+    const perditaMultipla = -(bet.stake - (bet.rimborso || 0));
+    const vincitaBancate = layBets.reduce((sum, lb) => sum + lb.stake, 0);
+    const scenarioPerdita = perditaMultipla + vincitaBancate;
+
+    // Scenario 2: Vinci la Multipla (vinci la punta, perdi le bancate)
+    const quotaEffettiva = bet.quotaCombinata || bet.quota || 1;
+    const vincitaMultipla = (bet.stake * quotaEffettiva) - bet.stake + (bet.bonus || 0);
+    const perditaBancate = layBets.reduce((sum, lb) => {
       const rischio = lb.stake * (lb.quotaBanca - 1) * (1 + lb.tassePercentuale / 100);
       return sum + rischio;
     }, 0);
+    const scenarioVincita = vincitaMultipla - perditaBancate;
+
+    // Rischio Totale: massima esposizione tra i due scenari
+    const totalRisk = Math.max(Math.abs(scenarioPerdita), Math.abs(scenarioVincita));
+
+    // Guadagno Totale: il risultato peggiore (minimo tra i due scenari)
+    const guadagnoTotale = Math.min(scenarioPerdita, scenarioVincita);
 
     return {
       totalRisk,
-      guadagnoTotale: -guadagnoTotale,
+      guadagnoTotale,
+      scenarioPerdita,
+      scenarioVincita,
     };
   }, [bet, layBets]);
 
@@ -216,17 +234,42 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
               </Table>
             </div>
 
-            {/* Totals */}
-            <div className="flex justify-end gap-8 px-4 py-2 bg-muted/50 rounded-lg">
-              <div>
-                <span className="text-sm text-muted-foreground">Totale Rischio: </span>
-                <span className="font-bold text-red-600">{formatCurrency(calculations.totalRisk)}</span>
+            {/* Totals with Scenarios */}
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-4 px-4 py-3 bg-muted/30 rounded-lg border border-border">
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">Scenario Perdita Multipla</div>
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">Risultato: </span>
+                    <span className={`font-semibold ${calculations.scenarioPerdita >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(calculations.scenarioPerdita)}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">Scenario Vincita Multipla</div>
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">Risultato: </span>
+                    <span className={`font-semibold ${calculations.scenarioVincita >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(calculations.scenarioVincita)}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div>
-                <span className="text-sm text-muted-foreground">Guadagno Totale: </span>
-                <span className={`font-bold ${calculations.guadagnoTotale >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {formatCurrency(calculations.guadagnoTotale)}
-                </span>
+              
+              <div className="flex justify-end gap-8 px-4 py-2 bg-muted/50 rounded-lg">
+                <div>
+                  <span className="text-sm text-muted-foreground">Totale Rischio: </span>
+                  <span className="font-bold text-red-600">{formatCurrency(calculations.totalRisk)}</span>
+                </div>
+                <div>
+                  <span className="text-sm text-muted-foreground">
+                    {calculations.guadagnoTotale >= 0 ? 'Guadagno Garantito' : 'Perdita Massima'}: 
+                  </span>
+                  <span className={`font-bold ${calculations.guadagnoTotale >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {formatCurrency(calculations.guadagnoTotale)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
