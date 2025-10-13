@@ -238,6 +238,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_public: boolean
           metodo: string
           nome: string
           predefinito: boolean
@@ -247,6 +248,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_public?: boolean
           metodo?: string
           nome: string
           predefinito?: boolean
@@ -256,6 +258,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_public?: boolean
           metodo?: string
           nome?: string
           predefinito?: boolean
@@ -598,9 +601,20 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      available_public_books: {
+        Row: {
+          categoria: string | null
+          metodo: string | null
+          nome: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      add_public_book_to_user: {
+        Args: { _book_metodo: string; _book_nome: string }
+        Returns: string
+      }
       admin_get_all_users: {
         Args: Record<PropertyKey, never>
         Returns: {
