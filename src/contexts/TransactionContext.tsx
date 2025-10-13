@@ -151,11 +151,16 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       const { supabase: supabaseClient } = await import('@/integrations/supabase/client');
       
       // Fetch account
-      const { data: accountData } = await supabaseClient
+      let accountQuery = supabaseClient
         .from('accounts')
         .select('*')
-        .eq('conto', transaction.conto)
-        .single();
+        .eq('conto', transaction.conto);
+
+      if (transaction.intestatario) {
+        accountQuery = accountQuery.eq('intestatario', transaction.intestatario as any);
+      }
+
+      const { data: accountData } = await accountQuery.single();
 
       if (accountData) {
         let balanceAdjustment = 0;
@@ -187,10 +192,10 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
           let walletAdjustment = 0;
           if (transaction.metodo === 'Deposito') {
             // Was a deposit from wallet - reverse it (add back to wallet)
-            walletAdjustment = transaction.addebito || 0;
+            walletAdjustment = transaction.accredito || 0;
           } else if (transaction.metodo === 'Prelievo') {
             // Was a withdrawal to wallet - reverse it (subtract from wallet)
-            walletAdjustment = -(transaction.accredito || 0);
+            walletAdjustment = -(transaction.addebito || 0);
           }
 
           await supabaseClient
