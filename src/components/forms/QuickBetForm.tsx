@@ -216,8 +216,8 @@ export function QuickBetForm({
                             : null;
                           return (
                             <SelectItem key={account.id} value={account.conto}>
-                              {account.conto}
-                              {wallet && <span className="text-muted-foreground text-xs ml-1">({wallet.nome})</span>}
+                              {account.conto} (€{account.saldoAttuale.toFixed(2)})
+                              {wallet && <span className="text-muted-foreground text-xs ml-1"> - {wallet.nome}</span>}
                             </SelectItem>
                           );
                         })}
