@@ -160,11 +160,11 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       if (accountData) {
         let balanceAdjustment = 0;
         if (transaction.addebito) {
-          // Was a deposit or reconciliation - reverse it (subtract)
-          balanceAdjustment = -transaction.addebito;
+          // Was a debit (money left account) - reverse it (add back)
+          balanceAdjustment = transaction.addebito;
         } else if (transaction.accredito) {
-          // Was a withdrawal - reverse it (add back)
-          balanceAdjustment = transaction.accredito;
+          // Was a credit (money came into account) - reverse it (subtract)
+          balanceAdjustment = -transaction.accredito;
         }
 
         await supabaseClient
