@@ -101,10 +101,23 @@ export default function Dashboard() {
   const monthlyAverage = totalYear / 12;
   const bestMonth = Math.max(...monthlyEarnings);
 
-  // Analytics calculations
+  // Analytics calculations - include archived bets AND quick bets
   const bookmakerStats = useMemo(() => {
     const stats = new Map();
-    archivedBets.forEach(bet => {
+    
+    // Add archived bets (excluding quick bets)
+    archivedBets.filter(bet => bet.tipo !== 'Rapida').forEach(bet => {
+      if (!stats.has(bet.conto)) {
+        stats.set(bet.conto, { stake: 0, profitto: 0, count: 0 });
+      }
+      const s = stats.get(bet.conto);
+      s.stake += bet.stake;
+      s.profitto += bet.risultato || 0;
+      s.count += 1;
+    });
+    
+    // Add archived quick bets
+    archivedBets.filter(bet => bet.tipo === 'Rapida').forEach(bet => {
       if (!stats.has(bet.conto)) {
         stats.set(bet.conto, { stake: 0, profitto: 0, count: 0 });
       }
