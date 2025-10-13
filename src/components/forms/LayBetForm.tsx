@@ -40,12 +40,14 @@ interface LayBetFormProps {
   editingLayBet?: LayBet | null;
   mode?: 'create' | 'edit';
   parentBet?: any; // Bet principale per pre-compilare i dati
+  betLegs?: any[]; // Selezioni della multipla
 }
 
-export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mode = 'create', parentBet }: LayBetFormProps) {
+export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mode = 'create', parentBet, betLegs = [] }: LayBetFormProps) {
   const { addLayBet, updateLayBet } = useLayBets();
   const { accounts } = useAccounts();
   const [selectedMetodo, setSelectedMetodo] = useState<'Punta' | 'Banca'>('Punta');
+  const [selectedBetLeg, setSelectedBetLeg] = useState<any>(null);
 
   const form = useForm<LayBetFormData>({
     resolver: zodResolver(layBetSchema),
@@ -80,19 +82,23 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
       setSelectedMetodo(editingLayBet.metodo);
     } else if (!editingLayBet && open && parentBet) {
       // Pre-compila con i dati della bet principale
+      // Se è una multipla, usa i dati della prima selezione
+      const firstLeg = betLegs.length > 0 ? betLegs[0] : null;
+      
       form.reset({
         metodo: 'Banca',
-        evento: parentBet.evento || '',
-        dataEvento: new Date(parentBet.dataEvento),
-        mercato: parentBet.mercato || '',
+        evento: firstLeg?.evento || parentBet.evento || '',
+        dataEvento: new Date(firstLeg?.dataEvento || parentBet.dataEvento),
+        mercato: firstLeg?.mercato || parentBet.mercato || '',
         conto: '',
         stake: 0,
         quotaBanca: 1.01,
-        quotaPunta: parentBet.quota || 1.01,
+        quotaPunta: firstLeg?.quota || parentBet.quota || 1.01,
         tassePercentuale: 0,
         urlEvento: parentBet.urlEvento || '',
       });
       setSelectedMetodo('Banca');
+      if (firstLeg) setSelectedBetLeg(firstLeg);
     } else if (!editingLayBet && open) {
       form.reset({
         metodo: 'Punta',
@@ -188,6 +194,44 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                 </FormItem>
               )}
             />
+            {betLegs.length > 0 && (
+              <FormField
+                control={form.control}
+                name="evento"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Selezione della Multipla *</FormLabel>
+                    <Select 
+                      onValueChange={(value) => {
+                        const leg = betLegs.find(l => l.id === value);
+                        if (leg) {
+                          setSelectedBetLeg(leg);
+                          form.setValue('evento', leg.evento);
+                          form.setValue('dataEvento', new Date(leg.dataEvento));
+                          form.setValue('mercato', leg.mercato);
+                          form.setValue('quotaPunta', leg.quota);
+                        }
+                      }}
+                      defaultValue={selectedBetLeg?.id}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleziona selezione" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {betLegs.map((leg) => (
+                          <SelectItem key={leg.id} value={leg.id}>
+                            {leg.evento} - Quota {leg.quota?.toFixed(2)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="evento"
