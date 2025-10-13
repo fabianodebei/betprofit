@@ -29,8 +29,8 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
 
   // Usa la funzione centralizzata per i calcoli
   const calculations = useMemo(
-    () => getMultiplaCalculations(bet, layBets),
-    [bet, layBets]
+    () => getMultiplaCalculations(bet, layBets, betLegs),
+    [bet, layBets, betLegs]
   );
 
   if (!bet) return null;

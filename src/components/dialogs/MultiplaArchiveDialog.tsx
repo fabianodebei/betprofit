@@ -4,6 +4,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Bet } from "@/types";
 import { useLayBets } from "@/contexts/LayBetContext";
+import { useBetLegs } from "@/contexts/BetLegContext";
 import { formatCurrency } from "@/utils/currency";
 import { useMemo, useState } from "react";
 import { getMultiplaCalculations } from "@/utils/multiplaCalculations";
@@ -24,13 +25,15 @@ export function MultiplaArchiveDialog({
   onConfirm,
 }: MultiplaArchiveDialogProps) {
   const { getLayBetsByParentId } = useLayBets();
+  const { getBetLegsByBetId } = useBetLegs();
   const layBets = bet ? getLayBetsByParentId(bet.id) : [];
+  const betLegs = bet ? getBetLegsByBetId(bet.id) : [];
   
   const [selectedOption, setSelectedOption] = useState<string>('win');
 
   const calculations = useMemo(
-    () => getMultiplaCalculations(bet, layBets),
-    [bet, layBets]
+    () => getMultiplaCalculations(bet, layBets, betLegs),
+    [bet, layBets, betLegs]
   );
 
   const handleConfirm = () => {

@@ -1,4 +1,4 @@
-import { Bet } from '@/types';
+import { Bet, BetLeg } from '@/types';
 
 export interface LayBet {
   id: string;
@@ -24,7 +24,8 @@ export interface MultiplaCalculations {
 
 export function getMultiplaCalculations(
   bet: Bet | null,
-  layBets: LayBet[]
+  layBets: LayBet[],
+  betLegs?: BetLeg[]
 ): MultiplaCalculations {
   if (!bet) {
     return {
@@ -46,8 +47,15 @@ export function getMultiplaCalculations(
   // Somma di tutte le liability
   const sumLiability = layBets.reduce((sum, lb) => sum + liability(lb), 0);
 
-  // Quota effettiva della multipla
-  const quotaEffettiva = bet.quotaCombinata || bet.quota || 1;
+  // Quota effettiva della multipla: usa quotaCombinata se presente, altrimenti calcola dal prodotto delle quote delle gambe, fallback 1
+  const quotaEffettiva =
+    (bet.quotaCombinata && bet.quotaCombinata > 0)
+      ? bet.quotaCombinata
+      : (bet.quota && bet.quota > 0)
+        ? bet.quota
+        : (betLegs && betLegs.length > 0
+            ? betLegs.reduce((prod, leg) => prod * (Number(leg.quota) || 1), 1)
+            : 1);
 
   // Scenario: multipla VINTA
   // Guadagno dalla puntata - tutte le liability perse
