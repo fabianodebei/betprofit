@@ -61,6 +61,12 @@ export function QuickBetForm({
   const { intestatari } = useIntestatari();
   const [selectedIntestatario, setSelectedIntestatario] = useState<string>('');
   const [selectedConto, setSelectedConto] = useState<string>('');
+
+  // Get the selected account's wallet info
+  const selectedAccount = accounts.find(a => a.conto === selectedConto);
+  const selectedWallet = selectedAccount?.walletId 
+    ? wallets.find(w => w.id === selectedAccount.walletId) 
+    : null;
   
   const quickBetSchema = createQuickBetSchema(settings.tag);
 
@@ -77,11 +83,6 @@ export function QuickBetForm({
     }
   });
 
-  // Get the selected account's wallet info
-  const selectedAccount = accounts.find(a => a.conto === selectedConto);
-  const selectedWallet = selectedAccount?.walletId 
-    ? wallets.find(w => w.id === selectedAccount.walletId) 
-    : null;
 
   // Get available intestatari (abilitati)
   const availableIntestatari = intestatari.filter(int => int.stato === 'Abilitato');
@@ -117,8 +118,19 @@ export function QuickBetForm({
       setSelectedConto('');
     }
   }, [editingBet, form, accounts]);
+  
   const onSubmit = async (data: QuickBetFormData) => {
     const account = accounts.find(a => a.conto === data.conto);
+    
+    // Validate negative movement doesn't exceed balance
+    if (data.movimento < 0 && account && Math.abs(data.movimento) > account.saldoAttuale) {
+      form.setError('movimento', {
+        type: 'manual',
+        message: `Il movimento negativo non può superare il saldo disponibile (€${account.saldoAttuale.toFixed(2)})`
+      });
+      return;
+    }
+    
     if (editingBet) {
       // Update existing bet
       await updateBet(editingBet.id, {
