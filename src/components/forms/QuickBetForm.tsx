@@ -124,6 +124,7 @@ export function QuickBetForm({
       await updateBet(editingBet.id, {
         conto: data.conto,
         stake: data.movimento,
+        risultato: data.movimento,
         metodo: data.metodo,
         dataEvento: data.registrato,
         note: data.note,
@@ -134,14 +135,16 @@ export function QuickBetForm({
         const oldStake = editingBet.stake || 0;
         const stakeDifference = data.movimento - oldStake;
         await updateAccount(account.id, {
-          bilancioGiocateRapide: account.bilancioGiocateRapide + stakeDifference
+          bilancioGiocateRapide: account.bilancioGiocateRapide + stakeDifference,
+          saldoAttuale: account.saldoAttuale + stakeDifference
         });
       }
     } else {
       // Add new bet
       if (account) {
         await updateAccount(account.id, {
-          bilancioGiocateRapide: account.bilancioGiocateRapide + data.movimento
+          bilancioGiocateRapide: account.bilancioGiocateRapide + data.movimento,
+          saldoAttuale: account.saldoAttuale + data.movimento
         });
       }
       await addBet({
@@ -149,7 +152,8 @@ export function QuickBetForm({
         conto: data.conto,
         stake: data.movimento,
         metodo: data.metodo,
-        stato: 'In Corso',
+        stato: 'Archiviata',
+        risultato: data.movimento,
         dataEvento: data.registrato,
         note: data.note,
         walletId: account?.walletId || undefined,
