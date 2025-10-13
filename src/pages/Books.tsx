@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,8 +10,9 @@ import { useBooks, Book } from '@/contexts/BookContext';
 import { BookForm } from '@/components/forms/BookForm';
 import { Badge } from '@/components/common/Badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info } from 'lucide-react';
+import { Info, ArrowLeft } from 'lucide-react';
 export default function Books() {
+  const navigate = useNavigate();
   const {
     books,
     loading,
@@ -65,7 +67,13 @@ export default function Books() {
   };
   return <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Book Personali</h1>
+        <div className="flex items-center gap-4">
+          <Button variant="outline" onClick={() => navigate('/impostazioni')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Torna alle Impostazioni
+          </Button>
+          <h1 className="text-3xl font-bold">Book Personali</h1>
+        </div>
         <Button onClick={handleNewBook}>Nuovo Book</Button>
       </div>
 
