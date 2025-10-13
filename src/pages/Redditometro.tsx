@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
-import { Scale } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Scale, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useTransactions } from '@/contexts/TransactionContext';
@@ -18,6 +20,7 @@ type IntestatarioSummary = {
 };
 
 export default function Redditometro() {
+  const navigate = useNavigate();
   const { transactions } = useTransactions();
   const { accounts } = useAccounts();
   const { selectedYear } = useYear();
@@ -88,16 +91,22 @@ export default function Redditometro() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-6 flex items-center gap-4">
-        <div className="rounded-full bg-yellow-500 p-3">
-          <Scale className="h-6 w-6 text-white" />
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="rounded-full bg-yellow-500 p-3">
+            <Scale className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Redditometro</h1>
+            <p className="text-muted-foreground mt-2">
+              Totale Anno: <span className="font-bold text-foreground">{renderValue(totalRedditometro)}</span>
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Redditometro</h1>
-          <p className="text-muted-foreground mt-2">
-            Totale Anno: <span className="font-bold text-foreground">{renderValue(totalRedditometro)}</span>
-          </p>
-        </div>
+        <Button variant="outline" onClick={() => navigate('/impostazioni')}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Torna alle Impostazioni
+        </Button>
       </div>
 
       <Card>

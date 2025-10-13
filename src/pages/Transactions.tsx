@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -26,6 +28,7 @@ type Movement = {
 };
 
 export default function Transactions() {
+  const navigate = useNavigate();
   const { bets } = useBets();
   const { transactions } = useTransactions();
   const { accounts } = useAccounts();
@@ -142,7 +145,13 @@ export default function Transactions() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-6 text-3xl font-bold text-foreground">Transazioni</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-foreground">Transazioni</h1>
+        <Button variant="outline" onClick={() => navigate('/impostazioni')}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Torna alle Impostazioni
+        </Button>
+      </div>
 
       <div className="mb-4 text-sm text-muted-foreground">
         Visualizzo 1-{filteredMovements.length} di {allMovements.length} elementi.

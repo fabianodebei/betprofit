@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
-import { FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { FileText, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -23,6 +25,7 @@ type ReportEntry = {
 type ReportType = 'scommesse' | 'giocate-rapide';
 
 export default function Report() {
+  const navigate = useNavigate();
   const { bets } = useBets();
   const { accounts } = useAccounts();
   const { selectedYear } = useYear();
@@ -204,13 +207,19 @@ export default function Report() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-6 flex items-center gap-4">
-        <div className="rounded-full bg-blue-500 p-3">
-          <FileText className="h-6 w-6 text-white" />
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="rounded-full bg-blue-500 p-3">
+            <FileText className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">{tabTitle}</h1>
+          </div>
         </div>
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">{tabTitle}</h1>
-        </div>
+        <Button variant="outline" onClick={() => navigate('/impostazioni')}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Torna alle Impostazioni
+        </Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ReportType)} className="w-full">

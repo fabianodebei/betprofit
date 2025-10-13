@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Users, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Users, Plus, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,7 +10,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from '@/components/ui/badge';
 import { useIntestatari } from '@/contexts/IntestatariContext';
 import { IntestatarioForm } from '@/components/forms/IntestatarioForm';
-import { useNavigate } from 'react-router-dom';
 import { Intestatario } from '@/contexts/IntestatariContext';
 
 export default function Intestatari() {
@@ -82,10 +82,16 @@ export default function Intestatari() {
           </div>
           <h1 className="text-3xl font-bold text-foreground">Intestatari</h1>
         </div>
-        <Button onClick={handleNew}>
-          <Plus className="mr-2 h-4 w-4" />
-          Nuovo Intestatario
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate('/impostazioni')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Torna alle Impostazioni
+          </Button>
+          <Button onClick={handleNew}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nuovo Intestatario
+          </Button>
+        </div>
       </div>
 
       <Card>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -9,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTelegramConfig } from '@/contexts/TelegramConfigContext';
-import { Info, MessageSquare } from 'lucide-react';
+import { Info, MessageSquare, ArrowLeft } from 'lucide-react';
 
 const formSchema = z.object({
   telegram_bot_token: z.string()
@@ -30,6 +31,7 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 const TelegramSettings = () => {
+  const navigate = useNavigate();
   const { config, loading, updateConfig } = useTelegramConfig();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -76,14 +78,20 @@ const TelegramSettings = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <MessageSquare className="h-8 w-8" />
-          Configurazione Telegram
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Configura il tuo BOT Telegram personale per ricevere notifiche
-        </p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <MessageSquare className="h-8 w-8" />
+            Configurazione Telegram
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Configura il tuo BOT Telegram personale per ricevere notifiche
+          </p>
+        </div>
+        <Button variant="outline" onClick={() => navigate('/impostazioni')}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Torna alle Impostazioni
+        </Button>
       </div>
 
       <div className="grid gap-6 max-w-2xl">

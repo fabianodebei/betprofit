@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -7,6 +9,7 @@ import { useTags, Tag } from '@/contexts/TagContext';
 import { TagForm } from '@/components/forms/TagForm';
 
 export default function Tags() {
+  const navigate = useNavigate();
   const { tags, loading, addTag, updateTag, deleteTag } = useTags();
   const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -50,7 +53,13 @@ export default function Tags() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Tag Personali</h1>
-        <Button onClick={handleNewTag}>Nuovo Tag</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate('/impostazioni')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Torna alle Impostazioni
+          </Button>
+          <Button onClick={handleNewTag}>Nuovo Tag</Button>
+        </div>
       </div>
 
       {/* Results count */}
