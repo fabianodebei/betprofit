@@ -226,43 +226,50 @@ export function BetProvider({ children }: { children: ReactNode }) {
         throw new Error('Puntata non trovata');
       }
 
-      // Trova l'account per ripristinare i saldi
-      const { data: accounts, error: accountError } = await supabase
+      // Trova l'account per ripristinare i saldi (tenendo conto di possibili duplicati)
+      let accountQuery = supabase
         .from('accounts')
         .select('*')
-        .eq('conto', betToDelete.conto)
         .eq('user_id', user?.id)
-        .single();
+        .eq('conto', betToDelete.conto);
+
+      if (betToDelete.walletId) {
+        accountQuery = accountQuery.eq('wallet_id', betToDelete.walletId);
+      }
+
+      const { data: account, error: accountError } = await accountQuery.limit(1).maybeSingle();
 
       if (accountError) throw accountError;
 
-      // Ripristina il saldo dell'account in base al tipo di scommessa
-      let updateData: any = {};
-      
-      if (betToDelete.tipo === 'Rapida') {
-        // Per giocate rapide
-        const newBilancioGiocateRapide = Number(accounts.bilancio_giocate_rapide) - betToDelete.stake;
-        updateData.bilancio_giocate_rapide = newBilancioGiocateRapide;
+      if (account) {
+        // Ripristina il saldo dell'account in base al tipo di scommessa
+        let updateData: any = {};
         
-        // Se la scommessa è archiviata, ripristina anche il saldo sottraendo il risultato
-        if (betToDelete.stato === 'Archiviata' && betToDelete.risultato) {
-          const newSaldoAttuale = Number(accounts.saldo_attuale) - betToDelete.risultato;
+        if (betToDelete.tipo === 'Rapida') {
+          // Per giocate rapide
+          const newBilancioGiocateRapide = Number(account.bilancio_giocate_rapide) - betToDelete.stake;
+          updateData.bilancio_giocate_rapide = newBilancioGiocateRapide;
+          
+          // Se la scommessa è archiviata, ripristina anche il saldo sottraendo il risultato
+          if (betToDelete.stato === 'Archiviata' && betToDelete.risultato) {
+            const newSaldoAttuale = Number(account.saldo_attuale) - betToDelete.risultato;
+            updateData.saldo_attuale = newSaldoAttuale;
+          }
+        } else {
+          // Per altre scommesse
+          const newSaldoAttuale = Number(account.saldo_attuale) + betToDelete.stake;
+          const newBilancioGiocate = Number(account.bilancio_giocate) - betToDelete.stake;
           updateData.saldo_attuale = newSaldoAttuale;
+          updateData.bilancio_giocate = newBilancioGiocate;
         }
-      } else {
-        // Per altre scommesse
-        const newSaldoAttuale = Number(accounts.saldo_attuale) + betToDelete.stake;
-        const newBilancioGiocate = Number(accounts.bilancio_giocate) - betToDelete.stake;
-        updateData.saldo_attuale = newSaldoAttuale;
-        updateData.bilancio_giocate = newBilancioGiocate;
+
+        const { error: updateAccountError } = await supabase
+          .from('accounts')
+          .update(updateData)
+          .eq('id', account.id);
+
+        if (updateAccountError) throw updateAccountError;
       }
-
-      const { error: updateAccountError } = await supabase
-        .from('accounts')
-        .update(updateData)
-        .eq('id', accounts.id);
-
-      if (updateAccountError) throw updateAccountError;
 
       // Se c'è un wallet associato e NON è una giocata rapida, ripristina anche quello
       if (betToDelete.walletId && betToDelete.tipo !== 'Rapida') {
@@ -270,20 +277,20 @@ export function BetProvider({ children }: { children: ReactNode }) {
           .from('wallets')
           .select('*')
           .eq('id', betToDelete.walletId)
-          .single();
+          .maybeSingle();
 
         if (walletError) throw walletError;
 
-        const newWalletSaldo = Number(wallet.saldo_attuale) + betToDelete.stake;
+        if (wallet) {
+          const newWalletSaldo = Number(wallet.saldo_attuale) + betToDelete.stake;
 
-        const { error: updateWalletError } = await supabase
-          .from('wallets')
-          .update({
-            saldo_attuale: newWalletSaldo
-          })
-          .eq('id', betToDelete.walletId);
+          const { error: updateWalletError } = await supabase
+            .from('wallets')
+            .update({ saldo_attuale: newWalletSaldo })
+            .eq('id', betToDelete.walletId);
 
-        if (updateWalletError) throw updateWalletError;
+          if (updateWalletError) throw updateWalletError;
+        }
       }
 
       // Elimina la bet
@@ -310,15 +317,25 @@ export function BetProvider({ children }: { children: ReactNode }) {
     
     // If it's a quick bet, update account saldo_attuale
     if (bet && bet.tipo === 'Rapida') {
-      const { data: account, error: accountError } = await supabase
+      let accountQuery = supabase
         .from('accounts')
         .select('*')
-        .eq('conto', bet.conto)
         .eq('user_id', user?.id)
-        .single();
+        .eq('conto', bet.conto);
+
+      if (bet.walletId) {
+        accountQuery = accountQuery.eq('wallet_id', bet.walletId);
+      }
+
+      const { data: account, error: accountError } = await accountQuery.limit(1).maybeSingle();
       
       if (accountError) {
         console.error('Error fetching account:', accountError);
+        return;
+      }
+      
+      if (!account) {
+        // Nessun account trovato, non aggiorno il saldo
         return;
       }
       
