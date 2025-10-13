@@ -13,6 +13,8 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useWallets } from '@/contexts/WalletContext';
+import { useTransactions } from '@/contexts/TransactionContext';
+import { useAccounts } from '@/contexts/AccountContext';
 import { formatCurrency } from '@/utils/currency';
 
 const transactionSchema = z.object({
@@ -20,6 +22,7 @@ const transactionSchema = z.object({
     message: 'Metodo non può essere vuoto.',
   }),
   wallet: z.string().min(1, 'Wallet è obbligatorio'),
+  conto: z.string().min(1, 'Conto è obbligatorio per tracciare la transazione'),
   importo: z.number().positive('L\'importo deve essere positivo'),
   registrato: z.date(),
   descrizione: z.string().optional(),
@@ -34,11 +37,14 @@ interface WalletTransactionFormProps {
 
 export function WalletTransactionForm({ open, onOpenChange }: WalletTransactionFormProps) {
   const { wallets, updateWallet } = useWallets();
+  const { addTransaction } = useTransactions();
+  const { accounts } = useAccounts();
 
   const form = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
       wallet: '',
+      conto: '',
       importo: 0,
       registrato: new Date(),
       descrizione: '',
@@ -47,6 +53,7 @@ export function WalletTransactionForm({ open, onOpenChange }: WalletTransactionF
 
   const onSubmit = async (data: TransactionFormData) => {
     const wallet = wallets.find((w) => w.id === data.wallet);
+    const account = accounts.find((a) => a.conto === data.conto);
 
     if (wallet) {
       const newBalance =
@@ -56,6 +63,18 @@ export function WalletTransactionForm({ open, onOpenChange }: WalletTransactionF
 
       await updateWallet(wallet.id, {
         saldoAttuale: newBalance,
+      });
+
+      // Crea la transazione per tracciare il movimento
+      await addTransaction({
+        metodo: data.metodo === 'Ricarica' ? 'Deposito' : 'Spesa',
+        conto: data.conto,
+        wallet: wallet.nome,
+        intestatario: wallet.intestatario,
+        addebito: data.metodo === 'Spesa' ? data.importo : undefined,
+        accredito: data.metodo === 'Ricarica' ? data.importo : undefined,
+        descrizione: data.descrizione || `${data.metodo} wallet ${wallet.nome}`,
+        registrato: data.registrato,
       });
     }
 
@@ -97,11 +116,11 @@ export function WalletTransactionForm({ open, onOpenChange }: WalletTransactionF
               name="wallet"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Wallet</FormLabel>
+                  <FormLabel>Wallet *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Seleziona Metodo" />
+                        <SelectValue placeholder="Seleziona Wallet" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -110,6 +129,32 @@ export function WalletTransactionForm({ open, onOpenChange }: WalletTransactionF
                         .map((wallet) => (
                           <SelectItem key={wallet.id} value={wallet.id}>
                             {wallet.nome} ({formatCurrency(wallet.saldoAttuale)} {wallet.intestatario})
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="conto"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Conto *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleziona Conto" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {accounts
+                        .filter((a) => a.stato === 'Abilitato')
+                        .map((account) => (
+                          <SelectItem key={account.id} value={account.conto}>
+                            {account.conto} - {account.intestatario}
                           </SelectItem>
                         ))}
                     </SelectContent>
