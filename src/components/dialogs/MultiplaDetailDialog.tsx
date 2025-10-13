@@ -30,7 +30,11 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
   const [showCalculator, setShowCalculator] = useState(false);
   const [targetLoss, setTargetLoss] = useState<number>(5);
 
-  const layBets = bet ? getLayBetsByParentId(bet.id) : [];
+  const layBets = bet 
+    ? getLayBetsByParentId(bet.id).sort((a, b) => 
+        new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime()
+      )
+    : [];
   const betLegs = bet ? getBetLegsByBetId(bet.id) : [];
 
   // Usa la funzione centralizzata per i calcoli
