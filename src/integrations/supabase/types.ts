@@ -601,14 +601,7 @@ export type Database = {
       }
     }
     Views: {
-      available_public_books: {
-        Row: {
-          categoria: string | null
-          metodo: string | null
-          nome: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       add_public_book_to_user: {

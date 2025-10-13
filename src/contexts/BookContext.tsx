@@ -10,6 +10,13 @@ export interface Book {
   stato: 'Abilitato' | 'Disabilitato';
   predefinito: boolean;
   created_at: Date;
+  is_public?: boolean;
+  user_id?: string;
+}
+
+export interface PublicBook {
+  nome: string;
+  metodo: string;
 }
 
 interface BookContextType {
@@ -18,6 +25,8 @@ interface BookContextType {
   addBook: (book: Omit<Book, 'id' | 'created_at'>) => Promise<void>;
   updateBook: (id: string, book: Partial<Omit<Book, 'id' | 'created_at'>>) => Promise<void>;
   deleteBook: (id: string) => Promise<void>;
+  getPublicBooks: () => Promise<PublicBook[]>;
+  addPublicBook: (nome: string, metodo: string) => Promise<void>;
 }
 
 const BookContext = createContext<BookContextType | undefined>(undefined);
@@ -167,8 +176,65 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const getPublicBooks = async (): Promise<PublicBook[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('books')
+        .select('nome, metodo')
+        .eq('is_public', true)
+        .eq('stato', 'Abilitato');
+
+      if (error) throw error;
+
+      // Rimuovi duplicati
+      const uniqueBooks = Array.from(
+        new Map(data.map(book => [`${book.nome}-${book.metodo}`, book])).values()
+      );
+
+      return uniqueBooks;
+    } catch (error: any) {
+      console.error('Error fetching public books:', error);
+      toast({
+        title: 'Errore',
+        description: 'Impossibile caricare i book pubblici',
+        variant: 'destructive',
+      });
+      return [];
+    }
+  };
+
+  const addPublicBook = async (nome: string, metodo: string) => {
+    try {
+      if (!user) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase.rpc('add_public_book_to_user', {
+        _book_nome: nome,
+        _book_metodo: metodo
+      });
+
+      if (error) throw error;
+
+      await fetchBooks();
+
+      toast({
+        title: 'Successo',
+        description: 'Book aggiunto con successo',
+      });
+    } catch (error: any) {
+      console.error('Error adding public book:', error);
+      toast({
+        title: 'Errore',
+        description: error.message === 'You already have this book in your collection' 
+          ? 'Hai già questo book nella tua collezione'
+          : 'Impossibile aggiungere il book',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
   return (
-    <BookContext.Provider value={{ books, loading, addBook, updateBook, deleteBook }}>
+    <BookContext.Provider value={{ books, loading, addBook, updateBook, deleteBook, getPublicBooks, addPublicBook }}>
       {children}
     </BookContext.Provider>
   );

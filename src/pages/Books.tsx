@@ -11,6 +11,7 @@ import { BookForm } from '@/components/forms/BookForm';
 import { Badge } from '@/components/common/Badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info, ArrowLeft } from 'lucide-react';
+import { AddPublicBookDialog } from '@/components/forms/AddPublicBookDialog';
 export default function Books() {
   const navigate = useNavigate();
   const {
@@ -73,6 +74,7 @@ export default function Books() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Torna alle Impostazioni
           </Button>
+          <AddPublicBookDialog />
           <Button onClick={handleNewBook}>Nuovo Book</Button>
         </div>
       </div>
