@@ -85,6 +85,8 @@ export default function Accounts() {
                     <th className="p-3 text-left text-xs font-semibold uppercase">Conto</th>
                     <th className="p-3 text-left text-xs font-semibold uppercase">Descrizione</th>
                     <th className="p-3 text-left text-xs font-semibold uppercase">Saldo Attuale</th>
+                    <th className="p-3 text-left text-xs font-semibold uppercase">Bilancio Giocate</th>
+                    <th className="p-3 text-left text-xs font-semibold uppercase">Bilancio Rapide</th>
                     <th className="p-3 text-left text-xs font-semibold uppercase">Stato</th>
                     <th className="p-3 text-left text-xs font-semibold uppercase">Azioni</th>
                   </tr>
@@ -98,6 +100,16 @@ export default function Accounts() {
                       <td className="p-3 text-sm font-medium">{account.conto}</td>
                       <td className="p-3 text-sm">{account.descrizione || '-'}</td>
                       <td className="p-3 text-sm font-semibold">{formatCurrency(account.saldoAttuale)}</td>
+                      <td className="p-3 text-sm">
+                        <span className={account.bilancioGiocate >= 0 ? 'text-success' : 'text-destructive'}>
+                          {formatCurrency(account.bilancioGiocate)}
+                        </span>
+                      </td>
+                      <td className="p-3 text-sm">
+                        <span className={account.bilancioGiocateRapide >= 0 ? 'text-success' : 'text-destructive'}>
+                          {formatCurrency(account.bilancioGiocateRapide)}
+                        </span>
+                      </td>
                       <td className="p-3">
                         <Badge variant={account.stato === 'Abilitato' ? 'success' : 'secondary'}>
                           {account.stato}
