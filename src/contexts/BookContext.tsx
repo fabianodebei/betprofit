@@ -45,10 +45,17 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
 
   const fetchBooks = async () => {
+    if (!user) {
+      setBooks([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('books')
         .select('*')
+        .eq('user_id', user.id)
         .order('nome', { ascending: true });
 
       if (error) throw error;
@@ -72,27 +79,30 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    fetchBooks();
+    if (user) {
+      fetchBooks();
 
-    const channel = supabase
-      .channel('books-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'books'
-        },
-        () => {
-          fetchBooks();
-        }
-      )
-      .subscribe();
+      const channel = supabase
+        .channel('books-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'books',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            fetchBooks();
+          }
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [user]);
 
   const addBook = async (book: Omit<Book, 'id' | 'created_at'>) => {
     try {
