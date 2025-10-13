@@ -247,7 +247,7 @@ export function TransactionForm({ open, onOpenChange, preselectedAccount }: Tran
                       <SelectContent position="popper" className="z-[70] bg-popover">
                         {filteredWallets.map((wallet) => (
                           <SelectItem key={wallet.id} value={wallet.nome}>
-                            {wallet.nome} - {wallet.intestatario}
+                            {wallet.nome} - {wallet.intestatario} (€{wallet.saldoAttuale.toFixed(2)})
                           </SelectItem>
                         ))}
                       </SelectContent>
