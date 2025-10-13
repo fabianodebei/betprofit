@@ -104,9 +104,6 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
 
-      // Aggiorna subito la lista senza ricaricare la pagina
-      await fetchBooks();
-
       toast({
         title: 'Successo',
         description: 'Book aggiunto con successo',
@@ -131,9 +128,6 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
 
-      // Aggiorna subito la lista senza ricaricare la pagina
-      await fetchBooks();
-
       toast({
         title: 'Successo',
         description: 'Book aggiornato con successo',
@@ -157,9 +151,6 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
         .eq('id', id);
 
       if (error) throw error;
-
-      // Aggiorna subito la lista senza ricaricare la pagina
-      await fetchBooks();
 
       toast({
         title: 'Successo',
@@ -213,8 +204,6 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) throw error;
-
-      await fetchBooks();
 
       toast({
         title: 'Successo',
