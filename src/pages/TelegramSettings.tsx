@@ -78,9 +78,17 @@ const TelegramSettings = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
+      <div className="mb-6 flex flex-col items-center">
+        <Button 
+          variant="outline" 
+          onClick={() => navigate('/impostazioni')}
+          className="self-start mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Torna alle Impostazioni
+        </Button>
+        <div className="text-center">
+          <h1 className="text-3xl font-bold flex items-center justify-center gap-2">
             <MessageSquare className="h-8 w-8" />
             Configurazione Telegram
           </h1>
@@ -88,10 +96,6 @@ const TelegramSettings = () => {
             Configura il tuo BOT Telegram personale per ricevere notifiche
           </p>
         </div>
-        <Button variant="outline" onClick={() => navigate('/impostazioni')}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Torna alle Impostazioni
-        </Button>
       </div>
 
       <div className="grid gap-6 max-w-2xl mx-auto">
