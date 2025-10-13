@@ -220,6 +220,59 @@ export function BetProvider({ children }: { children: ReactNode }) {
 
   const deleteBet = async (id: string) => {
     try {
+      // Trova la bet da eliminare
+      const betToDelete = bets.find(b => b.id === id);
+      if (!betToDelete) {
+        throw new Error('Puntata non trovata');
+      }
+
+      // Trova l'account per ripristinare i saldi
+      const { data: accounts, error: accountError } = await supabase
+        .from('accounts')
+        .select('*')
+        .eq('conto', betToDelete.conto)
+        .eq('user_id', user?.id)
+        .single();
+
+      if (accountError) throw accountError;
+
+      // Ripristina il saldo dell'account
+      const newSaldoAttuale = Number(accounts.saldo_attuale) + betToDelete.stake;
+      const newBilancioGiocate = Number(accounts.bilancio_giocate) - betToDelete.stake;
+
+      const { error: updateAccountError } = await supabase
+        .from('accounts')
+        .update({
+          saldo_attuale: newSaldoAttuale,
+          bilancio_giocate: newBilancioGiocate
+        })
+        .eq('id', accounts.id);
+
+      if (updateAccountError) throw updateAccountError;
+
+      // Se c'è un wallet associato, ripristina anche quello
+      if (betToDelete.walletId) {
+        const { data: wallet, error: walletError } = await supabase
+          .from('wallets')
+          .select('*')
+          .eq('id', betToDelete.walletId)
+          .single();
+
+        if (walletError) throw walletError;
+
+        const newWalletSaldo = Number(wallet.saldo_attuale) + betToDelete.stake;
+
+        const { error: updateWalletError } = await supabase
+          .from('wallets')
+          .update({
+            saldo_attuale: newWalletSaldo
+          })
+          .eq('id', betToDelete.walletId);
+
+        if (updateWalletError) throw updateWalletError;
+      }
+
+      // Elimina la bet
       const { error } = await supabase
         .from('bets')
         .delete()
@@ -228,7 +281,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
 
       setBets((prev) => prev.filter((bet) => bet.id !== id));
-      toast.success('Puntata eliminata con successo');
+      toast.success('Puntata eliminata e saldi ripristinati');
     } catch (error: any) {
       toast.error('Errore durante l\'eliminazione della puntata');
       console.error('Error deleting bet:', error);
