@@ -433,6 +433,7 @@ export type Database = {
       }
       transactions: {
         Row: {
+          account_id: string | null
           accredito: number | null
           addebito: number | null
           bet_id: string | null
@@ -445,6 +446,7 @@ export type Database = {
           wallet: string | null
         }
         Insert: {
+          account_id?: string | null
           accredito?: number | null
           addebito?: number | null
           bet_id?: string | null
@@ -457,6 +459,7 @@ export type Database = {
           wallet?: string | null
         }
         Update: {
+          account_id?: string | null
           accredito?: number | null
           addebito?: number | null
           bet_id?: string | null
@@ -469,6 +472,13 @@ export type Database = {
           wallet?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "transactions_bet_id_fkey"
             columns: ["bet_id"]
