@@ -10,13 +10,30 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Shield, Search, UserCog, Users, Activity, Database, TrendingUp, ArrowLeft } from 'lucide-react';
+import { Shield, Search, UserCog, Users, Activity, Database, TrendingUp, ArrowLeft, RotateCcw } from 'lucide-react';
 import { format, subDays, eachDayOfInterval } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { AdminKPICard } from '@/components/admin/AdminKPICard';
 import { UserActivityTable } from '@/components/admin/UserActivityTable';
 import { RoleDistributionChart } from '@/components/admin/RoleDistributionChart';
 import { UserRegistrationChart } from '@/components/admin/UserRegistrationChart';
+import { useAdminPreferences } from '@/hooks/useAdminPreferences';
+import { DraggableWidget } from '@/components/admin/DraggableWidget';
+import { 
+  DndContext, 
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 
 interface UserProfile {
   id: string;
@@ -54,6 +71,16 @@ export default function Admin() {
   const [systemStats, setSystemStats] = useState<SystemStats | null>(null);
   const [userActivities, setUserActivities] = useState<any[]>([]);
   const [registrationData, setRegistrationData] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  
+  const { preferences, updatePreferences, resetPreferences, isLoading: prefsLoading } = useAdminPreferences();
+  
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     fetchUsers();
@@ -61,6 +88,33 @@ export default function Admin() {
     fetchUserActivities();
     fetchRegistrationData();
   }, []);
+
+  // Restore active tab from preferences
+  useEffect(() => {
+    if (preferences.defaultTab) {
+      setActiveTab(preferences.defaultTab);
+    }
+  }, [preferences.defaultTab]);
+
+  // Save active tab to preferences
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    updatePreferences({ defaultTab: value });
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = preferences.dashboardLayout?.indexOf(active.id as string) ?? -1;
+      const newIndex = preferences.dashboardLayout?.indexOf(over.id as string) ?? -1;
+
+      if (oldIndex !== -1 && newIndex !== -1 && preferences.dashboardLayout) {
+        const newLayout = arrayMove(preferences.dashboardLayout, oldIndex, newIndex);
+        updatePreferences({ dashboardLayout: newLayout });
+      }
+    }
+  };
 
   useEffect(() => {
     if (searchTerm) {
@@ -213,7 +267,7 @@ export default function Admin() {
     }
   };
 
-  if (loading) {
+  if (loading || prefsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -226,6 +280,114 @@ export default function Admin() {
     { name: 'Free', value: systemStats.roleDistribution.free },
   ] : [];
 
+  // Widget components map
+  const widgetComponents: Record<string, JSX.Element> = {
+    'kpi-users': (
+      <AdminKPICard
+        title="Totale Utenti"
+        value={systemStats?.totalUsers || 0}
+        icon={Users}
+        trend={{
+          value: systemStats?.newUsersThisWeek || 0,
+          label: 'questa settimana'
+        }}
+      />
+    ),
+    'kpi-bets': (
+      <AdminKPICard
+        title="Utenti Attivi"
+        value={systemStats?.activeUsers || 0}
+        icon={Activity}
+        description="Ultimi 30 giorni"
+      />
+    ),
+    'kpi-transactions': (
+      <AdminKPICard
+        title="Nuovi Utenti"
+        value={systemStats?.newUsersThisMonth || 0}
+        icon={TrendingUp}
+        description="Ultimo mese"
+      />
+    ),
+    'kpi-accounts': (
+      <AdminKPICard
+        title="Database"
+        value={`${systemStats?.totalBets || 0} bets`}
+        icon={Database}
+        description={`${systemStats?.totalTransactions || 0} transazioni`}
+      />
+    ),
+    'chart-registrations': <UserRegistrationChart data={registrationData} height={350} />,
+    'chart-roles': <RoleDistributionChart data={roleDistributionData} height={350} />,
+    'stats-general': (
+      <Card>
+        <CardHeader>
+          <CardTitle>Statistiche Database</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Bets</span>
+            <span className="font-semibold">{systemStats?.totalBets || 0}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Transazioni</span>
+            <span className="font-semibold">{systemStats?.totalTransactions || 0}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Conti</span>
+            <span className="font-semibold">{systemStats?.totalAccounts || 0}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Wallet</span>
+            <span className="font-semibold">{systemStats?.totalWallets || 0}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Tag</span>
+            <span className="font-semibold">{systemStats?.totalTags || 0}</span>
+          </div>
+        </CardContent>
+      </Card>
+    ),
+    'stats-bets': (
+      <Card>
+        <CardHeader>
+          <CardTitle>Distribuzione Ruoli</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground">Admin</span>
+            <Badge variant="default">{systemStats?.roleDistribution.admin || 0}</Badge>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground">Free</span>
+            <Badge variant="outline">{systemStats?.roleDistribution.free || 0}</Badge>
+          </div>
+        </CardContent>
+      </Card>
+    ),
+    'stats-accounts': (
+      <Card>
+        <CardHeader>
+          <CardTitle>Crescita Utenti</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Questa settimana</span>
+            <span className="font-semibold text-success">+{systemStats?.newUsersThisWeek || 0}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Questo mese</span>
+            <span className="font-semibold text-success">+{systemStats?.newUsersThisMonth || 0}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Attivi (30gg)</span>
+            <span className="font-semibold">{systemStats?.activeUsers || 0}</span>
+          </div>
+        </CardContent>
+      </Card>
+    ),
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -236,16 +398,27 @@ export default function Admin() {
             <p className="text-muted-foreground">Dashboard e gestione sistema</p>
           </div>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => navigate('/impostazioni')}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Torna alle Impostazioni
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={resetPreferences}
+            title="Ripristina layout predefinito"
+          >
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Reset Layout
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/impostazioni')}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Torna alle Impostazioni
+          </Button>
+        </div>
       </div>
 
-      <Tabs defaultValue="dashboard" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
         <TabsList>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="users">Gestione Utenti</TabsTrigger>
@@ -253,109 +426,45 @@ export default function Admin() {
         </TabsList>
 
         <TabsContent value="dashboard" className="space-y-6">
-          {/* KPI Cards */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            <AdminKPICard
-              title="Totale Utenti"
-              value={systemStats?.totalUsers || 0}
-              icon={Users}
-              trend={{
-                value: systemStats?.newUsersThisWeek || 0,
-                label: 'questa settimana'
-              }}
-            />
-            <AdminKPICard
-              title="Utenti Attivi"
-              value={systemStats?.activeUsers || 0}
-              icon={Activity}
-              description="Ultimi 30 giorni"
-            />
-            <AdminKPICard
-              title="Nuovi Utenti"
-              value={systemStats?.newUsersThisMonth || 0}
-              icon={TrendingUp}
-              description="Ultimo mese"
-            />
-            <AdminKPICard
-              title="Database"
-              value={`${systemStats?.totalBets || 0} bets`}
-              icon={Database}
-              description={`${systemStats?.totalTransactions || 0} transazioni`}
-            />
-          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={preferences.dashboardLayout || []}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-6">
+                {/* KPI Cards - First 4 widgets */}
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                  {preferences.dashboardLayout?.slice(0, 4).map((widgetId) => (
+                    <DraggableWidget key={widgetId} id={widgetId}>
+                      {widgetComponents[widgetId]}
+                    </DraggableWidget>
+                  ))}
+                </div>
 
-          {/* Charts */}
-          <div className="grid gap-6 lg:grid-cols-2">
-            <UserRegistrationChart data={registrationData} />
-            <RoleDistributionChart data={roleDistributionData} />
-          </div>
+                {/* Charts - Widgets 5-6 */}
+                <div className="grid gap-6 lg:grid-cols-2">
+                  {preferences.dashboardLayout?.slice(4, 6).map((widgetId) => (
+                    <DraggableWidget key={widgetId} id={widgetId}>
+                      {widgetComponents[widgetId]}
+                    </DraggableWidget>
+                  ))}
+                </div>
 
-          {/* System Stats */}
-          <div className="grid gap-6 md:grid-cols-3">
-            <Card>
-              <CardHeader>
-                <CardTitle>Statistiche Database</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Bets</span>
-                  <span className="font-semibold">{systemStats?.totalBets || 0}</span>
+                {/* System Stats - Widgets 7-9 */}
+                <div className="grid gap-6 md:grid-cols-3">
+                  {preferences.dashboardLayout?.slice(6, 9).map((widgetId) => (
+                    <DraggableWidget key={widgetId} id={widgetId}>
+                      {widgetComponents[widgetId]}
+                    </DraggableWidget>
+                  ))}
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Transazioni</span>
-                  <span className="font-semibold">{systemStats?.totalTransactions || 0}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Conti</span>
-                  <span className="font-semibold">{systemStats?.totalAccounts || 0}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Wallet</span>
-                  <span className="font-semibold">{systemStats?.totalWallets || 0}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tag</span>
-                  <span className="font-semibold">{systemStats?.totalTags || 0}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Distribuzione Ruoli</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Admin</span>
-                  <Badge variant="default">{systemStats?.roleDistribution.admin || 0}</Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Free</span>
-                  <Badge variant="outline">{systemStats?.roleDistribution.free || 0}</Badge>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Crescita Utenti</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Questa settimana</span>
-                  <span className="font-semibold text-green-600">+{systemStats?.newUsersThisWeek || 0}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Questo mese</span>
-                  <span className="font-semibold text-green-600">+{systemStats?.newUsersThisMonth || 0}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Attivi (30gg)</span>
-                  <span className="font-semibold">{systemStats?.activeUsers || 0}</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </SortableContext>
+          </DndContext>
         </TabsContent>
 
         <TabsContent value="users">
