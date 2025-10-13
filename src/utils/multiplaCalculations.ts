@@ -42,7 +42,12 @@ export function getMultiplaCalculations(
   const liability = (lb: LayBet) => lb.stake * (lb.quotaBanca - 1);
 
   // Calcola la vincita netta del lay (vincita - tasse)
-  const layWinNet = (lb: LayBet) => lb.stake * (1 - (lb.tassePercentuale || 0) / 100);
+  // La vincita lorda è lo stake bancato, le tasse si applicano solo sul profitto
+  const layWinNet = (lb: LayBet) => {
+    const profitLordo = lb.stake;
+    const tasse = profitLordo * ((lb.tassePercentuale || 0) / 100);
+    return profitLordo - tasse;
+  };
 
   // Somma di tutte le liability
   const sumLiability = layBets.reduce((sum, lb) => sum + liability(lb), 0);
@@ -70,8 +75,12 @@ export function getMultiplaCalculations(
 
   // Scenario per ogni gamba (multipla perde su quella specifica lay)
   const perGamba = layBets.map((lb) => {
-    // Perdi la puntata + vinci quella specifica lay - (tutte le altre liability)
-    const risultato = puntaLoss + layWinNet(lb) - (sumLiability - liability(lb));
+    // Se questa gamba fa vincere il lay (multipla perde):
+    // 1. Perdi la puntata della multipla: puntaLoss
+    // 2. Vinci il lay specifico: +layWinNet(lb)
+    // 3. Perdi le altre liability (ma non questa): -(sumLiability - liability(lb))
+    const altreLibability = sumLiability - liability(lb);
+    const risultato = puntaLoss + layWinNet(lb) - altreLibability;
     return {
       id: lb.id,
       evento: lb.evento,
