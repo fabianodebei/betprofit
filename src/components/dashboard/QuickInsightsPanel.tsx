@@ -64,55 +64,92 @@ export function generateInsights(bets: any[], currentYear: number) {
   const bookmakerStats = new Map();
   archivedBets.forEach(bet => {
     if (!bookmakerStats.has(bet.conto)) {
-      bookmakerStats.set(bet.conto, { stake: 0, profitto: 0 });
+      bookmakerStats.set(bet.conto, { stake: 0, profitto: 0, count: 0 });
     }
     const s = bookmakerStats.get(bet.conto);
     s.stake += bet.stake;
     s.profitto += bet.risultato || 0;
+    s.count += 1;
   });
 
-  let bestBookmaker = { name: '', roi: -Infinity, profitto: 0 };
-  bookmakerStats.forEach((data, name) => {
-    const roi = (data.profitto / data.stake) * 100;
-    if (roi > bestBookmaker.roi) {
-      bestBookmaker = { name, roi, profitto: data.profitto };
+  // Filter bookmakers with at least 3 bets
+  const validBookmakers = Array.from(bookmakerStats.entries())
+    .filter(([_, data]) => data.count >= 3)
+    .map(([name, data]) => ({
+      name,
+      roi: (data.profitto / data.stake) * 100,
+      profitto: data.profitto,
+      count: data.count
+    }));
+
+  if (validBookmakers.length > 0) {
+    const positiveBookmakers = validBookmakers.filter(b => b.roi > 0);
+    
+    if (positiveBookmakers.length > 0) {
+      // Show best profitable bookmaker
+      const best = positiveBookmakers.reduce((max, b) => b.roi > max.roi ? b : max);
+      insights.push({
+        type: 'success',
+        icon: <Trophy className="h-4 w-4" />,
+        title: `Miglior Bookmaker: ${best.name}`,
+        description: `ROI del ${best.roi.toFixed(1)}% con un profitto di ${formatCurrency(best.profitto)} (${best.count} scommesse)`
+      });
+    } else {
+      // All bookmakers are negative - show least bad as warning
+      const leastBad = validBookmakers.reduce((max, b) => b.roi > max.roi ? b : max);
+      insights.push({
+        type: 'warning',
+        icon: <AlertTriangle className="h-4 w-4" />,
+        title: `Bookmaker con perdita minore: ${leastBad.name}`,
+        description: `ROI del ${leastBad.roi.toFixed(1)}% con una perdita di ${formatCurrency(Math.abs(leastBad.profitto))} - Valuta la tua strategia`
+      });
     }
-  });
-
-  if (bestBookmaker.name) {
-    insights.push({
-      type: 'success',
-      icon: <Trophy className="h-4 w-4" />,
-      title: `Miglior Bookmaker: ${bestBookmaker.name}`,
-      description: `ROI del ${bestBookmaker.roi.toFixed(1)}% con un profitto di ${formatCurrency(bestBookmaker.profitto)}`
-    });
   }
 
   // Best tag by profitability
   const tagStats = new Map();
   archivedBets.filter(b => b.tag).forEach(bet => {
     if (!tagStats.has(bet.tag)) {
-      tagStats.set(bet.tag, { profitto: 0, count: 0 });
+      tagStats.set(bet.tag, { profitto: 0, count: 0, stake: 0 });
     }
     const s = tagStats.get(bet.tag);
     s.profitto += bet.risultato || 0;
     s.count += 1;
+    s.stake += bet.stake;
   });
 
-  let bestTag = { name: '', profitto: -Infinity, count: 0 };
-  tagStats.forEach((data, name) => {
-    if (data.profitto > bestTag.profitto) {
-      bestTag = { name, profitto: data.profitto, count: data.count };
+  // Filter tags with at least 3 bets
+  const validTags = Array.from(tagStats.entries())
+    .filter(([_, data]) => data.count >= 3)
+    .map(([name, data]) => ({
+      name,
+      profitto: data.profitto,
+      count: data.count,
+      roi: (data.profitto / data.stake) * 100
+    }));
+
+  if (validTags.length > 0) {
+    const positiveTags = validTags.filter(t => t.profitto > 0);
+    
+    if (positiveTags.length > 0) {
+      // Show most profitable tag
+      const best = positiveTags.reduce((max, t) => t.profitto > max.profitto ? t : max);
+      insights.push({
+        type: 'success',
+        icon: <Tag className="h-4 w-4" />,
+        title: `Tag più redditizio: ${best.name}`,
+        description: `${best.count} scommesse per un profitto di ${formatCurrency(best.profitto)} (ROI ${best.roi.toFixed(1)}%)`
+      });
+    } else {
+      // All tags are negative - show least bad as warning
+      const leastBad = validTags.reduce((max, t) => t.profitto > max.profitto ? t : max);
+      insights.push({
+        type: 'warning',
+        icon: <AlertTriangle className="h-4 w-4" />,
+        title: `Tag con perdita minore: ${leastBad.name}`,
+        description: `${leastBad.count} scommesse con una perdita di ${formatCurrency(Math.abs(leastBad.profitto))} - Rivaluta questo approccio`
+      });
     }
-  });
-
-  if (bestTag.name) {
-    insights.push({
-      type: 'success',
-      icon: <Tag className="h-4 w-4" />,
-      title: `Tag più redditizio: ${bestTag.name}`,
-      description: `${bestTag.count} scommesse per un profitto totale di ${formatCurrency(bestTag.profitto)}`
-    });
   }
 
   // Current streak
