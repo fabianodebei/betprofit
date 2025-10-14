@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -131,7 +131,20 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
 
   // Calculate combined odds
   const quotaCombinata = selections.reduce((acc, sel) => acc * sel.quota, 1);
-  const vincitaPotenziale = form.watch('stake') * quotaCombinata;
+  const stake = form.watch('stake');
+  const bonus = form.watch('bonus');
+  const vincitaPotenziale = useMemo(() => {
+    if (tipoBonus === 'Free Bet') {
+      // Free Bet: vincita = bonus * quotaCombinata
+      return (bonus || 0) * quotaCombinata;
+    } else if (tipoBonus === 'Bonus' && bonus) {
+      // Bonus: vincita = (stake + bonus) * quotaCombinata - stake
+      return (stake + bonus) * quotaCombinata - stake;
+    } else {
+      // Normale: vincita = stake * quotaCombinata - stake
+      return stake * quotaCombinata - stake;
+    }
+  }, [stake, bonus, quotaCombinata, tipoBonus]);
 
   useEffect(() => {
     if (editingBet && open) {

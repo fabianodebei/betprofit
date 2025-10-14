@@ -131,12 +131,17 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
   const quota = form.watch('quota');
   const bonus = form.watch('bonus');
   const potentialWin = useMemo(() => {
-    const effectiveStake = stake > 0 ? stake : (bonus || 0);
-    if (effectiveStake && quota) {
-      return effectiveStake * quota - effectiveStake;
+    if (tipoBonus === 'Free Bet') {
+      // Free Bet: vincita = bonus * quota (non ho messo soldi miei)
+      return (bonus || 0) * quota;
+    } else if (tipoBonus === 'Bonus' && bonus) {
+      // Bonus: vincita = (stake + bonus) * quota - stake
+      return (stake + bonus) * quota - stake;
+    } else {
+      // Normale: vincita = stake * quota - stake
+      return stake * quota - stake;
     }
-    return 0;
-  }, [stake, quota, bonus]);
+  }, [stake, quota, bonus, tipoBonus]);
 
   // Check if stake exceeds balance
   const stakeExceedsBalance = useMemo(() => {
