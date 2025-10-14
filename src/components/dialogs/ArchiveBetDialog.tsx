@@ -19,19 +19,27 @@ export function ArchiveBetDialog({ bet, open, onOpenChange, onConfirm }: Archive
   if (!bet) return null;
 
   const calculateRisultato = () => {
-    // Usa stake o bonus se stake è zero
-    const effectiveStake = bet.stake > 0 ? bet.stake : (bet.bonus || 0);
+    const quota = bet.quota || 1;
     
     if (outcome === 'win') {
-      const quota = bet.quota || 1;
-      return (effectiveStake * quota) - effectiveStake;
+      if (bet.tipoBonus === 'Free Bet') {
+        // Free Bet: vincita = bonus * quota
+        return (bet.bonus || 0) * quota;
+      } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
+        // Bonus: vincita = (stake + bonus) * quota - stake
+        return (bet.stake + bet.bonus) * quota - bet.stake;
+      } else {
+        // Normale: vincita = stake * quota - stake
+        return bet.stake * quota - bet.stake;
+      }
     }
     if (outcome === 'loss') {
       // Con Free Bet, la perdita è 0 (non si perde denaro reale)
       if (bet.tipoBonus === 'Free Bet') {
         return 0;
       }
-      return -effectiveStake;
+      // Con Bonus o Normale, si perde lo stake
+      return -bet.stake;
     }
     return 0; // refund
   };

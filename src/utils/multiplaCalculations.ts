@@ -64,11 +64,26 @@ export function getMultiplaCalculations(
 
   // Scenario: multipla VINTA
   // Guadagno dalla puntata - tutte le liability perse
-  const puntaWin = bet.stake * (quotaEffettiva - 1) + (bet.bonus || 0);
+  let puntaWin: number;
+  if (bet.tipoBonus === 'Free Bet') {
+    // Free Bet: vincita = bonus * quotaEffettiva
+    puntaWin = (bet.bonus || 0) * quotaEffettiva;
+  } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
+    // Bonus: vincita = (stake + bonus) * quotaEffettiva - stake
+    puntaWin = (bet.stake + bet.bonus) * quotaEffettiva - bet.stake;
+  } else {
+    // Normale: vincita = stake * quotaEffettiva - stake
+    puntaWin = bet.stake * quotaEffettiva - bet.stake;
+  }
 
   // Scenario: multipla PERSA
-  // Perdi lo stake (meno eventuale rimborso)
-  const puntaLoss = -(bet.stake - (bet.rimborso || 0));
+  // Perdi lo stake (meno eventuale rimborso), ma con Free Bet la perdita è 0
+  let puntaLoss: number;
+  if (bet.tipoBonus === 'Free Bet') {
+    puntaLoss = 0;
+  } else {
+    puntaLoss = -(bet.stake - (bet.rimborso || 0));
+  }
 
   // Scenario vincita multipla = vincita punta - tutte le liability
   const scenarioVincita = puntaWin - sumLiability;
