@@ -140,12 +140,14 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
 
   // Check if stake exceeds balance
   const stakeExceedsBalance = useMemo(() => {
+    // Con Free Bet non verifichiamo il saldo (sono soldi gratis del bookmaker)
+    if (tipoBonus === 'Free Bet') return false;
     if (stake === 0) return false; // Stake 0 è valido con bonus
     if (selectedAccount && stake) {
       return stake > selectedAccount.saldoAttuale;
     }
     return false;
-  }, [selectedAccount, stake]);
+  }, [selectedAccount, stake, tipoBonus]);
 
   // Check if quota is low
   const isLowOdds = useMemo(() => {
