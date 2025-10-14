@@ -583,7 +583,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                 <FormField
                   control={form.control}
                   name="stake"
-                  render={({ field }) => (
+                  render={({ field: { value, onChange, ...field } }) => (
                     <FormItem>
                       <FormLabel>Stake *</FormLabel>
                       <FormControl>
@@ -592,17 +592,11 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                             type="number"
                             step="0.01"
                             placeholder="0.00"
-                            value={field.value || ''}
+                            {...field}
+                            value={value || ''}
                             onChange={(e) => {
-                              const value = e.target.value;
-                              if (value === '' || value === '-') {
-                                field.onChange(0);
-                              } else {
-                                const num = parseFloat(value);
-                                if (!isNaN(num)) {
-                                  field.onChange(num);
-                                }
-                              }
+                              const val = e.target.value;
+                              onChange(val === '' ? 0 : parseFloat(val));
                             }}
                             className={cn(stakeExceedsBalance && "border-destructive")}
                           />
@@ -624,7 +618,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                 <FormField
                   control={form.control}
                   name="quota"
-                  render={({ field }) => (
+                  render={({ field: { value, onChange, ...field } }) => (
                     <FormItem>
                       <FormLabel>Quota Punta *</FormLabel>
                       <FormControl>
@@ -632,17 +626,11 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                           type="number"
                           step="0.01"
                           placeholder="1.01"
-                          value={field.value || ''}
+                          {...field}
+                          value={value || ''}
                           onChange={(e) => {
-                            const value = e.target.value;
-                            if (value === '' || value === '-') {
-                              field.onChange(1.01);
-                            } else {
-                              const num = parseFloat(value);
-                              if (!isNaN(num)) {
-                                field.onChange(num);
-                              }
-                            }
+                            const val = e.target.value;
+                            onChange(val === '' ? 1.01 : parseFloat(val));
                           }}
                           className={cn(isLowOdds && "border-orange-500")}
                         />
@@ -709,7 +697,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                   <FormField
                     control={form.control}
                     name="bonus"
-                    render={({ field }) => (
+                    render={({ field: { value, onChange, ...field } }) => (
                       <FormItem>
                         <FormLabel>Bonus</FormLabel>
                         <FormControl>
@@ -718,17 +706,11 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                               type="number"
                               step="0.01"
                               placeholder="0.00"
-                              value={field.value || ''}
+                              {...field}
+                              value={value || ''}
                               onChange={(e) => {
-                                const value = e.target.value;
-                                if (value === '' || value === '-') {
-                                  field.onChange(0);
-                                } else {
-                                  const num = parseFloat(value);
-                                  if (!isNaN(num)) {
-                                    field.onChange(num);
-                                  }
-                                }
+                                const val = e.target.value;
+                                onChange(val === '' ? 0 : parseFloat(val));
                               }}
                             />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
@@ -743,7 +725,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                   <FormField
                     control={form.control}
                     name="rimborso"
-                    render={({ field }) => (
+                    render={({ field: { value, onChange, ...field } }) => (
                       <FormItem>
                         <FormLabel>Rimborso</FormLabel>
                         <FormControl>
@@ -752,17 +734,11 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                               type="number"
                               step="0.01"
                               placeholder="0.00"
-                              value={field.value || ''}
+                              {...field}
+                              value={value || ''}
                               onChange={(e) => {
-                                const value = e.target.value;
-                                if (value === '' || value === '-') {
-                                  field.onChange(0);
-                                } else {
-                                  const num = parseFloat(value);
-                                  if (!isNaN(num)) {
-                                    field.onChange(num);
-                                  }
-                                }
+                                const val = e.target.value;
+                                onChange(val === '' ? 0 : parseFloat(val));
                               }}
                             />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
