@@ -277,6 +277,8 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         mercato: data.mercato,
         metodo: data.metodo,
         quota: data.quota,
+        stake: data.stake,
+        conto: data.conto,
         tipoBonus: data.tipoBonus,
         bonus: data.bonus,
         rimborso: data.rimborso,
