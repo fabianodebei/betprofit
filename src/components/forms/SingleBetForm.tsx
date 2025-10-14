@@ -282,7 +282,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
       });
     } else {
       // Modalità crea/clona: crea una nuova scommessa
-      // Aggiorna il saldo solo se stake > 0 e NON è Free Bet (soldi regalati)
+      // Aggiorna il saldo solo se stake > 0 e NON è Free Bet o Bonus totale (stake=0)
       if (account && data.stake > 0 && data.tipoBonus !== 'Free Bet') {
         const newBalance = account.saldoAttuale - data.stake;
         await updateAccount(account.id, { 

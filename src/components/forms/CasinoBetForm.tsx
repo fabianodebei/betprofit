@@ -131,7 +131,8 @@ export function CasinoBetForm({
       });
     } else {
       const account = accounts.find(a => a.conto === data.conto);
-      if (account) {
+      // Non detrarre saldo per Free Bet o quando lo stake è 0 (bonus totale)
+      if (account && data.stake > 0 && data.tipoBonus !== 'Free Bet') {
         const newBalance = account.saldoAttuale - data.stake;
         await updateAccount(account.id, {
           saldoAttuale: newBalance,

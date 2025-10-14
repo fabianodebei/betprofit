@@ -302,14 +302,16 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
           });
         }
         
-        // Update account balance
-        const newBalance = account.saldoAttuale - data.stake;
-        const newBilancioGiocate = account.bilancioGiocate + data.stake;
-        await updateAccount(account.id, {
-          ...account,
-          saldoAttuale: newBalance,
-          bilancioGiocate: newBilancioGiocate,
-        });
+        // Update account balance (non detrarre per Free Bet o stake 0)
+        if (data.stake > 0 && data.tipoBonus !== 'Free Bet') {
+          const newBalance = account.saldoAttuale - data.stake;
+          const newBilancioGiocate = account.bilancioGiocate + data.stake;
+          await updateAccount(account.id, {
+            ...account,
+            saldoAttuale: newBalance,
+            bilancioGiocate: newBilancioGiocate,
+          });
+        }
 
         if (selectedWallet) {
           // Implementation for wallet balance update would go here
