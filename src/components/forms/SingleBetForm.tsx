@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { TimePicker } from '@/components/ui/time-picker';
-import { CalendarIcon, RotateCcw, FileText, Save, AlertCircle, TrendingUp } from 'lucide-react';
+import { CalendarIcon, AlertCircle, TrendingUp } from 'lucide-react';
 import { format, addHours, isPast } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useBets } from '@/contexts/BetContext';
@@ -129,63 +129,9 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
     return eventDate && isPast(eventDate);
   }, [eventDate]);
 
-  // Get last bet for repeat functionality
-  const lastBet = useMemo(() => {
-    const ongoingBets = bets.filter(b => b.tipo === 'Singola' && b.stato === 'In Corso');
-    return ongoingBets.length > 0 ? ongoingBets[0] : null;
-  }, [bets]);
+  // Quick actions rimosse
 
-  // Quick actions functions
-  const repeatLastBet = () => {
-    if (!lastBet) return;
-    
-    const account = accounts.find(a => a.conto === lastBet.conto);
-    const intestatario = account?.intestatario || '';
-    
-    form.reset({
-      metodo: (lastBet.metodo as 'Punta' | 'Banca') || 'Punta',
-      intestatario: intestatario,
-      evento: lastBet.evento || '',
-      dataEvento: addHours(new Date(), 1),
-      mercato: lastBet.mercato || '',
-      conto: lastBet.conto,
-      stake: lastBet.stake,
-      quota: lastBet.quota || 1.01,
-      tipoBonus: lastBet.tipoBonus || 'Nessuno',
-      bonus: lastBet.bonus || 0,
-      rimborso: lastBet.rimborso || 0,
-      urlEvento: '',
-      competizione: lastBet.competizione || '',
-      tag: lastBet.tag || 'none',
-    });
-    setSelectedIntestatario(intestatario);
-    setSelectedConto(lastBet.conto);
-    setTipoBonus(lastBet.tipoBonus || 'Nessuno');
-    toast.success('Ultima giocata ripetuta');
-  };
-
-  const saveAsTemplate = () => {
-    const currentValues = form.getValues();
-    localStorage.setItem('single_bet_template', JSON.stringify(currentValues));
-    toast.success('Template salvato!');
-  };
-
-  const loadTemplate = () => {
-    const template = localStorage.getItem('single_bet_template');
-    if (template) {
-      const templateData = JSON.parse(template);
-      form.reset({
-        ...templateData,
-        dataEvento: addHours(new Date(), 1), // Reset date to future
-      });
-      setSelectedIntestatario(templateData.intestatario);
-      setSelectedConto(templateData.conto);
-      setTipoBonus(templateData.tipoBonus || 'Nessuno');
-      toast.success('Template caricato');
-    } else {
-      toast.error('Nessun template salvato');
-    }
-  };
+  // Template funzioni rimosse
 
   useEffect(() => {
     if (editingBet && open) {
@@ -329,42 +275,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
           </DialogTitle>
         </DialogHeader>
 
-        {/* Quick Actions Header */}
-        {mode === 'create' && (
-          <div className="flex gap-2 flex-wrap -mt-2 mb-2">
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="sm" 
-              onClick={repeatLastBet}
-              disabled={!lastBet}
-              className="flex items-center gap-2"
-            >
-              <RotateCcw className="h-4 w-4" />
-              Ripeti Ultima
-            </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="sm" 
-              onClick={loadTemplate}
-              className="flex items-center gap-2"
-            >
-              <FileText className="h-4 w-4" />
-              Carica Template
-            </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="sm" 
-              onClick={saveAsTemplate}
-              className="flex items-center gap-2"
-            >
-              <Save className="h-4 w-4" />
-              Salva Template
-            </Button>
-          </div>
-        )}
+        
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -407,6 +318,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                     <FormControl>
                       <Input 
                         placeholder="Es: Roma vs Lazio" 
+                        autoFocus
                         {...field} 
                       />
                     </FormControl>
