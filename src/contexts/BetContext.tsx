@@ -378,7 +378,11 @@ export function BetProvider({ children }: { children: ReactNode }) {
   };
 
   const getTotalStakeInCorso = () => {
-    return getOngoingBets().reduce((sum, bet) => sum + bet.stake, 0);
+    return getOngoingBets().reduce((sum, bet) => {
+      // Escludi Free Bet e Bonus (soldi regalati) dal totale puntate in corso
+      if (bet.tipoBonus === 'Free Bet' || bet.tipoBonus === 'Bonus') return sum;
+      return sum + (bet.stake > 0 ? bet.stake : 0);
+    }, 0);
   };
 
   return (
