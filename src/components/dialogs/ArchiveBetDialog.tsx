@@ -27,6 +27,10 @@ export function ArchiveBetDialog({ bet, open, onOpenChange, onConfirm }: Archive
       return (effectiveStake * quota) - effectiveStake;
     }
     if (outcome === 'loss') {
+      // Con Free Bet, la perdita è 0 (non si perde denaro reale)
+      if (bet.tipoBonus === 'Free Bet') {
+        return 0;
+      }
       return -effectiveStake;
     }
     return 0; // refund
