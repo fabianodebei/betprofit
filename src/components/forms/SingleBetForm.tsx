@@ -68,6 +68,22 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
   const [selectedConto, setSelectedConto] = useState<string>('');
   const [bonusDetailsOpen, setBonusDetailsOpen] = useState(false);
   const [optionalDetailsOpen, setOptionalDetailsOpen] = useState(false);
+  // Local string states for numeric inputs to allow free typing (supports comma)
+  const [stakeInput, setStakeInput] = useState<string>('');
+  const [quotaInput, setQuotaInput] = useState<string>('');
+  const parseDecimal = (val: string) => {
+    if (!val) return NaN;
+    return parseFloat(val.replace(',', '.'));
+  };
+  // Sync local inputs when dialog opens or editing changes
+  useEffect(() => {
+    if (open) {
+      const s = form.getValues('stake');
+      const q = form.getValues('quota');
+      setStakeInput(s !== undefined && s !== null ? String(s) : '');
+      setQuotaInput(q !== undefined && q !== null ? String(q) : '');
+    }
+  }, [open]);
 
   const singleBetSchema = createSingleBetSchema(settings.tag);
 
@@ -495,20 +511,20 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                 <FormField
                   control={form.control}
                   name="stake"
-                  render={({ field: { value, onChange, ...field } }) => (
+                  render={() => (
                     <FormItem>
                       <FormLabel>Stake *</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
-                            type="number"
-                            step="0.01"
-                            placeholder="0.00"
-                            {...field}
-                            value={value || ''}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              onChange(val === '' ? 0 : parseFloat(val));
+                            type="text"
+                            inputMode="decimal"
+                            placeholder="0,00"
+                            value={stakeInput}
+                            onChange={(e) => setStakeInput(e.target.value)}
+                            onBlur={() => {
+                              const num = parseDecimal(stakeInput);
+                              form.setValue('stake', Number.isFinite(num) ? num : 0, { shouldValidate: true });
                             }}
                             className={cn(stakeExceedsBalance && "border-destructive")}
                           />
@@ -530,19 +546,19 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                 <FormField
                   control={form.control}
                   name="quota"
-                  render={({ field: { value, onChange, ...field } }) => (
+                  render={() => (
                     <FormItem>
                       <FormLabel>Quota Punta *</FormLabel>
                       <FormControl>
                         <Input
-                          type="number"
-                          step="0.01"
-                          placeholder="1.01"
-                          {...field}
-                          value={value || ''}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            onChange(val === '' ? 1.01 : parseFloat(val));
+                          type="text"
+                          inputMode="decimal"
+                          placeholder="1,01"
+                          value={quotaInput}
+                          onChange={(e) => setQuotaInput(e.target.value)}
+                          onBlur={() => {
+                            const num = parseDecimal(quotaInput);
+                            form.setValue('quota', Number.isFinite(num) ? num : 1.01, { shouldValidate: true });
                           }}
                           className={cn(isLowOdds && "border-orange-500")}
                         />
