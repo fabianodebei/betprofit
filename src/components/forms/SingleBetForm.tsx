@@ -35,7 +35,7 @@ const createSingleBetSchema = (tagRequired: boolean) => z.object({
   dataEvento: z.date(),
   mercato: z.string().min(1, 'Mercato è obbligatorio'),
   conto: z.string().min(1, 'Conto è obbligatorio'),
-  stake: z.number().positive('Lo stake deve essere positivo'),
+  stake: z.number().min(0, 'Lo stake non può essere negativo'),
   quota: z.number().min(1.01, 'La quota deve essere almeno 1.01'),
   tipoBonus: z.enum(['Nessuno', 'Bonus', 'Rimborso', 'Free Bet']),
   bonus: z.number().optional(),
@@ -45,7 +45,23 @@ const createSingleBetSchema = (tagRequired: boolean) => z.object({
   tag: tagRequired
     ? z.string().min(1, 'Tag è obbligatorio').refine(val => val !== 'none', 'Seleziona un tag valido')
     : z.string().optional(),
-});
+}).refine(
+  (data) => {
+    // Se tipoBonus è Nessuno, stake deve essere > 0
+    if (data.tipoBonus === 'Nessuno' && data.stake <= 0) {
+      return false;
+    }
+    // Se tipoBonus è Bonus/Free Bet, almeno uno tra stake o bonus deve essere > 0
+    if (['Bonus', 'Free Bet'].includes(data.tipoBonus)) {
+      return data.stake > 0 || (data.bonus && data.bonus > 0);
+    }
+    return true;
+  },
+  {
+    message: 'Devi inserire almeno uno stake o un importo bonus',
+    path: ['stake'],
+  }
+);
 
 type SingleBetFormData = z.infer<ReturnType<typeof createSingleBetSchema>>;
 
@@ -113,15 +129,18 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
   // Calculate potential win in real-time
   const stake = form.watch('stake');
   const quota = form.watch('quota');
+  const bonus = form.watch('bonus');
   const potentialWin = useMemo(() => {
-    if (stake && quota) {
-      return stake * quota - stake;
+    const effectiveStake = stake > 0 ? stake : (bonus || 0);
+    if (effectiveStake && quota) {
+      return effectiveStake * quota - effectiveStake;
     }
     return 0;
-  }, [stake, quota]);
+  }, [stake, quota, bonus]);
 
   // Check if stake exceeds balance
   const stakeExceedsBalance = useMemo(() => {
+    if (stake === 0) return false; // Stake 0 è valido con bonus
     if (selectedAccount && stake) {
       return stake > selectedAccount.saldoAttuale;
     }
@@ -229,6 +248,15 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
   }, [open, editingBet?.id]);
 
   const onSubmit = async (data: SingleBetFormData) => {
+    // Verificare che ci sia almeno uno stake o un bonus
+    const stake = data.stake || 0;
+    const bonus = data.tipoBonus === 'Bonus' || data.tipoBonus === 'Free Bet' ? (data.bonus || 0) : 0;
+    
+    if (stake === 0 && bonus === 0 && data.tipoBonus !== 'Rimborso') {
+      toast.error('Inserisci almeno uno stake o un importo bonus');
+      return;
+    }
+
     const account = accounts.find((a) => a.conto === data.conto);
     
     // Save last used account to localStorage
@@ -518,13 +546,15 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                   name="stake"
                   render={() => (
                     <FormItem>
-                      <FormLabel>Stake *</FormLabel>
+                      <FormLabel>
+                        Stake {tipoBonus === 'Nessuno' ? '*' : '(opzionale se hai un bonus)'}
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
                             type="text"
                             inputMode="decimal"
-                            placeholder="0,00"
+                            placeholder={tipoBonus === 'Nessuno' ? '0,00' : '0,00 (lascia 0 per solo bonus)'}
                             value={stakeInput}
                             onChange={(e) => setStakeInput(e.target.value)}
                             onBlur={() => {
@@ -536,7 +566,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                         </div>
                       </FormControl>
-                      {stakeExceedsBalance && (
+                      {stakeExceedsBalance && stake > 0 && (
                         <Alert variant="destructive" className="mt-2">
                           <AlertCircle className="h-4 w-4" />
                           <AlertDescription>
@@ -580,12 +610,15 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
               </div>
 
               {/* Potential Win Display */}
-              {stake > 0 && quota > 1 && (
+              {((stake > 0) || (bonus && bonus > 0)) && quota > 1 && (
                 <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
                   <TrendingUp className="h-5 w-5 text-green-600" />
                   <div>
                     <p className="text-sm font-medium">Vincita potenziale</p>
                     <p className="text-lg font-bold text-green-600">{formatCurrency(potentialWin)}</p>
+                    {stake === 0 && bonus && bonus > 0 && (
+                      <p className="text-xs text-muted-foreground">Calcolata su bonus</p>
+                    )}
                   </div>
                 </div>
               )}
