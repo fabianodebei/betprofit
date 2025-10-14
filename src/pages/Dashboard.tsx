@@ -60,9 +60,10 @@ export default function Dashboard() {
   const currentYear = new Date().getFullYear();
   const isCurrentYear = selectedYear === currentYear;
   
-  // Archived bets
+  // Archived bets (escludi le quick bets per evitare doppio conteggio)
   const currentMonthArchivedBets = archivedBets.filter(
-    bet => bet.createdAt.getMonth() === currentMonth && 
+    bet => bet.tipo !== 'Rapida' &&
+           bet.createdAt.getMonth() === currentMonth && 
            bet.createdAt.getFullYear() === selectedYear
   );
   
@@ -79,8 +80,8 @@ export default function Dashboard() {
   // Total current month earnings (archived + quick)
   const currentMonthEarnings = isCurrentYear ? currentMonthArchivedEarnings + currentMonthQuickEarnings : 0;
   
-  // Year totals
-  const yearArchivedBets = archivedBets.filter(bet => bet.createdAt.getFullYear() === selectedYear);
+  // Year totals (escludi le quick bets dagli archived per evitare doppio conteggio)
+  const yearArchivedBets = archivedBets.filter(bet => bet.tipo !== 'Rapida' && bet.createdAt.getFullYear() === selectedYear);
   const yearQuickBets = quickBets.filter(bet => bet.createdAt.getFullYear() === selectedYear);
   
   const totalYearArchived = yearArchivedBets.reduce((sum, bet) => sum + (bet.risultato || 0), 0);
@@ -88,6 +89,7 @@ export default function Dashboard() {
   const totalYear = totalYearArchived + totalYearQuick;
   
   // Calculate monthly earnings for the chart (archived + quick)
+  // yearArchivedBets già esclude le quick bets
   const monthlyEarnings = new Array(12).fill(0);
   yearArchivedBets.forEach(bet => {
     const month = bet.createdAt.getMonth();
