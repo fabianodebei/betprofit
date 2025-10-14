@@ -639,6 +639,15 @@ export type Database = {
           wallet_count: number
         }[]
       }
+      admin_get_user_earnings: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          email: string
+          full_name: string
+          total_earnings: number
+          user_id: string
+        }[]
+      }
       admin_update_user_role: {
         Args: {
           new_role: Database["public"]["Enums"]["app_role"]

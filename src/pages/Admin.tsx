@@ -15,7 +15,7 @@ import { format, subDays, eachDayOfInterval } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { AdminKPICard } from '@/components/admin/AdminKPICard';
 import { UserActivityTable } from '@/components/admin/UserActivityTable';
-import { RoleDistributionChart } from '@/components/admin/RoleDistributionChart';
+import { UserEarningsChart } from '@/components/admin/UserEarningsChart';
 import { UserRegistrationChart } from '@/components/admin/UserRegistrationChart';
 import { useAdminPreferences } from '@/hooks/useAdminPreferences';
 import { DraggableWidget } from '@/components/admin/DraggableWidget';
@@ -71,6 +71,7 @@ export default function Admin() {
   const [systemStats, setSystemStats] = useState<SystemStats | null>(null);
   const [userActivities, setUserActivities] = useState<any[]>([]);
   const [registrationData, setRegistrationData] = useState<any[]>([]);
+  const [userEarnings, setUserEarnings] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('dashboard');
   
   const { preferences, updatePreferences, resetPreferences, isLoading: prefsLoading } = useAdminPreferences();
@@ -87,6 +88,7 @@ export default function Admin() {
     fetchSystemStats();
     fetchUserActivities();
     fetchRegistrationData();
+    fetchUserEarnings();
   }, []);
 
   // Restore active tab from preferences
@@ -216,6 +218,18 @@ export default function Admin() {
     }
   };
 
+  const fetchUserEarnings = async () => {
+    try {
+      const { data, error } = await supabase.rpc('admin_get_user_earnings');
+
+      if (error) throw error;
+
+      setUserEarnings(data || []);
+    } catch (error) {
+      console.error('Error fetching user earnings:', error);
+    }
+  };
+
   const openRoleDialog = (user: UserProfile) => {
     setSelectedUser(user);
     setNewRole(user.role);
@@ -275,11 +289,6 @@ export default function Admin() {
     );
   }
 
-  const roleDistributionData = systemStats ? [
-    { name: 'Admin', value: systemStats.roleDistribution.admin },
-    { name: 'Free', value: systemStats.roleDistribution.free },
-  ] : [];
-
   // Widget components map
   const widgetComponents: Record<string, JSX.Element> = {
     'kpi-users': (
@@ -318,7 +327,7 @@ export default function Admin() {
       />
     ),
     'chart-registrations': <UserRegistrationChart data={registrationData} height={350} />,
-    'chart-roles': <RoleDistributionChart data={roleDistributionData} height={350} />,
+    'chart-roles': <UserEarningsChart data={userEarnings} height={350} />,
     'stats-general': (
       <Card>
         <CardHeader>
