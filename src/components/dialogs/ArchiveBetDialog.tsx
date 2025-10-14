@@ -19,12 +19,15 @@ export function ArchiveBetDialog({ bet, open, onOpenChange, onConfirm }: Archive
   if (!bet) return null;
 
   const calculateRisultato = () => {
+    // Usa stake o bonus se stake è zero
+    const effectiveStake = bet.stake > 0 ? bet.stake : (bet.bonus || 0);
+    
     if (outcome === 'win') {
       const quota = bet.quota || 1;
-      return (bet.stake * quota) - bet.stake;
+      return (effectiveStake * quota) - effectiveStake;
     }
     if (outcome === 'loss') {
-      return -bet.stake;
+      return -effectiveStake;
     }
     return 0; // refund
   };
@@ -55,6 +58,11 @@ export function ArchiveBetDialog({ bet, open, onOpenChange, onConfirm }: Archive
             <p className="text-sm font-medium">
               Stake: <span className="text-muted-foreground">{formatCurrency(bet.stake)}</span>
             </p>
+            {bet.bonus && bet.bonus > 0 && (
+              <p className="text-sm font-medium">
+                Bonus: <span className="text-muted-foreground">{formatCurrency(bet.bonus)}</span>
+              </p>
+            )}
             <p className="text-sm font-medium">
               Quota: <span className="text-muted-foreground">{bet.quota || 'N/A'}</span>
             </p>
