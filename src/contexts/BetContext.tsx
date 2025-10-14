@@ -254,15 +254,11 @@ export function BetProvider({ children }: { children: ReactNode }) {
         let updateData: any = {};
         
         if (betToDelete.tipo === 'Rapida') {
-          // Per giocate rapide
+          // Per giocate rapide: ripristina sempre il saldo (sottraendo il movimento)
           const newBilancioGiocateRapide = Number(account.bilancio_giocate_rapide) - betToDelete.stake;
+          const newSaldoAttuale = Number(account.saldo_attuale) - betToDelete.stake;
           updateData.bilancio_giocate_rapide = newBilancioGiocateRapide;
-          
-          // Se la scommessa è archiviata, ripristina anche il saldo sottraendo il risultato
-          if (betToDelete.stato === 'Archiviata' && betToDelete.risultato) {
-            const newSaldoAttuale = Number(account.saldo_attuale) - betToDelete.risultato;
-            updateData.saldo_attuale = newSaldoAttuale;
-          }
+          updateData.saldo_attuale = newSaldoAttuale;
         } else {
           // Per altre scommesse
           const newSaldoAttuale = Number(account.saldo_attuale) + betToDelete.stake;
