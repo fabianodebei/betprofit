@@ -592,8 +592,18 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                             type="number"
                             step="0.01"
                             placeholder="0.00"
-                            {...field}
-                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                            value={field.value || ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value === '' || value === '-') {
+                                field.onChange(0);
+                              } else {
+                                const num = parseFloat(value);
+                                if (!isNaN(num)) {
+                                  field.onChange(num);
+                                }
+                              }
+                            }}
                             className={cn(stakeExceedsBalance && "border-destructive")}
                           />
                           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
@@ -622,8 +632,18 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                           type="number"
                           step="0.01"
                           placeholder="1.01"
-                          {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 1.01)}
+                          value={field.value || ''}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === '' || value === '-') {
+                              field.onChange(1.01);
+                            } else {
+                              const num = parseFloat(value);
+                              if (!isNaN(num)) {
+                                field.onChange(num);
+                              }
+                            }
+                          }}
                           className={cn(isLowOdds && "border-orange-500")}
                         />
                       </FormControl>
@@ -698,8 +718,18 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                               type="number"
                               step="0.01"
                               placeholder="0.00"
-                              {...field}
-                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                              value={field.value || ''}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                if (value === '' || value === '-') {
+                                  field.onChange(0);
+                                } else {
+                                  const num = parseFloat(value);
+                                  if (!isNaN(num)) {
+                                    field.onChange(num);
+                                  }
+                                }
+                              }}
                             />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                           </div>
@@ -722,8 +752,18 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                               type="number"
                               step="0.01"
                               placeholder="0.00"
-                              {...field}
-                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                              value={field.value || ''}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                if (value === '' || value === '-') {
+                                  field.onChange(0);
+                                } else {
+                                  const num = parseFloat(value);
+                                  if (!isNaN(num)) {
+                                    field.onChange(num);
+                                  }
+                                }
+                              }}
                             />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                           </div>
