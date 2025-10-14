@@ -23,8 +23,8 @@ export function ArchiveBetDialog({ bet, open, onOpenChange, onConfirm }: Archive
     
     if (outcome === 'win') {
       if (bet.tipoBonus === 'Free Bet') {
-        // Free Bet: vincita = bonus * quota
-        return (bet.bonus || 0) * quota;
+        // Free Bet: vincita = stake * (quota - 1) (guadagno netto senza puntata iniziale)
+        return bet.stake * (quota - 1);
       } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
         // Bonus: vincita = (stake + bonus) * quota - stake
         return (bet.stake + bet.bonus) * quota - bet.stake;

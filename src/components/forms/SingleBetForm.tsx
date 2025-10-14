@@ -132,8 +132,8 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
   const bonus = form.watch('bonus');
   const potentialWin = useMemo(() => {
     if (tipoBonus === 'Free Bet') {
-      // Free Bet: vincita = bonus * quota (non ho messo soldi miei)
-      return (bonus || 0) * quota;
+      // Free Bet: vincita = stake * (quota - 1) (guadagno netto senza puntata iniziale)
+      return stake * (quota - 1);
     } else if (tipoBonus === 'Bonus' && bonus) {
       // Bonus: vincita = (stake + bonus) * quota - stake
       return (stake + bonus) * quota - stake;
@@ -145,8 +145,8 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
 
   // Check if stake exceeds balance
   const stakeExceedsBalance = useMemo(() => {
-    // Con Free Bet non verifichiamo il saldo (sono soldi gratis del bookmaker)
-    if (tipoBonus === 'Free Bet') return false;
+    // Con Free Bet o Bonus non verifichiamo il saldo (sono soldi gratis del bookmaker)
+    if (tipoBonus === 'Free Bet' || tipoBonus === 'Bonus') return false;
     if (stake === 0) return false; // Stake 0 è valido con bonus
     if (selectedAccount && stake) {
       return stake > selectedAccount.saldoAttuale;
@@ -287,8 +287,8 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
       });
     } else {
       // Modalità crea/clona: crea una nuova scommessa
-      // Aggiorna il saldo solo se stake > 0 e NON è Free Bet o Bonus totale (stake=0)
-      if (account && data.stake > 0 && data.tipoBonus !== 'Free Bet') {
+      // Aggiorna il saldo solo se stake > 0 e NON è Free Bet o Bonus (non si detrae dal saldo)
+      if (account && data.stake > 0 && data.tipoBonus !== 'Free Bet' && data.tipoBonus !== 'Bonus') {
         const newBalance = account.saldoAttuale - data.stake;
         await updateAccount(account.id, { 
           saldoAttuale: newBalance,

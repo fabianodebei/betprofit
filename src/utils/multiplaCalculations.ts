@@ -66,8 +66,8 @@ export function getMultiplaCalculations(
   // Guadagno dalla puntata - tutte le liability perse
   let puntaWin: number;
   if (bet.tipoBonus === 'Free Bet') {
-    // Free Bet: vincita = bonus * quotaEffettiva
-    puntaWin = (bet.bonus || 0) * quotaEffettiva;
+    // Free Bet: vincita = stake * (quotaEffettiva - 1) (guadagno netto senza puntata iniziale)
+    puntaWin = bet.stake * (quotaEffettiva - 1);
   } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
     // Bonus: vincita = (stake + bonus) * quotaEffettiva - stake
     puntaWin = (bet.stake + bet.bonus) * quotaEffettiva - bet.stake;
