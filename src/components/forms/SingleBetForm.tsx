@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { TimePicker } from '@/components/ui/time-picker';
@@ -75,15 +75,6 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
     if (!val) return NaN;
     return parseFloat(val.replace(',', '.'));
   };
-  // Sync local inputs when dialog opens or editing changes
-  useEffect(() => {
-    if (open) {
-      const s = form.getValues('stake');
-      const q = form.getValues('quota');
-      setStakeInput(s !== undefined && s !== null ? String(s) : '');
-      setQuotaInput(q !== undefined && q !== null ? String(q) : '');
-    }
-  }, [open]);
 
   const singleBetSchema = createSingleBetSchema(settings.tag);
 
@@ -113,8 +104,11 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
     ? wallets.find(w => w.id === selectedAccount.walletId) 
     : null;
 
-  // Get available intestatari (abilitati)
-  const availableIntestatari = intestatari.filter(int => int.stato === 'Abilitato');
+  // Get available intestatari (abilitati) - stabilized with useMemo
+  const availableIntestatari = useMemo(
+    () => intestatari.filter(int => int.stato === 'Abilitato'),
+    [intestatari]
+  );
 
   // Calculate potential win in real-time
   const stake = form.watch('stake');
@@ -150,19 +144,21 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
   // Template funzioni rimosse
 
   useEffect(() => {
-    if (editingBet && open) {
+    if (!open) return;
+
+    // Convert old bonus type values to new ones
+    const convertBonusType = (oldType: string | undefined): 'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet' => {
+      if (!oldType) return 'Nessuno';
+      if (oldType === 'Bonus Multipla') return 'Bonus';
+      if (oldType === 'Rimborso Multipla') return 'Rimborso';
+      if (oldType === 'Free Bet Multipla') return 'Free Bet';
+      if (['Nessuno', 'Bonus', 'Rimborso', 'Free Bet'].includes(oldType)) return oldType as any;
+      return 'Nessuno';
+    };
+
+    if (editingBet) {
       const account = accounts.find(a => a.conto === editingBet.conto);
       const intestatario = account?.intestatario || '';
-      
-      // Convert old bonus type values to new ones
-      const convertBonusType = (oldType: string | undefined): 'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet' => {
-        if (!oldType) return 'Nessuno';
-        if (oldType === 'Bonus Multipla') return 'Bonus';
-        if (oldType === 'Rimborso Multipla') return 'Rimborso';
-        if (oldType === 'Free Bet Multipla') return 'Free Bet';
-        if (['Nessuno', 'Bonus', 'Rimborso', 'Free Bet'].includes(oldType)) return oldType as any;
-        return 'Nessuno';
-      };
       
       form.reset({
         metodo: (editingBet.metodo as 'Punta' | 'Banca') || 'Punta',
@@ -183,7 +179,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
       setSelectedIntestatario(intestatario);
       setSelectedConto(editingBet.conto);
       setTipoBonus(editingBet.tipoBonus || 'Nessuno');
-    } else if (!editingBet && open) {
+    } else {
       // Smart pre-selection for new bets
       const lastUsedConto = localStorage.getItem('last_used_conto');
       const defaultIntestatario = availableIntestatari.length > 0 ? availableIntestatari[0].nome : '';
@@ -224,7 +220,13 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
       setSelectedConto(preselectedConto);
       setTipoBonus('Nessuno');
     }
-  }, [editingBet, open, form, accounts, availableIntestatari]);
+
+    // Sync local numeric inputs after reset
+    const s = form.getValues('stake');
+    const q = form.getValues('quota');
+    setStakeInput(s !== undefined && s !== null ? String(s) : '');
+    setQuotaInput(q !== undefined && q !== null ? String(q) : '');
+  }, [open, editingBet?.id]);
 
   const onSubmit = async (data: SingleBetFormData) => {
     const account = accounts.find((a) => a.conto === data.conto);
@@ -289,6 +291,9 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
           <DialogTitle>
             {mode === 'edit' ? 'Modifica Puntata Singola' : mode === 'clone' ? 'Clona Puntata Singola' : 'Nuova Puntata Singola'}
           </DialogTitle>
+          <DialogDescription>
+            Compila i campi obbligatori e premi Salva.
+          </DialogDescription>
         </DialogHeader>
 
         
