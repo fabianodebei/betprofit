@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -8,9 +8,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Checkbox } from "@/components/ui/checkbox";
+import { BookOpen, Check, X } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import logo from "@/assets/logo_centurion.webp";
+import { PasswordInput } from "@/components/auth/PasswordInput";
+import { authStorage } from "@/utils/authStorage";
+import { cn } from "@/lib/utils";
 const loginSchema = z.object({
   email: z.string().email("Email non valida"),
   password: z.string().min(6, "La password deve essere di almeno 6 caratteri")
@@ -32,15 +37,18 @@ type LoginFormData = z.infer<typeof loginSchema>;
 type SignupFormData = z.infer<typeof signupSchema>;
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 const Auth = () => {
-  const {
-    signIn,
-    signUp,
-    resetPassword
-  } = useAuth();
+  const { signIn, signUp, resetPassword } = useAuth();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [activeTab, setActiveTab] = useState("login");
+  
+  const emailInputRef = useRef<HTMLInputElement>(null);
+
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    mode: "onChange",
     defaultValues: {
       email: "",
       password: ""
@@ -48,6 +56,7 @@ const Auth = () => {
   });
   const signupForm = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
+    mode: "onChange",
     defaultValues: {
       fullName: "",
       email: "",
@@ -58,29 +67,88 @@ const Auth = () => {
 
   const resetPasswordForm = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
+    mode: "onChange",
     defaultValues: {
       email: ""
     }
   });
+
+  // Carica email salvata al mount
+  useEffect(() => {
+    const savedEmail = authStorage.getSavedEmail();
+    if (savedEmail) {
+      loginForm.setValue("email", savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
+
+  // Autofocus sul primo campo quando cambia tab
+  useEffect(() => {
+    setTimeout(() => {
+      emailInputRef.current?.focus();
+    }, 100);
+  }, [activeTab]);
   const handleLogin = async (data: LoginFormData) => {
     setIsLoading(true);
-    await signIn(data.email, data.password);
-    setIsLoading(false);
+    try {
+      await signIn(data.email, data.password);
+      authStorage.saveEmail(data.email, rememberMe);
+      toast.success("Accesso effettuato con successo!", {
+        description: "Benvenuto in Centurion Club"
+      });
+      navigate("/");
+    } catch (error) {
+      // Errore già gestito da AuthContext
+    } finally {
+      setIsLoading(false);
+    }
   };
   const handleSignup = async (data: SignupFormData) => {
     setIsLoading(true);
-    await signUp(data.email, data.password, data.fullName);
-    setIsLoading(false);
+    try {
+      await signUp(data.email, data.password, data.fullName);
+      authStorage.saveEmail(data.email, false);
+      toast.success("Account creato con successo!", {
+        description: "Controlla la tua email per confermare l'account"
+      });
+    } catch (error) {
+      // Errore già gestito da AuthContext
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleResetPassword = async (data: ResetPasswordFormData) => {
     setIsLoading(true);
-    const { error } = await resetPassword(data.email);
-    if (!error) {
-      setShowResetPassword(false);
-      resetPasswordForm.reset();
+    try {
+      const { error } = await resetPassword(data.email);
+      if (!error) {
+        toast.success("Email inviata!", {
+          description: "Controlla la tua casella di posta per reimpostare la password"
+        });
+        setShowResetPassword(false);
+        resetPasswordForm.reset();
+      }
+    } catch (error) {
+      // Errore già gestito da AuthContext
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
+  };
+
+  // Helper per mostrare lo stato di validazione
+  const getFieldValidationIcon = (fieldName: keyof LoginFormData | keyof SignupFormData) => {
+    const form = activeTab === "login" ? loginForm : signupForm;
+    const value = form.watch(fieldName as any);
+    const error = form.formState.errors[fieldName as any];
+    
+    if (!value) return null;
+    
+    return error ? (
+      <X className="h-4 w-4 text-destructive" />
+    ) : (
+      <Check className="h-4 w-4 text-green-500" />
+    );
   };
   return <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
@@ -96,34 +164,70 @@ const Auth = () => {
           </Link>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup">Registrati</TabsTrigger>
+              <TabsTrigger value="login" className="transition-all">Login</TabsTrigger>
+              <TabsTrigger value="signup" className="transition-all">Registrati</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="login">
+            <TabsContent value="login" className="animate-fade-in">
               <Form {...loginForm}>
                 <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
-                  <FormField control={loginForm.control} name="email" render={({
-                  field
-                }) => <FormItem>
+                  <FormField 
+                    control={loginForm.control} 
+                    name="email" 
+                    render={({ field }) => (
+                      <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="tua@email.com" {...field} />
+                          <div className="relative">
+                            <Input 
+                              type="email" 
+                              placeholder="tua@email.com" 
+                              autoFocus
+                              {...field}
+                              ref={emailInputRef}
+                              className={cn(
+                                loginForm.watch("email") && !loginForm.formState.errors.email && "border-green-500"
+                              )}
+                            />
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              {getFieldValidationIcon("email")}
+                            </div>
+                          </div>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>} />
+                        <FormMessage className="animate-fade-in" />
+                      </FormItem>
+                    )} 
+                  />
 
-                  <FormField control={loginForm.control} name="password" render={({
-                  field
-                }) => <FormItem>
+                  <FormField 
+                    control={loginForm.control} 
+                    name="password" 
+                    render={({ field }) => (
+                      <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="••••••" {...field} />
+                          <PasswordInput placeholder="••••••" {...field} />
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>} />
+                        <FormMessage className="animate-fade-in" />
+                      </FormItem>
+                    )} 
+                  />
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="remember"
+                      checked={rememberMe}
+                      onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                    />
+                    <label
+                      htmlFor="remember"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      Ricordami
+                    </label>
+                  </div>
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Accesso..." : "Accedi"}
@@ -131,7 +235,13 @@ const Auth = () => {
 
                   <button
                     type="button"
-                    onClick={() => setShowResetPassword(true)}
+                    onClick={() => {
+                      setShowResetPassword(true);
+                      const lastEmail = authStorage.getLastEmail();
+                      if (lastEmail) {
+                        resetPasswordForm.setValue("email", lastEmail);
+                      }
+                    }}
                     className="text-sm text-primary hover:underline mt-2"
                   >
                     Password dimenticata?
@@ -140,7 +250,7 @@ const Auth = () => {
               </Form>
 
               {showResetPassword && (
-                <div className="mt-4 p-4 border rounded-md bg-muted/50">
+                <div className="mt-4 p-4 border rounded-md bg-muted/50 animate-fade-in">
                   <h3 className="text-sm font-medium mb-3">Recupera Password</h3>
                   <Form {...resetPasswordForm}>
                     <form onSubmit={resetPasswordForm.handleSubmit(handleResetPassword)} className="space-y-3">
@@ -151,9 +261,27 @@ const Auth = () => {
                           <FormItem>
                             <FormLabel>Email</FormLabel>
                             <FormControl>
-                              <Input type="email" placeholder="tua@email.com" {...field} />
+                              <div className="relative">
+                                <Input 
+                                  type="email" 
+                                  placeholder="tua@email.com" 
+                                  autoFocus
+                                  {...field}
+                                  className={cn(
+                                    resetPasswordForm.watch("email") && !resetPasswordForm.formState.errors.email && "border-green-500"
+                                  )}
+                                />
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                  {resetPasswordForm.watch("email") && !resetPasswordForm.formState.errors.email && (
+                                    <Check className="h-4 w-4 text-green-500" />
+                                  )}
+                                  {resetPasswordForm.formState.errors.email && (
+                                    <X className="h-4 w-4 text-destructive" />
+                                  )}
+                                </div>
+                              </div>
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="animate-fade-in" />
                           </FormItem>
                         )}
                       />
@@ -178,48 +306,92 @@ const Auth = () => {
               )}
             </TabsContent>
 
-            <TabsContent value="signup">
+            <TabsContent value="signup" className="animate-fade-in">
               <Form {...signupForm}>
                 <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-4">
-                  <FormField control={signupForm.control} name="fullName" render={({
-                  field
-                }) => <FormItem>
+                  <FormField 
+                    control={signupForm.control} 
+                    name="fullName" 
+                    render={({ field }) => (
+                      <FormItem>
                         <FormLabel>Nome Completo</FormLabel>
                         <FormControl>
-                          <Input placeholder="Mario Rossi" {...field} />
+                          <div className="relative">
+                            <Input 
+                              placeholder="Mario Rossi" 
+                              autoFocus
+                              {...field}
+                              className={cn(
+                                signupForm.watch("fullName") && !signupForm.formState.errors.fullName && "border-green-500"
+                              )}
+                            />
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              {getFieldValidationIcon("fullName")}
+                            </div>
+                          </div>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>} />
+                        <FormMessage className="animate-fade-in" />
+                      </FormItem>
+                    )} 
+                  />
 
-                  <FormField control={signupForm.control} name="email" render={({
-                  field
-                }) => <FormItem>
+                  <FormField 
+                    control={signupForm.control} 
+                    name="email" 
+                    render={({ field }) => (
+                      <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="tua@email.com" {...field} />
+                          <div className="relative">
+                            <Input 
+                              type="email" 
+                              placeholder="tua@email.com" 
+                              {...field}
+                              className={cn(
+                                signupForm.watch("email") && !signupForm.formState.errors.email && "border-green-500"
+                              )}
+                            />
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              {getFieldValidationIcon("email")}
+                            </div>
+                          </div>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>} />
+                        <FormMessage className="animate-fade-in" />
+                      </FormItem>
+                    )} 
+                  />
 
-                  <FormField control={signupForm.control} name="password" render={({
-                  field
-                }) => <FormItem>
+                  <FormField 
+                    control={signupForm.control} 
+                    name="password" 
+                    render={({ field }) => (
+                      <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="••••••" {...field} />
+                          <PasswordInput 
+                            placeholder="••••••" 
+                            showStrengthIndicator 
+                            {...field} 
+                          />
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>} />
+                        <FormMessage className="animate-fade-in" />
+                      </FormItem>
+                    )} 
+                  />
 
-                  <FormField control={signupForm.control} name="confirmPassword" render={({
-                  field
-                }) => <FormItem>
+                  <FormField 
+                    control={signupForm.control} 
+                    name="confirmPassword" 
+                    render={({ field }) => (
+                      <FormItem>
                         <FormLabel>Conferma Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="••••••" {...field} />
+                          <PasswordInput placeholder="••••••" {...field} />
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>} />
+                        <FormMessage className="animate-fade-in" />
+                      </FormItem>
+                    )} 
+                  />
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Creazione account..." : "Crea Account"}
