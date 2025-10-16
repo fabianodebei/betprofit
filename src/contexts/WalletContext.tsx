@@ -23,6 +23,27 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (user) {
       fetchWallets();
+
+      // Listen to realtime changes
+      const channel = supabase
+        .channel('wallets-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'wallets',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            fetchWallets();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     } else {
       setWallets([]);
       setLoading(false);

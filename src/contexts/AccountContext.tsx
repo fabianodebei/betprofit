@@ -23,6 +23,27 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (user) {
       fetchAccounts();
+
+      // Listen to realtime changes
+      const channel = supabase
+        .channel('accounts-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'accounts',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            fetchAccounts();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     } else {
       setAccounts([]);
       setLoading(false);
