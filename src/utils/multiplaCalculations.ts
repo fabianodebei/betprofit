@@ -72,8 +72,8 @@ export function getMultiplaCalculations(
     // Bonus: vincita = (stake + bonus) * quotaEffettiva - stake
     puntaWin = (bet.stake + bet.bonus) * quotaEffettiva - bet.stake;
   } else {
-    // Normale: vincita totale (include il ritorno dello stake iniziale)
-    puntaWin = bet.stake * quotaEffettiva;
+    // Normale: solo profitto netto (stake torna al conto ma non è vincita)
+    puntaWin = bet.stake * quotaEffettiva - bet.stake;
   }
 
   // Scenario: multipla PERSA

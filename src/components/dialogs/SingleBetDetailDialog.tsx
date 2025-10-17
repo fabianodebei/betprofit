@@ -43,8 +43,8 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
       puntaWin = (bet.stake + bet.bonus) * (bet.quota || 1);
       puntaLoss = -bet.stake;
     } else {
-      // Normale: vincita = stake * quota, perdita = -stake
-      puntaWin = bet.stake * (bet.quota || 1);
+      // Normale: solo profitto netto, perdita = -stake
+      puntaWin = bet.stake * (bet.quota || 1) - bet.stake;
       puntaLoss = -bet.stake;
     }
 

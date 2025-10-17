@@ -29,8 +29,8 @@ export function ArchiveBetDialog({ bet, open, onOpenChange, onConfirm }: Archive
         // Bonus: vincita = (stake + bonus) * quota - stake
         return (bet.stake + bet.bonus) * quota - bet.stake;
       } else {
-        // Normale: vincita totale (include il ritorno dello stake iniziale)
-        return bet.stake * quota;
+        // Normale: solo profitto netto (stake torna al conto ma non è vincita)
+        return bet.stake * quota - bet.stake;
       }
     }
     if (outcome === 'loss') {
