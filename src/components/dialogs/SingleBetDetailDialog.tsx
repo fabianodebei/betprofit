@@ -29,19 +29,54 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
 
   // Calculate totals
   const calculations = useMemo(() => {
-    if (!bet) return { totalRisk: 0, guadagnoTotale: 0 };
+    if (!bet) return { totalRisk: 0, guadagnoTotale: 0, scenarioVincita: 0, scenarioPerdita: 0 };
+
+    // Calcolo vincita/perdita puntata principale
+    let puntaWin: number, puntaLoss: number;
+    
+    if (bet.tipoBonus === 'Free Bet') {
+      // Free Bet: vincita = stake * (quota - 1), perdita = 0
+      puntaWin = bet.stake * ((bet.quota || 1) - 1);
+      puntaLoss = 0;
+    } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
+      // Bonus: vincita = (stake + bonus) * quota, perdita = -stake
+      puntaWin = (bet.stake + bet.bonus) * (bet.quota || 1);
+      puntaLoss = -bet.stake;
+    } else {
+      // Normale: vincita = stake * quota, perdita = -stake
+      puntaWin = bet.stake * (bet.quota || 1);
+      puntaLoss = -bet.stake;
+    }
+
+    // Calcolo vincite/perdite dalle bancate
+    const layWins = layBets.reduce((sum, lb) => {
+      // Vincita netta della bancata (stake - tasse)
+      const profitLordo = lb.stake;
+      const tasse = profitLordo * ((lb.tassePercentuale || 0) / 100);
+      return sum + (profitLordo - tasse);
+    }, 0);
+
+    const layLosses = layBets.reduce((sum, lb) => {
+      // Perdita della bancata (liability)
+      return sum + lb.stake * (lb.quotaBanca - 1);
+    }, 0);
+
+    // Scenario 1: Puntata vince, bancate perdono
+    const scenarioVincita = puntaWin - layLosses;
+    
+    // Scenario 2: Puntata perde, bancate vincono
+    const scenarioPerdita = puntaLoss + layWins;
+
+    // Guadagno garantito = scenario peggiore
+    const guadagnoTotale = Math.min(scenarioVincita, scenarioPerdita);
 
     const totalRisk = bet.stake + layBets.reduce((sum, lb) => sum + lb.stake, 0);
-    
-    // Guadagno totale calculation
-    const guadagnoTotale = layBets.reduce((sum, lb) => {
-      const rischio = lb.stake * (lb.quotaBanca - 1) * (1 + lb.tassePercentuale / 100);
-      return sum + rischio;
-    }, 0);
 
     return {
       totalRisk,
-      guadagnoTotale: -guadagnoTotale,
+      guadagnoTotale,
+      scenarioVincita,
+      scenarioPerdita,
     };
   }, [bet, layBets]);
 
@@ -206,16 +241,30 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
             </div>
 
             {/* Totals */}
-            <div className="flex justify-end gap-8 px-4 py-2 bg-muted/50 rounded-lg">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-4 py-3 bg-muted/30 rounded-lg border border-border">
               <div>
-                <span className="text-sm text-muted-foreground">Totale Rischio: </span>
-                <span className="font-bold text-red-600">{formatCurrency(calculations.totalRisk)}</span>
+                <div className="text-xs text-muted-foreground mb-1">Totale Rischio</div>
+                <div className="text-lg font-bold text-red-600">
+                  {formatCurrency(calculations.totalRisk)}
+                </div>
               </div>
               <div>
-                <span className="text-sm text-muted-foreground">Guadagno Totale: </span>
-                <span className={`font-bold ${calculations.guadagnoTotale >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <div className="text-xs text-muted-foreground mb-1">Se Puntata Vince</div>
+                <div className={`text-lg font-bold ${calculations.scenarioVincita >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {formatCurrency(calculations.scenarioVincita)}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Se Puntata Perde</div>
+                <div className={`text-lg font-bold ${calculations.scenarioPerdita >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {formatCurrency(calculations.scenarioPerdita)}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Guadagno Garantito</div>
+                <div className={`text-lg font-bold ${calculations.guadagnoTotale >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {formatCurrency(calculations.guadagnoTotale)}
-                </span>
+                </div>
               </div>
             </div>
           </div>
