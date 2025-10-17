@@ -319,8 +319,8 @@ export function BetProvider({ children }: { children: ReactNode }) {
     // Update bet status and result
     await updateBet(id, { stato: 'Archiviata', risultato });
     
-    // If it's a quick bet, update account saldo_attuale
-    if (bet && bet.tipo === 'Rapida') {
+    // Update account balance for all bet types
+    if (bet) {
       let accountQuery = supabase
         .from('accounts')
         .select('*')
@@ -339,16 +339,35 @@ export function BetProvider({ children }: { children: ReactNode }) {
       }
       
       if (!account) {
-        // Nessun account trovato, non aggiorno il saldo
         return;
       }
       
-      // Update saldo_attuale with the result
-      const newSaldoAttuale = Number(account.saldo_attuale) + risultato;
+      // Calculate the amount to add to saldo_attuale
+      let amountToAdd: number;
+      
+      if (bet.tipoBonus === 'Free Bet') {
+        // For free bets, stake was never subtracted, so only add the profit
+        amountToAdd = risultato;
+      } else {
+        // For normal bets, stake was subtracted, so return stake + profit
+        // risultato is net profit, so total = stake + risultato
+        amountToAdd = bet.stake + risultato;
+      }
+      
+      const newSaldoAttuale = Number(account.saldo_attuale) + amountToAdd;
+      
+      // Update bilancio based on bet type
+      let updateData: any = { saldo_attuale: newSaldoAttuale };
+      
+      if (bet.tipo === 'Rapida') {
+        updateData.bilancio_giocate_rapide = Number(account.bilancio_giocate_rapide) + risultato;
+      } else {
+        updateData.bilancio_giocate = Number(account.bilancio_giocate) + risultato;
+      }
       
       const { error: updateError } = await supabase
         .from('accounts')
-        .update({ saldo_attuale: newSaldoAttuale })
+        .update(updateData)
         .eq('id', account.id);
       
       if (updateError) {
