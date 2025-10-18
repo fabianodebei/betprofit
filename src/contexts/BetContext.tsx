@@ -360,9 +360,9 @@ export function BetProvider({ children }: { children: ReactNode }) {
       let updateData: any = { saldo_attuale: newSaldoAttuale };
       
       if (bet.tipo === 'Rapida') {
-        updateData.bilancio_giocate_rapide = Number(account.bilancio_giocate_rapide) + risultato;
+        updateData.bilancio_giocate_rapide = Number(account.bilancio_giocate_rapide) + amountToAdd;
       } else {
-        updateData.bilancio_giocate = Number(account.bilancio_giocate) + risultato;
+        updateData.bilancio_giocate = Number(account.bilancio_giocate) + amountToAdd;
       }
       
       const { error: updateError } = await supabase
