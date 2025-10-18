@@ -74,7 +74,50 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         createdAt: new Date(a.created_at),
       }));
 
-      setAccounts(mappedAccounts);
+      // Recalcolo bilanci dalle puntate per correggere eventuali inconsistenze
+      const { data: betsData } = await supabase
+        .from('bets')
+        .select('tipo, conto, stato, stake, risultato, tipo_bonus')
+        .eq('user_id', user.id);
+
+      const giocateMap: Record<string, number> = {};
+      const rapideMap: Record<string, number> = {};
+
+      (betsData || []).forEach((b: any) => {
+        const conto = b.conto as string;
+        if (b.tipo === 'Rapida') {
+          rapideMap[conto] = (rapideMap[conto] || 0) + (Number(b.risultato) || 0);
+          return;
+        }
+        if (b.stato === 'In Corso') {
+          if (b.tipo_bonus !== 'Free Bet' && b.tipo_bonus !== 'Bonus') {
+            giocateMap[conto] = (giocateMap[conto] || 0) - (Number(b.stake) || 0);
+          }
+        } else if (b.stato === 'Archiviata') {
+          if (b.tipo_bonus === 'Free Bet') {
+            giocateMap[conto] = (giocateMap[conto] || 0) + (Number(b.risultato) || 0);
+          } else {
+            giocateMap[conto] = (giocateMap[conto] || 0) + (Number(b.stake) || 0) + (Number(b.risultato) || 0);
+          }
+        }
+      });
+
+      // Aggiorna DB se diverso e prepara stato corretto
+      const correctedAccounts: Account[] = [];
+      for (const acc of mappedAccounts) {
+        const newBG = giocateMap[acc.conto] ?? 0;
+        const newBR = rapideMap[acc.conto] ?? 0;
+        const needsUpdate = newBG !== acc.bilancioGiocate || newBR !== acc.bilancioGiocateRapide;
+        if (needsUpdate) {
+          await supabase
+            .from('accounts')
+            .update({ bilancio_giocate: newBG, bilancio_giocate_rapide: newBR })
+            .eq('id', acc.id);
+        }
+        correctedAccounts.push({ ...acc, bilancioGiocate: newBG, bilancioGiocateRapide: newBR });
+      }
+
+      setAccounts(correctedAccounts);
     } catch (error: any) {
       toast.error('Errore nel caricamento dei conti');
       console.error('Error fetching accounts:', error);

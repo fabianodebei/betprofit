@@ -356,35 +356,15 @@ export function BetProvider({ children }: { children: ReactNode }) {
       
       const newSaldoAttuale = Number(account.saldo_attuale) + amountToAdd;
       
-      // Recalculate bilanci from archived bets to ensure consistency
-      let bilancioGiocate = Number(account.bilancio_giocate) || 0;
-      let bilancioGiocateRapide = Number(account.bilancio_giocate_rapide) || 0;
-      try {
-        const { data: archivedBets } = await supabase
-          .from('bets')
-          .select('risultato,tipo')
-          .eq('user_id', user?.id)
-          .eq('conto', bet.conto)
-          .eq('stato', 'Archiviata');
-        if (archivedBets) {
-          bilancioGiocate = archivedBets
-            .filter((b: any) => b.tipo !== 'Rapida')
-            .reduce((sum: number, b: any) => sum + (Number(b.risultato) || 0), 0);
-          bilancioGiocateRapide = archivedBets
-            .filter((b: any) => b.tipo === 'Rapida')
-            .reduce((sum: number, b: any) => sum + (Number(b.risultato) || 0), 0);
-        }
-      } catch (e) {
-        // fallback: adjust incrementally
-        if (bet.tipo === 'Rapida') bilancioGiocateRapide += risultato; else bilancioGiocate += risultato;
+      // Update bilancio based on bet type
+      let updateData: any = { saldo_attuale: newSaldoAttuale };
+      if (bet.tipo === 'Rapida') {
+        updateData.bilancio_giocate_rapide = Number(account.bilancio_giocate_rapide) + risultato;
+      } else {
+        // Al momento della creazione abbiamo sottratto lo stake dal bilancio,
+        // qui lo restituiamo e aggiungiamo anche il profitto netto
+        updateData.bilancio_giocate = Number(account.bilancio_giocate) + amountToAdd;
       }
-      
-      // Update account with new saldo and recomputed bilanci
-      let updateData: any = { 
-        saldo_attuale: newSaldoAttuale,
-        bilancio_giocate: bilancioGiocate,
-        bilancio_giocate_rapide: bilancioGiocateRapide
-      };
       
       const { error: updateError } = await supabase
         .from('accounts')
