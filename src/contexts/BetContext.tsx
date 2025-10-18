@@ -356,19 +356,44 @@ export function BetProvider({ children }: { children: ReactNode }) {
       
       const newSaldoAttuale = Number(account.saldo_attuale) + amountToAdd;
       
-      // Update bilancio based on bet type
-      let updateData: any = { saldo_attuale: newSaldoAttuale };
-      
-      if (bet.tipo === 'Rapida') {
-        updateData.bilancio_giocate_rapide = Number(account.bilancio_giocate_rapide) + amountToAdd;
-      } else {
-        updateData.bilancio_giocate = Number(account.bilancio_giocate) + amountToAdd;
+      // Recalculate bilanci from archived bets to ensure consistency
+      let bilancioGiocate = Number(account.bilancio_giocate) || 0;
+      let bilancioGiocateRapide = Number(account.bilancio_giocate_rapide) || 0;
+      try {
+        const { data: archivedBets } = await supabase
+          .from('bets')
+          .select('risultato,tipo')
+          .eq('user_id', user?.id)
+          .eq('conto', bet.conto)
+          .eq('stato', 'Archiviata');
+        if (archivedBets) {
+          bilancioGiocate = archivedBets
+            .filter((b: any) => b.tipo !== 'Rapida')
+            .reduce((sum: number, b: any) => sum + (Number(b.risultato) || 0), 0);
+          bilancioGiocateRapide = archivedBets
+            .filter((b: any) => b.tipo === 'Rapida')
+            .reduce((sum: number, b: any) => sum + (Number(b.risultato) || 0), 0);
+        }
+      } catch (e) {
+        // fallback: adjust incrementally
+        if (bet.tipo === 'Rapida') bilancioGiocateRapide += risultato; else bilancioGiocate += risultato;
       }
+      
+      // Update account with new saldo and recomputed bilanci
+      let updateData: any = { 
+        saldo_attuale: newSaldoAttuale,
+        bilancio_giocate: bilancioGiocate,
+        bilancio_giocate_rapide: bilancioGiocateRapide
+      };
       
       const { error: updateError } = await supabase
         .from('accounts')
         .update(updateData)
         .eq('id', account.id);
+      
+      if (!updateError) {
+        window.dispatchEvent(new Event('refresh-accounts'));
+      }
       
       if (updateError) {
         console.error('Error updating account:', updateError);

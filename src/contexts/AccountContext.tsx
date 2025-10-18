@@ -83,6 +83,11 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  useEffect(() => {
+    const handler = () => fetchAccounts();
+    window.addEventListener('refresh-accounts', handler);
+    return () => window.removeEventListener('refresh-accounts', handler);
+  }, [user]);
   const addAccount = async (account: Omit<Account, 'id' | 'createdAt' | 'saldoAttuale' | 'bilancioGiocate' | 'bilancioGiocateRapide'>) => {
     try {
       if (!user) throw new Error('User not authenticated');
