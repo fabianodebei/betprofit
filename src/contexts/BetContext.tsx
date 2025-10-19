@@ -406,6 +406,67 @@ export function BetProvider({ children }: { children: ReactNode }) {
   };
 
   const reopenBet = async (id: string) => {
+    const bet = bets.find(b => b.id === id);
+    if (!bet || bet.stato !== 'Archiviata') return;
+
+    const isFreeOrBonus = bet.tipoBonus === 'Free Bet' || bet.tipoBonus === 'Bonus';
+    const risultatoVal = Number(bet.risultato ?? 0);
+    const stakeVal = Number(bet.stake) || 0;
+
+    // Trova l'account per ripristinare i saldi
+    let accountQuery = supabase
+      .from('accounts')
+      .select('*')
+      .eq('user_id', user?.id)
+      .eq('conto', bet.conto);
+
+    if (bet.walletId) {
+      accountQuery = accountQuery.eq('wallet_id', bet.walletId);
+    }
+
+    const { data: account } = await accountQuery.limit(1).maybeSingle();
+
+    if (account) {
+      // Annulla gli effetti dell'archiviazione
+      // Quando era archiviata: saldo aveva ricevuto (stake + risultato) per normali o solo risultato per free/bonus
+      // Ora torniamo allo stato "In Corso": saldo deve avere solo la detrazione iniziale dello stake (per normali) o nessuna (per free/bonus)
+      
+      let updateData: any = {};
+      
+      if (isFreeOrBonus) {
+        // Era stato aggiunto solo il risultato, ora lo togliamo
+        updateData.saldo_attuale = Number(account.saldo_attuale) - risultatoVal;
+      } else {
+        // Era stato aggiunto stake + risultato, ora togliamo tutto e ridetraiamo lo stake
+        // Risultato netto: -(stake + risultato) per annullare l'archiviazione, poi -stake per lo stato in corso
+        // = -stake - risultato - stake = -(2*stake + risultato)? No, semplifichiamo:
+        // Dopo archiviazione: saldo = X + stake + risultato
+        // Vogliamo: saldo = X - stake (stato In Corso)
+        // Delta = -(stake + risultato + stake) = -(2*stake + risultato)? No!
+        // Delta = (X - stake) - (X + stake + risultato) = -2*stake - risultato? No...
+        // Semplice: togli (stake + risultato) per annullare archivio, poi togli stake per in corso = -(stake+ris+stake)? 
+        
+        // Più semplice: togli tutto quello che era stato aggiunto in archivio e ridetrai lo stake
+        const amountAddedOnArchive = stakeVal + risultatoVal;
+        updateData.saldo_attuale = Number(account.saldo_attuale) - amountAddedOnArchive - stakeVal;
+      }
+
+      if (bet.tipo === 'Rapida') {
+        // Togli il risultato dal bilancio rapide e ridetrai lo stake
+        updateData.bilancio_giocate_rapide = Number(account.bilancio_giocate_rapide) - risultatoVal - stakeVal;
+      } else {
+        // Togli il risultato dal bilancio e ridetrai lo stake
+        updateData.bilancio_giocate = Number(account.bilancio_giocate) - risultatoVal - stakeVal;
+      }
+
+      await supabase
+        .from('accounts')
+        .update(updateData)
+        .eq('id', account.id);
+
+      window.dispatchEvent(new Event('refresh-accounts'));
+    }
+
     await updateBet(id, { stato: 'In Corso', risultato: undefined });
   };
 
