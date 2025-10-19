@@ -86,19 +86,18 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       (betsData || []).forEach((b: any) => {
         const conto = b.conto as string;
         if (b.tipo === 'Rapida') {
+          // Le giocate rapide riflettono direttamente il movimento/profitto registrato
           rapideMap[conto] = (rapideMap[conto] || 0) + (Number(b.risultato) || 0);
           return;
         }
         if (b.stato === 'In Corso') {
+          // Mentre sono in corso, lo stake reale va a decrementare temporaneamente il bilancio
           if (b.tipo_bonus !== 'Free Bet' && b.tipo_bonus !== 'Bonus') {
             giocateMap[conto] = (giocateMap[conto] || 0) - (Number(b.stake) || 0);
           }
         } else if (b.stato === 'Archiviata') {
-          if (b.tipo_bonus === 'Free Bet') {
-            giocateMap[conto] = (giocateMap[conto] || 0) + (Number(b.risultato) || 0);
-          } else {
-            giocateMap[conto] = (giocateMap[conto] || 0) + (Number(b.stake) || 0) + (Number(b.risultato) || 0);
-          }
+          // A fine corsa contano solo i profitti netti (risultato)
+          giocateMap[conto] = (giocateMap[conto] || 0) + (Number(b.risultato) || 0);
         }
       });
 

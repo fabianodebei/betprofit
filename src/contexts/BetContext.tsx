@@ -260,9 +260,9 @@ export function BetProvider({ children }: { children: ReactNode }) {
           updateData.bilancio_giocate_rapide = newBilancioGiocateRapide;
           updateData.saldo_attuale = newSaldoAttuale;
         } else {
-          // Per altre scommesse
+          // Per altre scommesse: ripristina saldo e bilancio annullando la detrazione iniziale
           const newSaldoAttuale = Number(account.saldo_attuale) + betToDelete.stake;
-          const newBilancioGiocate = Number(account.bilancio_giocate) - betToDelete.stake;
+          const newBilancioGiocate = Number(account.bilancio_giocate) + betToDelete.stake;
           updateData.saldo_attuale = newSaldoAttuale;
           updateData.bilancio_giocate = newBilancioGiocate;
         }

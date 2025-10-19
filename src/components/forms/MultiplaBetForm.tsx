@@ -315,10 +315,10 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
           });
         }
         
-        // Update account balance (non detrarre per Free Bet o stake 0)
-        if (data.stake > 0 && data.tipoBonus !== 'Free Bet') {
+        // Update account balance (non detrarre per Free Bet o Bonus o stake 0)
+        if (data.stake > 0 && data.tipoBonus !== 'Free Bet' && data.tipoBonus !== 'Bonus') {
           const newBalance = account.saldoAttuale - data.stake;
-          const newBilancioGiocate = account.bilancioGiocate + data.stake;
+          const newBilancioGiocate = account.bilancioGiocate - data.stake;
           await updateAccount(account.id, {
             ...account,
             saldoAttuale: newBalance,
