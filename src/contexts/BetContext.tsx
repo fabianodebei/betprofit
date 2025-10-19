@@ -427,36 +427,21 @@ export function BetProvider({ children }: { children: ReactNode }) {
     const { data: account } = await accountQuery.limit(1).maybeSingle();
 
     if (account) {
-      // Annulla gli effetti dell'archiviazione
-      // Quando era archiviata: saldo aveva ricevuto (stake + risultato) per normali o solo risultato per free/bonus
-      // Ora torniamo allo stato "In Corso": saldo deve avere solo la detrazione iniziale dello stake (per normali) o nessuna (per free/bonus)
+      // Annulla completamente gli effetti della scommessa riportando il saldo allo stato iniziale
+      // (prima che la scommessa fosse creata)
       
       let updateData: any = {};
       
-      if (isFreeOrBonus) {
-        // Era stato aggiunto solo il risultato, ora lo togliamo
-        updateData.saldo_attuale = Number(account.saldo_attuale) - risultatoVal;
-      } else {
-        // Era stato aggiunto stake + risultato, ora togliamo tutto e ridetraiamo lo stake
-        // Risultato netto: -(stake + risultato) per annullare l'archiviazione, poi -stake per lo stato in corso
-        // = -stake - risultato - stake = -(2*stake + risultato)? No, semplifichiamo:
-        // Dopo archiviazione: saldo = X + stake + risultato
-        // Vogliamo: saldo = X - stake (stato In Corso)
-        // Delta = -(stake + risultato + stake) = -(2*stake + risultato)? No!
-        // Delta = (X - stake) - (X + stake + risultato) = -2*stake - risultato? No...
-        // Semplice: togli (stake + risultato) per annullare archivio, poi togli stake per in corso = -(stake+ris+stake)? 
-        
-        // Più semplice: togli tutto quello che era stato aggiunto in archivio e ridetrai lo stake
-        const amountAddedOnArchive = stakeVal + risultatoVal;
-        updateData.saldo_attuale = Number(account.saldo_attuale) - amountAddedOnArchive - stakeVal;
-      }
+      // Per entrambi i tipi (normale e Free Bet), basta togliere il risultato dal saldo
+      // In questo modo il saldo torna a quello iniziale prima della scommessa
+      updateData.saldo_attuale = Number(account.saldo_attuale) - risultatoVal;
 
       if (bet.tipo === 'Rapida') {
-        // Togli il risultato dal bilancio rapide e ridetrai lo stake
-        updateData.bilancio_giocate_rapide = Number(account.bilancio_giocate_rapide) - risultatoVal - stakeVal;
+        // Annulla archivio (togli risultato) e annulla creazione iniziale (aggiungi stake)
+        updateData.bilancio_giocate_rapide = Number(account.bilancio_giocate_rapide) - risultatoVal + stakeVal;
       } else {
-        // Togli il risultato dal bilancio e ridetrai lo stake
-        updateData.bilancio_giocate = Number(account.bilancio_giocate) - risultatoVal - stakeVal;
+        // Annulla archivio (togli risultato) e annulla creazione iniziale (aggiungi stake)
+        updateData.bilancio_giocate = Number(account.bilancio_giocate) - risultatoVal + stakeVal;
       }
 
       await supabase
