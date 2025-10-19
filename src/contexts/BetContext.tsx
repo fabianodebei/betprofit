@@ -250,21 +250,44 @@ export function BetProvider({ children }: { children: ReactNode }) {
       if (accountError) throw accountError;
 
       if (account) {
-        // Ripristina il saldo dell'account in base al tipo di scommessa
+        // Ripristina i saldi tenendo conto dello stato della scommessa
+        // - Se Archiviata: annulla sia la detrazione iniziale (stake) che l'accredito in archivio (stake+profitto o solo profitto per Free/Bonus)
+        //   => saldo: +stake - amountAddedOnArchive; bilancio: -risultato (si rimuove il profitto o si restituisce la perdita)
+        // - Se In Corso: annulla solo la detrazione iniziale
+        const isFreeOrBonus = betToDelete.tipoBonus === 'Free Bet' || betToDelete.tipoBonus === 'Bonus';
+        const risultatoVal = Number(betToDelete.risultato ?? 0);
+        const stakeVal = Number(betToDelete.stake) || 0;
+
         let updateData: any = {};
-        
-        if (betToDelete.tipo === 'Rapida') {
-          // Per giocate rapide: ripristina sempre il saldo (sottraendo il movimento)
-          const newBilancioGiocateRapide = Number(account.bilancio_giocate_rapide) - betToDelete.stake;
-          const newSaldoAttuale = Number(account.saldo_attuale) - betToDelete.stake;
-          updateData.bilancio_giocate_rapide = newBilancioGiocateRapide;
+
+        if (betToDelete.stato === 'Archiviata') {
+          const initialStakeDeducted = isFreeOrBonus ? 0 : stakeVal;
+          const amountAddedOnArchive = isFreeOrBonus ? risultatoVal : stakeVal + risultatoVal;
+          const deltaSaldo = initialStakeDeducted - amountAddedOnArchive; // vincita => -profitto, perdita => +perdita
+
+          const newSaldoAttuale = Number(account.saldo_attuale) + deltaSaldo;
           updateData.saldo_attuale = newSaldoAttuale;
+
+          if (betToDelete.tipo === 'Rapida') {
+            // Le rapide sommano solo il risultato netto: per rimuoverla sottraiamo il risultato
+            updateData.bilancio_giocate_rapide = Number(account.bilancio_giocate_rapide) - risultatoVal;
+          } else {
+            // Bilancio giocate tiene il profitto netto: rimuovere la scommessa archiviata => sottrarre il risultato
+            updateData.bilancio_giocate = Number(account.bilancio_giocate) - risultatoVal;
+          }
         } else {
-          // Per altre scommesse: ripristina saldo e bilancio annullando la detrazione iniziale
-          const newSaldoAttuale = Number(account.saldo_attuale) + betToDelete.stake;
-          const newBilancioGiocate = Number(account.bilancio_giocate) + betToDelete.stake;
-          updateData.saldo_attuale = newSaldoAttuale;
-          updateData.bilancio_giocate = newBilancioGiocate;
+          // Non archiviata (In Corso): si annulla la detrazione iniziale
+          if (betToDelete.tipo === 'Rapida') {
+            const newBilancioGiocateRapide = Number(account.bilancio_giocate_rapide) - stakeVal;
+            const newSaldoAttuale = Number(account.saldo_attuale) - stakeVal;
+            updateData.bilancio_giocate_rapide = newBilancioGiocateRapide;
+            updateData.saldo_attuale = newSaldoAttuale;
+          } else if (!isFreeOrBonus) {
+            const newSaldoAttuale = Number(account.saldo_attuale) + stakeVal;
+            const newBilancioGiocate = Number(account.bilancio_giocate) + stakeVal;
+            updateData.saldo_attuale = newSaldoAttuale;
+            updateData.bilancio_giocate = newBilancioGiocate;
+          }
         }
 
         const { error: updateAccountError } = await supabase
@@ -273,6 +296,8 @@ export function BetProvider({ children }: { children: ReactNode }) {
           .eq('id', account.id);
 
         if (updateAccountError) throw updateAccountError;
+        // Forza refresh della UI conti
+        window.dispatchEvent(new Event('refresh-accounts'));
       }
 
       // Se c'è un wallet associato e NON è una giocata rapida, ripristina anche quello
@@ -361,9 +386,8 @@ export function BetProvider({ children }: { children: ReactNode }) {
       if (bet.tipo === 'Rapida') {
         updateData.bilancio_giocate_rapide = Number(account.bilancio_giocate_rapide) + risultato;
       } else {
-        // Al momento della creazione abbiamo sottratto lo stake dal bilancio,
-        // qui lo restituiamo e aggiungiamo anche il profitto netto
-        updateData.bilancio_giocate = Number(account.bilancio_giocate) + amountToAdd;
+        // Bilancio giocate riflette solo il profitto netto della giocata archiviata
+        updateData.bilancio_giocate = Number(account.bilancio_giocate) + risultato;
       }
       
       const { error: updateError } = await supabase
