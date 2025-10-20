@@ -261,25 +261,24 @@ export function BetProvider({ children }: { children: ReactNode }) {
         let updateData: any = {};
 
         if (betToDelete.stato === 'Archiviata') {
-          const initialStakeDeducted = isFreeOrBonus ? 0 : stakeVal;
+          // Per bet archiviate: annulla completamente tutti gli effetti
+          // 1. Togliamo l'accredito fatto in archivio
+          // 2. Restituiamo la detrazione iniziale
           const amountAddedOnArchive = isFreeOrBonus ? risultatoVal : stakeVal + risultatoVal;
-          const deltaSaldo = initialStakeDeducted - amountAddedOnArchive; // vincita => -profitto, perdita => +perdita
-
-          const newSaldoAttuale = Number(account.saldo_attuale) + deltaSaldo;
+          
+          const newSaldoAttuale = Number(account.saldo_attuale) - amountAddedOnArchive;
           updateData.saldo_attuale = newSaldoAttuale;
 
           if (betToDelete.tipo === 'Rapida') {
-            // Le rapide sommano solo il risultato netto: per rimuoverla sottraiamo il risultato
             updateData.bilancio_giocate_rapide = Number(account.bilancio_giocate_rapide) - risultatoVal;
           } else {
-            // Bilancio giocate tiene il profitto netto: rimuovere la scommessa archiviata => sottrarre il risultato
             updateData.bilancio_giocate = Number(account.bilancio_giocate) - risultatoVal;
           }
         } else {
-          // Non archiviata (In Corso): si annulla la detrazione iniziale
+          // Non archiviata (In Corso): restituiamo lo stake detratto inizialmente
           if (betToDelete.tipo === 'Rapida') {
-            const newBilancioGiocateRapide = Number(account.bilancio_giocate_rapide) - stakeVal;
-            const newSaldoAttuale = Number(account.saldo_attuale) - stakeVal;
+            const newBilancioGiocateRapide = Number(account.bilancio_giocate_rapide) + stakeVal;
+            const newSaldoAttuale = Number(account.saldo_attuale) + stakeVal;
             updateData.bilancio_giocate_rapide = newBilancioGiocateRapide;
             updateData.saldo_attuale = newSaldoAttuale;
           } else if (!isFreeOrBonus) {
