@@ -264,9 +264,8 @@ export function BetProvider({ children }: { children: ReactNode }) {
           // Per bet archiviate: annulla completamente tutti gli effetti
           // 1. Togliamo l'accredito fatto in archivio
           // 2. Restituiamo la detrazione iniziale
-          const amountAddedOnArchive = isFreeOrBonus ? risultatoVal : stakeVal + risultatoVal;
-          
-          const newSaldoAttuale = Number(account.saldo_attuale) - amountAddedOnArchive;
+          // Sostituito: rimuovi solo il risultato dal saldo attuale
+          const newSaldoAttuale = Number(account.saldo_attuale) - risultatoVal;
           updateData.saldo_attuale = newSaldoAttuale;
 
           if (betToDelete.tipo === 'Rapida') {
