@@ -15,7 +15,7 @@ export default function Balance() {
   const saldoBookmakers = getAccountsBalance();
   const saldoWallets = getWalletsBalance();
   const puntateInCorso = getTotalStakeInCorso();
-  const saldoTotale = saldoBookmakers + saldoWallets - puntateInCorso;
+  const saldoTotale = saldoBookmakers + saldoWallets;
 
   return (
     <div className="container mx-auto px-4 py-8">
