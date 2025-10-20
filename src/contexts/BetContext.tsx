@@ -266,12 +266,13 @@ export function BetProvider({ children }: { children: ReactNode }) {
           const newSaldoAttuale = Number(account.saldo_attuale) - risultatoVal;
           updateData.saldo_attuale = newSaldoAttuale;
 
+          // Calcola lo stake da ripristinare per bet non Free/Bonus
+          const addBackStake = !isFreeOrBonus && stakeVal > 0 ? stakeVal : 0;
           if (betToDelete.tipo === 'Rapida') {
-            // Giocate rapide: inverti semplicemente il movimento registrato
-            updateData.bilancio_giocate_rapide = Number(account.bilancio_giocate_rapide) - risultatoVal;
+            // Giocate rapide: inverti archiviazione (−risultato) e ripristina detrazione iniziale (+stake)
+            updateData.bilancio_giocate_rapide = Number(account.bilancio_giocate_rapide) - risultatoVal + addBackStake;
           } else {
             // Giocate normali: inverti l'archiviazione (−risultato) e ripristina la detrazione iniziale (+stake)
-            const addBackStake = !isFreeOrBonus && stakeVal > 0 ? stakeVal : 0;
             updateData.bilancio_giocate = Number(account.bilancio_giocate) - risultatoVal + addBackStake;
           }
         } else {
