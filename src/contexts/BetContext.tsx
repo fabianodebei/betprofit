@@ -261,17 +261,18 @@ export function BetProvider({ children }: { children: ReactNode }) {
         let updateData: any = {};
 
         if (betToDelete.stato === 'Archiviata') {
-          // Per bet archiviate: annulla completamente tutti gli effetti
-          // 1. Togliamo l'accredito fatto in archivio
-          // 2. Restituiamo la detrazione iniziale
-          // Sostituito: rimuovi solo il risultato dal saldo attuale
+          // Ripristino completo: rimuovi l'accredito di archivio e ripristina la detrazione iniziale
+          // Saldo: togli solo il risultato (lo stake era stato riaccreditato in archivio)
           const newSaldoAttuale = Number(account.saldo_attuale) - risultatoVal;
           updateData.saldo_attuale = newSaldoAttuale;
 
           if (betToDelete.tipo === 'Rapida') {
+            // Giocate rapide: inverti semplicemente il movimento registrato
             updateData.bilancio_giocate_rapide = Number(account.bilancio_giocate_rapide) - risultatoVal;
           } else {
-            updateData.bilancio_giocate = Number(account.bilancio_giocate) - risultatoVal;
+            // Giocate normali: inverti l'archiviazione (−risultato) e ripristina la detrazione iniziale (+stake)
+            const addBackStake = !isFreeOrBonus && stakeVal > 0 ? stakeVal : 0;
+            updateData.bilancio_giocate = Number(account.bilancio_giocate) - risultatoVal + addBackStake;
           }
         } else {
           // Non archiviata (In Corso): restituiamo lo stake detratto inizialmente
@@ -298,27 +299,6 @@ export function BetProvider({ children }: { children: ReactNode }) {
         window.dispatchEvent(new Event('refresh-accounts'));
       }
 
-      // Se c'è un wallet associato e NON è una giocata rapida, ripristina anche quello
-      if (betToDelete.walletId && betToDelete.tipo !== 'Rapida') {
-        const { data: wallet, error: walletError } = await supabase
-          .from('wallets')
-          .select('*')
-          .eq('id', betToDelete.walletId)
-          .maybeSingle();
-
-        if (walletError) throw walletError;
-
-        if (wallet) {
-          const newWalletSaldo = Number(wallet.saldo_attuale) + betToDelete.stake;
-
-          const { error: updateWalletError } = await supabase
-            .from('wallets')
-            .update({ saldo_attuale: newWalletSaldo })
-            .eq('id', betToDelete.walletId);
-
-          if (updateWalletError) throw updateWalletError;
-        }
-      }
 
       // Elimina la bet
       const { error } = await supabase
