@@ -75,13 +75,15 @@ export default function Balance() {
                     <th className="p-3 text-left text-xs font-semibold uppercase">Conto</th>
                     <th className="p-3 text-left text-xs font-semibold uppercase">Bilancio Giocate</th>
                     <th className="p-3 text-left text-xs font-semibold uppercase">Bilancio Giocate Rapide</th>
-                    <th className="p-3 text-left text-xs font-semibold uppercase">Saldo Attuale</th>
+                    <th className="p-3 text-left text-xs font-semibold uppercase">Saldo Disponibile</th>
+                    <th className="p-3 text-left text-xs font-semibold uppercase">Saldo Reale</th>
                     <th className="p-3 text-left text-xs font-semibold uppercase">Profitto</th>
                   </tr>
                 </thead>
                 <tbody>
                   {accounts.map((account, idx) => {
                     const profitto = account.bilancioGiocate + account.bilancioGiocateRapide;
+                    const saldoReale = account.saldoAttuale + profitto;
                     return (
                       <tr key={account.id} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
                         <td className="p-3 text-sm">{idx + 1}</td>
@@ -90,7 +92,8 @@ export default function Balance() {
                         <td className="p-3 text-sm font-medium">{account.conto}</td>
                         <td className="p-3 text-sm">{formatCurrency(account.bilancioGiocate)}</td>
                         <td className="p-3 text-sm">{formatCurrency(account.bilancioGiocateRapide)}</td>
-                        <td className="p-3 text-sm font-semibold">{formatCurrency(account.saldoAttuale)}</td>
+                        <td className="p-3 text-sm">{formatCurrency(account.saldoAttuale)}</td>
+                        <td className="p-3 text-sm font-semibold">{formatCurrency(saldoReale)}</td>
                         <td className="p-3">
                           <span className={`font-semibold ${profitto >= 0 ? 'text-success' : 'text-destructive'}`}>
                             {formatCurrency(profitto)}

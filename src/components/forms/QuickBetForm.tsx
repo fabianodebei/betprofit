@@ -146,17 +146,17 @@ export function QuickBetForm({
       if (account) {
         const oldStake = editingBet.stake || 0;
         const stakeDifference = data.movimento - oldStake;
+        // Giocate rapide: aggiorna SOLO il bilancio, NON il saldo attuale
         await updateAccount(account.id, {
-          bilancioGiocateRapide: account.bilancioGiocateRapide + stakeDifference,
-          saldoAttuale: account.saldoAttuale + stakeDifference
+          bilancioGiocateRapide: account.bilancioGiocateRapide + stakeDifference
         });
       }
     } else {
       // Add new bet
       if (account) {
+        // Giocate rapide: aggiorna SOLO il bilancio, NON il saldo attuale
         await updateAccount(account.id, {
-          bilancioGiocateRapide: account.bilancioGiocateRapide + data.movimento,
-          saldoAttuale: account.saldoAttuale + data.movimento
+          bilancioGiocateRapide: account.bilancioGiocateRapide + data.movimento
         });
       }
       await addBet({

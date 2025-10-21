@@ -222,7 +222,11 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   const getTotalBalance = () => {
     return accounts
       .filter((a) => a.stato === 'Abilitato')
-      .reduce((sum, account) => sum + account.saldoAttuale, 0);
+      .reduce((sum, account) => {
+        // Saldo reale = saldo disponibile (depositi/prelievi) + profitti dalle scommesse
+        const profitto = account.bilancioGiocate + account.bilancioGiocateRapide;
+        return sum + account.saldoAttuale + profitto;
+      }, 0);
   };
 
   return (

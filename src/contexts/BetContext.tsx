@@ -261,11 +261,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
         let updateData: any = {};
 
         if (betToDelete.stato === 'Archiviata') {
-          // Ripristino completo: rimuovi l'accredito di archivio e ripristina la detrazione iniziale
-          // Saldo: togli solo il risultato (lo stake era stato riaccreditato in archivio)
-          const newSaldoAttuale = Number(account.saldo_attuale) - risultatoVal;
-          updateData.saldo_attuale = newSaldoAttuale;
-
+          // Giocate archiviate: rimuovi solo dal bilancio (il ricalcolo automatico gestirà il resto)
           // Calcola lo stake da ripristinare per bet non Free/Bonus
           const addBackStake = !isFreeOrBonus && stakeVal > 0 ? stakeVal : 0;
           if (betToDelete.tipo === 'Rapida') {
@@ -278,15 +274,11 @@ export function BetProvider({ children }: { children: ReactNode }) {
         } else {
           // Non archiviata (In Corso): restituiamo lo stake detratto inizialmente
           if (betToDelete.tipo === 'Rapida') {
-            const newBilancioGiocateRapide = Number(account.bilancio_giocate_rapide) + stakeVal;
-            const newSaldoAttuale = Number(account.saldo_attuale) + stakeVal;
-            updateData.bilancio_giocate_rapide = newBilancioGiocateRapide;
-            updateData.saldo_attuale = newSaldoAttuale;
+            // Le giocate rapide sono sempre archiviate, questo branch non dovrebbe mai essere raggiunto
+            updateData.bilancio_giocate_rapide = Number(account.bilancio_giocate_rapide) + stakeVal;
           } else if (!isFreeOrBonus) {
-            const newSaldoAttuale = Number(account.saldo_attuale) + stakeVal;
-            const newBilancioGiocate = Number(account.bilancio_giocate) + stakeVal;
-            updateData.saldo_attuale = newSaldoAttuale;
-            updateData.bilancio_giocate = newBilancioGiocate;
+            // Giocate normali In Corso: ripristina lo stake nel bilancio
+            updateData.bilancio_giocate = Number(account.bilancio_giocate) + stakeVal;
           }
         }
 
@@ -346,22 +338,8 @@ export function BetProvider({ children }: { children: ReactNode }) {
         return;
       }
       
-      // Calculate the amount to add to saldo_attuale
-      let amountToAdd: number;
-      
-      if (bet.tipoBonus === 'Free Bet') {
-        // For free bets, stake was never subtracted, so only add the profit
-        amountToAdd = risultato;
-      } else {
-        // For normal bets, stake was subtracted, so return stake + profit
-        // risultato is net profit, so total = stake + risultato
-        amountToAdd = bet.stake + risultato;
-      }
-      
-      const newSaldoAttuale = Number(account.saldo_attuale) + amountToAdd;
-      
-      // Update bilancio based on bet type
-      let updateData: any = { saldo_attuale: newSaldoAttuale };
+      // Update bilancio based on bet type (NON modificare saldoAttuale)
+      let updateData: any = {};
       if (bet.tipo === 'Rapida') {
         updateData.bilancio_giocate_rapide = Number(account.bilancio_giocate_rapide) + risultato;
       } else {
