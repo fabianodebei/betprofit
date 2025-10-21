@@ -101,19 +101,52 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         }
       });
 
+      // Ricalcola saldo_attuale dalle transazioni (depositi/prelievi)
+      const { data: transactionsData } = await supabase
+        .from('transactions')
+        .select('conto, metodo, accredito, addebito')
+        .eq('user_id', user.id);
+
+      const saldoDisponibileMap: Record<string, number> = {};
+      (transactionsData || []).forEach((t: any) => {
+        const conto = t.conto as string;
+        if (!saldoDisponibileMap[conto]) saldoDisponibileMap[conto] = 0;
+        
+        if (t.metodo === 'Deposito' || t.metodo === 'Riconciliazione') {
+          saldoDisponibileMap[conto] += Number(t.accredito || 0);
+        } else if (t.metodo === 'Prelievo' || t.metodo === 'Spesa') {
+          saldoDisponibileMap[conto] -= Number(t.addebito || 0);
+        }
+      });
+
       // Aggiorna DB se diverso e prepara stato corretto
       const correctedAccounts: Account[] = [];
       for (const acc of mappedAccounts) {
         const newBG = giocateMap[acc.conto] ?? 0;
         const newBR = rapideMap[acc.conto] ?? 0;
-        const needsUpdate = newBG !== acc.bilancioGiocate || newBR !== acc.bilancioGiocateRapide;
+        const newSaldo = saldoDisponibileMap[acc.conto] ?? 0;
+        
+        const needsUpdate = 
+          newBG !== acc.bilancioGiocate || 
+          newBR !== acc.bilancioGiocateRapide ||
+          newSaldo !== acc.saldoAttuale;
+          
         if (needsUpdate) {
           await supabase
             .from('accounts')
-            .update({ bilancio_giocate: newBG, bilancio_giocate_rapide: newBR })
+            .update({ 
+              bilancio_giocate: newBG, 
+              bilancio_giocate_rapide: newBR,
+              saldo_attuale: newSaldo
+            })
             .eq('id', acc.id);
         }
-        correctedAccounts.push({ ...acc, bilancioGiocate: newBG, bilancioGiocateRapide: newBR });
+        correctedAccounts.push({ 
+          ...acc, 
+          bilancioGiocate: newBG, 
+          bilancioGiocateRapide: newBR,
+          saldoAttuale: newSaldo
+        });
       }
 
       setAccounts(correctedAccounts);
