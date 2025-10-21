@@ -7,10 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Shield, Search, UserCog, Users, Activity, Database, TrendingUp, ArrowLeft, RotateCcw } from 'lucide-react';
+import { Shield, Search, UserCog, Users, Activity, Database, TrendingUp, ArrowLeft, RotateCcw, Trash } from 'lucide-react';
 import { format, subDays, eachDayOfInterval } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { AdminKPICard } from '@/components/admin/AdminKPICard';
@@ -72,7 +73,8 @@ export default function Admin() {
   const [userActivities, setUserActivities] = useState<any[]>([]);
   const [registrationData, setRegistrationData] = useState<any[]>([]);
   const [userEarnings, setUserEarnings] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState('dashboard');
+   const [activeTab, setActiveTab] = useState('dashboard');
+   const [deletingId, setDeletingId] = useState<string | null>(null);
   
   const { preferences, updatePreferences, resetPreferences, isLoading: prefsLoading } = useAdminPreferences();
   
@@ -236,7 +238,7 @@ export default function Admin() {
     setDialogOpen(true);
   };
 
-  const updateUserRole = async () => {
+   const updateUserRole = async () => {
     if (!selectedUser) return;
 
     try {
@@ -501,7 +503,7 @@ export default function Admin() {
                 <TableHead>Nome</TableHead>
                 <TableHead>Ruolo</TableHead>
                 <TableHead>Registrato</TableHead>
-                <TableHead>Azioni</TableHead>
+                 <TableHead>Azioni</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -518,15 +520,62 @@ export default function Admin() {
                     {format(new Date(user.created_at), 'dd MMM yyyy', { locale: it })}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openRoleDialog(user)}
-                    >
-                      <UserCog className="h-4 w-4 mr-2" />
-                      Modifica Ruolo
-                    </Button>
-                  </TableCell>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openRoleDialog(user)}
+                          disabled={deletingId === user.id}
+                        >
+                          <UserCog className="h-4 w-4 mr-2" />
+                          Modifica Ruolo
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              disabled={deletingId === user.id}
+                            >
+                              <Trash className="h-4 w-4 mr-2" />
+                              Elimina
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Eliminare questo utente?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                L'operazione è irreversibile e rimuoverà anche i suoi dati principali. Procedere?
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <div className="flex justify-end gap-2">
+                              <AlertDialogCancel>Annulla</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={async () => {
+                                  try {
+                                    setDeletingId(user.id);
+                                    const { error } = await supabase.functions.invoke('admin-delete-user', {
+                                      body: { user_id: user.id },
+                                    });
+                                    if (error) throw error;
+                                    toast.success('Utente eliminato con successo');
+                                    fetchUsers();
+                                    fetchSystemStats();
+                                  } catch (err: any) {
+                                    console.error('Delete user error:', err);
+                                    toast.error('Errore durante l\'eliminazione dell\'utente');
+                                  } finally {
+                                    setDeletingId(null);
+                                  }
+                                }}
+                              >
+                                Conferma
+                              </AlertDialogAction>
+                            </div>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
                 </TableRow>
               ))}
             </TableBody>

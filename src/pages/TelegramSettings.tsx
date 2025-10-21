@@ -10,7 +10,9 @@ import { Switch } from '@/components/ui/switch';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTelegramConfig } from '@/contexts/TelegramConfigContext';
-import { Info, MessageSquare, ArrowLeft } from 'lucide-react';
+import { Info, MessageSquare, ArrowLeft, Send } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
   telegram_bot_token: z.string()
@@ -34,6 +36,7 @@ const TelegramSettings = () => {
   const navigate = useNavigate();
   const { config, loading, updateConfig } = useTelegramConfig();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -187,9 +190,38 @@ const TelegramSettings = () => {
                   )}
                 />
 
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Salvataggio...' : 'Salva Configurazione'}
-                </Button>
+                <div className="flex gap-2">
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? 'Salvataggio...' : 'Salva Configurazione'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={async () => {
+                      setIsTesting(true);
+                      try {
+                        const { data, error } = await supabase.functions.invoke('send-telegram-notification', {
+                          body: { message: 'Messaggio di test: notifiche Telegram attive ✅' },
+                        });
+                        if (error) throw error;
+                        if (data?.success) {
+                          toast.success('Messaggio di test inviato su Telegram');
+                        } else {
+                          toast.info('Richiesta inviata. Verifica Telegram.');
+                        }
+                      } catch (err: any) {
+                        console.error('Test Telegram error:', err);
+                        toast.error(err?.message || 'Invio test fallito. Controlla token e chat ID.');
+                      } finally {
+                        setIsTesting(false);
+                      }
+                    }}
+                    disabled={isSubmitting || isTesting}
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    {isTesting ? 'Invio...' : 'Invia messaggio di test'}
+                  </Button>
+                </div>
               </form>
             </Form>
           </CardContent>
