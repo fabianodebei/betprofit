@@ -191,12 +191,12 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
           return;
         }
       } else if (data.metodo === 'Banca') {
-        // Per bancate, la liability (responsabilità) non deve superare il disponibile
+        // Per bancate, il rischio non deve superare il disponibile
         const liability = data.stake * (data.quotaBanca - 1);
         if (liability > disponibile) {
           form.setError('stake', {
             type: 'manual',
-            message: `Saldo insufficiente per la liability! Disponibile: €${disponibile.toFixed(2)}, Liability richiesta: €${liability.toFixed(2)}`
+            message: `Saldo insufficiente per la bancata! Disponibile: €${disponibile.toFixed(2)}, Rischio bancata: €${liability.toFixed(2)}`
           });
           return;
         }

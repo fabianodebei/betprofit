@@ -138,7 +138,7 @@ export function MultiplaArchiveDialog({
             <CardContent className="pt-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Totale Rischio (Liability)</p>
+                  <p className="text-sm text-muted-foreground">Totale Rischio (Bancata)</p>
                   <p className="text-xl font-bold">{formatCurrency(calculations.totalRisk)}</p>
                 </div>
                 <div>

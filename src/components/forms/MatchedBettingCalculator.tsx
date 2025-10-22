@@ -123,7 +123,7 @@ export function MatchedBettingCalculator() {
       }
     }
 
-    // Perdo la bancata (liability)
+    // Perdo la bancata
     const liabilityBanca = stakeBanca * (quotaBancaCombinata - 1);
     const guadagnoVincita = vincitaPunta - liabilityBanca;
 

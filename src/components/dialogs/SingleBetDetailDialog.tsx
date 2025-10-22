@@ -57,7 +57,7 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
     }, 0);
 
     const layLosses = layBets.reduce((sum, lb) => {
-      // Perdita della bancata (liability)
+      // Perdita della bancata
       return sum + lb.stake * (lb.quotaBanca - 1);
     }, 0);
 

@@ -118,7 +118,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         }
       });
 
-      // Exposure delle bancate (liability) per le scommesse ancora in corso
+      // Exposure delle bancate per le scommesse ancora in corso
       const activeBetIds = new Set((betsData || [])
         .filter((b: any) => b.stato === 'In Corso')
         .map((b: any) => b.id));
