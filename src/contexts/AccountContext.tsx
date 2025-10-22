@@ -41,8 +41,25 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         )
         .subscribe();
 
+      const layChannel = supabase
+        .channel('lay-bets-balance')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'lay_bets',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            fetchAccounts();
+          }
+        )
+        .subscribe();
+
       return () => {
         supabase.removeChannel(channel);
+        supabase.removeChannel(layChannel);
       };
     } else {
       setAccounts([]);
@@ -77,7 +94,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       // Recalcolo bilanci dalle puntate per correggere eventuali inconsistenze
       const { data: betsData } = await supabase
         .from('bets')
-        .select('tipo, conto, stato, stake, risultato, tipo_bonus')
+        .select('id, tipo, conto, stato, stake, risultato, tipo_bonus')
         .eq('user_id', user.id);
 
       const giocateMap: Record<string, number> = {};
@@ -98,6 +115,24 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         } else if (b.stato === 'Archiviata') {
           // A fine corsa contano solo i profitti netti (risultato)
           giocateMap[conto] = (giocateMap[conto] || 0) + (Number(b.risultato) || 0);
+        }
+      });
+
+      // Exposure delle bancate (liability) per le scommesse ancora in corso
+      const activeBetIds = new Set((betsData || [])
+        .filter((b: any) => b.stato === 'In Corso')
+        .map((b: any) => b.id));
+
+      const { data: layData } = await supabase
+        .from('lay_bets')
+        .select('parent_bet_id, metodo, conto, stake, quota_banca')
+        .eq('user_id', user.id);
+
+      (layData || []).forEach((lb: any) => {
+        if (lb.metodo === 'Banca' && activeBetIds.has(lb.parent_bet_id)) {
+          const liability = Number(lb.stake) * (Number(lb.quota_banca) - 1);
+          const conto = lb.conto as string;
+          giocateMap[conto] = (giocateMap[conto] || 0) - liability;
         }
       });
 
