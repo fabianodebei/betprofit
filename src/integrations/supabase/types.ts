@@ -609,7 +609,7 @@ export type Database = {
         Returns: string
       }
       admin_get_all_users: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           created_at: string
           email: string
@@ -619,14 +619,14 @@ export type Database = {
         }[]
       }
       admin_get_registration_data: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           count: number
           date: string
         }[]
       }
       admin_get_user_activities: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           account_count: number
           bet_count: number
@@ -640,7 +640,7 @@ export type Database = {
         }[]
       }
       admin_get_user_earnings: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           email: string
           full_name: string
@@ -655,10 +655,7 @@ export type Database = {
         }
         Returns: undefined
       }
-      get_admin_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      get_admin_stats: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -666,10 +663,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      validate_telegram_message: {
-        Args: { message: string }
-        Returns: boolean
-      }
+      validate_telegram_message: { Args: { message: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "free"
