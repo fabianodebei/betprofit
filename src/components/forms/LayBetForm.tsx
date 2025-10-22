@@ -99,11 +99,17 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
   useEffect(() => {
     if (selectedParentBet?.tipo === 'Multipla' && selectedParentBetId) {
       const legs = getBetLegsByBetId(selectedParentBetId);
+      console.log('Loading bet legs for multipla:', selectedParentBetId, 'legs:', legs);
       setDynamicBetLegs(legs);
     } else {
       setDynamicBetLegs([]);
     }
   }, [selectedParentBet, selectedParentBetId, getBetLegsByBetId]);
+
+  // Debug: log effectiveBetLegs
+  useEffect(() => {
+    console.log('effectiveBetLegs:', effectiveBetLegs, 'betLegs prop:', betLegs, 'dynamicBetLegs:', dynamicBetLegs);
+  }, [effectiveBetLegs, betLegs, dynamicBetLegs]);
 
   useEffect(() => {
     if (editingLayBet && open) {
@@ -242,46 +248,55 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                 </FormItem>
               )}
             />
-            {effectiveBetLegs.length > 0 && (
+            {(parentBet?.tipo === 'Multipla' || selectedParentBet?.tipo === 'Multipla') && (
               <>
-                <FormField
-                  control={form.control}
-                  name="evento"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Seleziona Gamba della Multipla da Bancare *</FormLabel>
-                      <Select 
-                        onValueChange={(value) => {
-                          const leg = effectiveBetLegs.find(l => l.id === value);
-                          if (leg) {
-                            setSelectedBetLeg(leg);
-                            form.setValue('evento', leg.evento);
-                            form.setValue('dataEvento', new Date(leg.dataEvento));
-                            // Suggerisci mercato corretto
-                            const suggestedMarket = `Esito Finale - ${leg.selezione || leg.mercato}`;
-                            form.setValue('mercato', suggestedMarket);
-                            form.setValue('quotaPunta', leg.quota);
-                          }
-                        }}
-                        defaultValue={selectedBetLeg?.id}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Seleziona gamba da bancare" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {effectiveBetLegs.map((leg) => (
-                            <SelectItem key={leg.id} value={leg.id}>
-                              {leg.evento} - {leg.selezione || leg.mercato} @ {leg.quota?.toFixed(2)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    Gambe disponibili: {effectiveBetLegs.length}
+                    {effectiveBetLegs.length === 0 && ' - Caricamento...'}
+                  </p>
+                </div>
+                
+                {effectiveBetLegs.length > 0 && (
+                  <FormField
+                    control={form.control}
+                    name="evento"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Seleziona Gamba della Multipla da Bancare *</FormLabel>
+                        <Select 
+                          onValueChange={(value) => {
+                            const leg = effectiveBetLegs.find(l => l.id === value);
+                            if (leg) {
+                              setSelectedBetLeg(leg);
+                              form.setValue('evento', leg.evento);
+                              form.setValue('dataEvento', new Date(leg.dataEvento));
+                              // Suggerisci mercato corretto
+                              const suggestedMarket = `Esito Finale - ${leg.selezione || leg.mercato}`;
+                              form.setValue('mercato', suggestedMarket);
+                              form.setValue('quotaPunta', leg.quota);
+                            }
+                          }}
+                          defaultValue={selectedBetLeg?.id}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Seleziona gamba da bancare" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {effectiveBetLegs.map((leg) => (
+                              <SelectItem key={leg.id} value={leg.id}>
+                                {leg.evento} - {leg.selezione || leg.mercato} @ {leg.quota?.toFixed(2)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 {/* Warning se mercato incompatibile */}
                 {!marketCompatibility.compatible && (
