@@ -184,7 +184,9 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
   };
 
   const getLayBetsByParentId = (parentBetId: string) => {
-    return layBets.filter((layBet) => layBet.parentBetId === parentBetId);
+    return layBets
+      .filter((layBet) => layBet.parentBetId === parentBetId)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   };
 
   return (

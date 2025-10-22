@@ -26,11 +26,7 @@ export function MultiplaArchiveDialog({
 }: MultiplaArchiveDialogProps) {
   const { getLayBetsByParentId } = useLayBets();
   const { getBetLegsByBetId } = useBetLegs();
-  const layBets = bet 
-    ? getLayBetsByParentId(bet.id).sort((a, b) => 
-        new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime()
-      )
-    : [];
+  const layBets = bet ? getLayBetsByParentId(bet.id) : [];
   const betLegs = bet ? getBetLegsByBetId(bet.id) : [];
   
   const [selectedOption, setSelectedOption] = useState<string>('win');

@@ -26,11 +26,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
   const [showLayBetForm, setShowLayBetForm] = useState(false);
   const [editingLayBet, setEditingLayBet] = useState<any>(null);
 
-  const layBets = bet 
-    ? getLayBetsByParentId(bet.id).sort((a, b) => 
-        new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime()
-      )
-    : [];
+  const layBets = bet ? getLayBetsByParentId(bet.id) : [];
   const betLegs = bet ? getBetLegsByBetId(bet.id) : [];
 
   // Usa la funzione centralizzata per i calcoli
