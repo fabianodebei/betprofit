@@ -40,6 +40,7 @@ export const BetLegProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       if (error) throw error;
 
+      console.log('fetchBetLegs raw data:', data);
       const mappedLegs = data.map((leg) => ({
         id: leg.id,
         betId: leg.bet_id,
@@ -54,6 +55,7 @@ export const BetLegProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         dataEvento: new Date(leg.data_evento),
         createdAt: new Date(leg.created_at),
       }));
+      console.log('fetchBetLegs mapped:', mappedLegs);
       setBetLegs(mappedLegs);
     } catch (error: any) {
       console.error('Error fetching bet legs:', error);
@@ -151,7 +153,10 @@ export const BetLegProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const getBetLegsByBetId = (betId: string): BetLeg[] => {
-    return betLegs.filter((leg) => leg.betId === betId);
+    const filtered = betLegs.filter((leg) => leg.betId === betId);
+    console.log('getBetLegsByBetId called with:', betId, 'found:', filtered.length, 'legs');
+    console.log('All betLegs in context:', betLegs.map(l => ({ id: l.id, betId: l.betId, evento: l.evento })));
+    return filtered;
   };
 
   return (
