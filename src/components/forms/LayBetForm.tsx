@@ -22,6 +22,7 @@ import { useBets } from '@/contexts/BetContext';
 import { useBetLegs } from '@/contexts/BetLegContext';
 import { SPORT_MARKETS } from '@/constants/markets';
 import { LayBet, Bet } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
 
 const layBetSchema = z.object({
   metodo: z.enum(['Punta', 'Banca']),
@@ -163,26 +164,36 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
   }, [editingLayBet, open, form, parentBet]);
 
   const onSubmit = async (data: LayBetFormData) => {
-    const account = accounts.find(a => a.conto === data.conto);
+    // Ricarica account fresco dal database per avere saldo aggiornato
+    const { data: freshAccounts } = await supabase
+      .from('accounts')
+      .select('*')
+      .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+      .eq('conto', data.conto)
+      .single();
+    
+    const account = freshAccounts || accounts.find(a => a.conto === data.conto);
     
     // Controllo saldo per LayBet
     if (account) {
+      const saldoAttuale = 'saldo_attuale' in account ? account.saldo_attuale : account.saldoAttuale;
+      
       if (data.metodo === 'Punta') {
         // Per puntate normali, lo stake non deve superare il saldo
-        if (data.stake > account.saldoAttuale) {
+        if (data.stake > saldoAttuale) {
           form.setError('stake', {
             type: 'manual',
-            message: `Saldo insufficiente! Disponibile: €${account.saldoAttuale.toFixed(2)}, Richiesto: €${data.stake.toFixed(2)}`
+            message: `Saldo insufficiente! Disponibile: €${saldoAttuale.toFixed(2)}, Richiesto: €${data.stake.toFixed(2)}`
           });
           return;
         }
       } else if (data.metodo === 'Banca') {
         // Per bancate, la liability (responsabilità) non deve superare il saldo
         const liability = data.stake * (data.quotaBanca - 1);
-        if (liability > account.saldoAttuale) {
+        if (liability > saldoAttuale) {
           form.setError('stake', {
             type: 'manual',
-            message: `Saldo insufficiente per la liability! Disponibile: €${account.saldoAttuale.toFixed(2)}, Liability richiesta: €${liability.toFixed(2)}`
+            message: `Saldo insufficiente per la liability! Disponibile: €${saldoAttuale.toFixed(2)}, Liability richiesta: €${liability.toFixed(2)}`
           });
           return;
         }
