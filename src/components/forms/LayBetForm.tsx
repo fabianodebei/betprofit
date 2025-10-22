@@ -59,6 +59,14 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
   const [selectedParentBet, setSelectedParentBet] = useState<Bet | null>(parentBet || null);
   const [dynamicBetLegs, setDynamicBetLegs] = useState<any[]>([]);
   
+  // Sincronizza la selezione della multipla quando il form viene aperto dal dettaglio multipla
+  useEffect(() => {
+    if (open && parentBetId && parentBet) {
+      setSelectedParentBetId(parentBetId);
+      setSelectedParentBet(parentBet);
+    }
+  }, [open, parentBetId, parentBet]);
+  
   const ongoingBets = getOngoingBets();
   
   // Usa betLegs passati come prop o quelli caricati dinamicamente
