@@ -50,7 +50,7 @@ interface LayBetFormProps {
 
 export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mode = 'create', parentBet, betLegs = [] }: LayBetFormProps) {
   const { addLayBet, updateLayBet } = useLayBets();
-  const { accounts } = useAccounts();
+  const { accounts, updateAccount } = useAccounts();
   const { getOngoingBets } = useBets();
   const { getBetLegsByBetId } = useBetLegs();
   const [selectedMetodo, setSelectedMetodo] = useState<'Punta' | 'Banca'>('Punta');
@@ -207,6 +207,20 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
       if (!betId) {
         form.setError('evento', { message: 'Seleziona una partita da bancare' });
         return;
+      }
+      
+      // Aggiorna saldo account prima di salvare (per evitare over-spend)
+      const account = accounts.find(a => a.conto === data.conto);
+      if (account) {
+        const toDeduct = data.metodo === 'Banca' ? data.stake * (data.quotaBanca - 1) : data.stake;
+        if (toDeduct > account.saldoAttuale) {
+          form.setError('stake', { type: 'manual', message: `Saldo insufficiente! Disponibile: €${account.saldoAttuale.toFixed(2)}, Richiesto: €${toDeduct.toFixed(2)}` });
+          return;
+        }
+        await updateAccount(account.id, {
+          saldoAttuale: account.saldoAttuale - toDeduct,
+          bilancioGiocate: account.bilancioGiocate - toDeduct,
+        });
       }
       
       await addLayBet({
