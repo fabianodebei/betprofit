@@ -100,7 +100,27 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
     if (selectedParentBet?.tipo === 'Multipla' && selectedParentBetId) {
       const legs = getBetLegsByBetId(selectedParentBetId);
       console.log('Loading bet legs for multipla:', selectedParentBetId, 'legs:', legs);
-      setDynamicBetLegs(legs);
+      if (legs && legs.length > 0) {
+        setDynamicBetLegs(legs);
+      } else if (selectedParentBet?.evento) {
+        // Fallback: crea gambe da stringa eventi della multipla (es. "A, B, C")
+        const parts = String(selectedParentBet.evento)
+          .split(',')
+          .map((p) => p.trim())
+          .filter(Boolean);
+        const fallbackLegs = parts.map((name, i) => ({
+          id: `fallback-${i}`,
+          evento: name,
+          selezione: name,
+          mercato: '',
+          quota: selectedParentBet?.quotaPunta || 1.01,
+          dataEvento: new Date(selectedParentBet.dataEvento),
+        }));
+        console.log('Using fallback bet legs from parentBet.evento:', fallbackLegs);
+        setDynamicBetLegs(fallbackLegs);
+      } else {
+        setDynamicBetLegs([]);
+      }
     } else {
       setDynamicBetLegs([]);
     }
