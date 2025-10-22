@@ -455,11 +455,14 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                     <SelectContent>
                       {accounts
                         .filter(account => account.stato === 'Abilitato')
-                        .map((account) => (
-                          <SelectItem key={account.id} value={account.conto}>
-                            {account.conto} - {account.intestatario}
-                          </SelectItem>
-                        ))}
+                        .map((account) => {
+                          const disponibile = account.saldoAttuale + account.bilancioGiocate + account.bilancioGiocateRapide;
+                          return (
+                            <SelectItem key={account.id} value={account.conto}>
+                              {account.conto} - {account.intestatario} (€{disponibile.toFixed(2)})
+                            </SelectItem>
+                          );
+                        })}
                     </SelectContent>
                   </Select>
                   <FormMessage />
