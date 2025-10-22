@@ -193,7 +193,7 @@ export function MatchedBettingCalculator() {
         </div>
 
         {/* Stake Book */}
-        <div className="grid grid-cols-[120px_1fr_auto] gap-4 items-center bg-muted/30 p-3 rounded-lg">
+        <div className="grid grid-cols-[120px_1fr_auto] gap-4 items-center bg-secondary/50 p-3 rounded-lg">
           <Label className="text-base font-semibold">Stake Book</Label>
           <div className="relative">
             <Input
@@ -216,7 +216,7 @@ export function MatchedBettingCalculator() {
         </div>
 
         {/* Bonus Book */}
-        <div className="grid grid-cols-[120px_1fr_auto] gap-4 items-center bg-yellow-100 dark:bg-yellow-900/20 p-3 rounded-lg">
+        <div className="grid grid-cols-[120px_1fr_auto] gap-4 items-center bg-accent/20 p-3 rounded-lg">
           <Label className="text-base font-semibold">Bonus Book</Label>
           <div className="relative">
             <Input
@@ -319,7 +319,7 @@ export function MatchedBettingCalculator() {
                     </div>
 
                     {/* Quota Punta */}
-                    <div className="grid grid-cols-[120px_1fr_auto] gap-4 items-center bg-blue-100 dark:bg-blue-900/20 p-2 rounded">
+                    <div className="grid grid-cols-[120px_1fr_auto] gap-4 items-center bg-info/10 p-2 rounded">
                       <Label className="font-semibold">Quota Punta</Label>
                       <Input
                         type="number"
@@ -350,7 +350,7 @@ export function MatchedBettingCalculator() {
                     </div>
 
                     {/* Quota Banca */}
-                    <div className="grid grid-cols-[120px_1fr_auto] gap-4 items-center bg-red-100 dark:bg-red-900/20 p-2 rounded">
+                    <div className="grid grid-cols-[120px_1fr_auto] gap-4 items-center bg-destructive/10 p-2 rounded">
                       <Label className="font-semibold">Quota Banca</Label>
                       <Input
                         type="number"
@@ -401,7 +401,7 @@ export function MatchedBettingCalculator() {
         </div>
 
         {/* Commissioni */}
-        <div className="grid grid-cols-[120px_1fr] gap-4 items-center bg-red-100 dark:bg-red-900/20 p-3 rounded-lg border-t pt-4">
+        <div className="grid grid-cols-[120px_1fr] gap-4 items-center bg-destructive/10 p-3 rounded-lg border-t pt-4">
           <Label className="text-base font-semibold">Commissioni</Label>
           <div className="relative">
             <Input
@@ -439,7 +439,7 @@ export function MatchedBettingCalculator() {
                   <span className="font-medium">Guadagno se VINCI:</span>
                   <span
                     className={`font-bold ${
-                      risultati.guadagnoVincita >= 0 ? 'text-green-600' : 'text-red-600'
+                      risultati.guadagnoVincita >= 0 ? 'text-success' : 'text-destructive'
                     }`}
                   >
                     {formatCurrency(risultati.guadagnoVincita)}
@@ -449,7 +449,7 @@ export function MatchedBettingCalculator() {
                   <span className="font-medium">Guadagno se PERDI:</span>
                   <span
                     className={`font-bold ${
-                      risultati.guadagnoPerdita >= 0 ? 'text-green-600' : 'text-red-600'
+                      risultati.guadagnoPerdita >= 0 ? 'text-success' : 'text-destructive'
                     }`}
                   >
                     {formatCurrency(risultati.guadagnoPerdita)}
