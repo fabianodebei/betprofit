@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { SingleBetForm } from '@/components/forms/SingleBetForm';
 import { CasinoBetForm } from '@/components/forms/CasinoBetForm';
 import { MultiplaBetForm } from '@/components/forms/MultiplaBetForm';
-import { LayBetForm } from '@/components/forms/LayBetForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Badge } from '@/components/common/Badge';
@@ -49,11 +48,10 @@ export default function OngoingBets() {
   }, [filteredItems, currentPage, pageSize]);
 
   const totalPages = Math.ceil(filteredItems.length / pageSize);
-  const [activeTab, setActiveTab] = useState<'singola' | 'multipla' | 'casino' | 'bancata'>('singola');
+  const [activeTab, setActiveTab] = useState<'singola' | 'multipla' | 'casino'>('singola');
   const [showSingleBetForm, setShowSingleBetForm] = useState(false);
   const [showCasinoBetForm, setShowCasinoBetForm] = useState(false);
   const [showMultiplaBetForm, setShowMultiplaBetForm] = useState(false);
-  const [showLayBetForm, setShowLayBetForm] = useState(false);
   const [showMultiplaDetailDialog, setShowMultiplaDetailDialog] = useState(false);
   const [showSingleBetDetailDialog, setShowSingleBetDetailDialog] = useState(false);
   const [selectedBet, setSelectedBet] = useState<Bet | null>(null);
@@ -162,16 +160,6 @@ export default function OngoingBets() {
           className="rounded-b-none"
         >
           Nuova Puntata Casinò
-        </Button>
-        <Button
-          variant={activeTab === 'bancata' ? 'default' : 'ghost'}
-          onClick={() => {
-            setActiveTab('bancata');
-            setShowLayBetForm(true);
-          }}
-          className="rounded-b-none"
-        >
-          Nuova Bancata
         </Button>
       </div>
 
@@ -315,10 +303,6 @@ export default function OngoingBets() {
         open={showArchiveDialog}
         onOpenChange={setShowArchiveDialog}
         onConfirm={handleConfirmArchive}
-      />
-      <LayBetForm
-        open={showLayBetForm}
-        onOpenChange={setShowLayBetForm}
       />
     </div>
   );

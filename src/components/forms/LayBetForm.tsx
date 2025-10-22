@@ -200,45 +200,6 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {!parentBetId && mode === 'create' && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Seleziona Partita da Bancare *</label>
-                <Select 
-                  value={selectedParentBetId}
-                  onValueChange={(value) => {
-                    setSelectedParentBetId(value);
-                    const bet = ongoingBets.find(b => b.id === value);
-                    if (bet) {
-                      setSelectedParentBet(bet);
-                      // Pre-compila i dati della bet
-                      if (bet.tipo === 'Multipla') {
-                        // Per le multiple, non pre-compilare nulla, l'utente sceglierà la gamba
-                        form.setValue('evento', '');
-                        form.setValue('dataEvento', new Date());
-                      } else {
-                        form.setValue('evento', bet.evento || '');
-                        form.setValue('dataEvento', new Date(bet.dataEvento));
-                        form.setValue('mercato', bet.mercato || '');
-                        form.setValue('quotaPunta', bet.quota || 1.01);
-                        form.setValue('urlEvento', bet.urlEvento || '');
-                      }
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleziona una partita in corso" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    {ongoingBets.map((bet) => (
-                      <SelectItem key={bet.id} value={bet.id}>
-                        {bet.tipo === 'Multipla' ? '🎯 ' : ''}
-                        {bet.evento || bet.nomeGioco || 'Senza nome'} - {bet.conto} ({formatDate(bet.dataEvento)})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
             <FormField
               control={form.control}
               name="metodo"
@@ -280,7 +241,7 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                   name="evento"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Selezione della Multipla * (Obbligatorio)</FormLabel>
+                      <FormLabel>Seleziona Gamba della Multipla da Bancare *</FormLabel>
                       <Select 
                         onValueChange={(value) => {
                           const leg = effectiveBetLegs.find(l => l.id === value);
@@ -325,19 +286,22 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                 )}
               </>
             )}
-            <FormField
-              control={form.control}
-              name="evento"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Evento *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Es: Roma vs Lazio" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            
+            {effectiveBetLegs.length === 0 && (
+              <FormField
+                control={form.control}
+                name="evento"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Evento *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Es: Roma vs Lazio" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="dataEvento"
