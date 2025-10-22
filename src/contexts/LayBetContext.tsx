@@ -184,9 +184,12 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
   };
 
   const getLayBetsByParentId = (parentBetId: string) => {
-    return layBets
-      .filter((layBet) => layBet.parentBetId === parentBetId)
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    const filtered = layBets.filter((layBet) => layBet.parentBetId === parentBetId);
+    return filtered.sort((a, b) => {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return timeA - timeB;
+    });
   };
 
   return (
