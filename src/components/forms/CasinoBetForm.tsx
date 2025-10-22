@@ -121,10 +121,11 @@ export function CasinoBetForm({
   const onSubmit = async (data: CasinoBetFormData) => {
     const account = accounts.find(a => a.conto === data.conto);
     
-    // Controllo saldo: impedisci di puntare più soldi di quelli disponibili (tranne Free Bet)
+    // Controllo fondi disponibili reali (saldo + bilanci)
     if (account && data.stake > 0 && data.tipoBonus !== 'Free Bet') {
-      if (data.stake > account.saldoAttuale) {
-        toast.error(`Saldo insufficiente! Disponibile: €${account.saldoAttuale.toFixed(2)}, Richiesto: €${data.stake.toFixed(2)}`);
+      const disponibile = account.saldoAttuale + account.bilancioGiocate + account.bilancioGiocateRapide;
+      if (data.stake > disponibile) {
+        toast.error(`Saldo insufficiente! Disponibile: €${disponibile.toFixed(2)}, Richiesto: €${data.stake.toFixed(2)}`);
         return;
       }
     }
@@ -142,14 +143,7 @@ export function CasinoBetForm({
         rimborso: data.rimborso
       });
     } else {
-      // Non detrarre saldo per Free Bet o quando lo stake è 0 (bonus totale)
-      if (account && data.stake > 0 && data.tipoBonus !== 'Free Bet') {
-        const newBalance = account.saldoAttuale - data.stake;
-        await updateAccount(account.id, {
-          saldoAttuale: newBalance,
-          bilancioGiocate: account.bilancioGiocate - data.stake
-        });
-      }
+      // Non modifichiamo il saldo: i bilanci vengono ricalcolati automaticamente dalle puntate in corso
       await addBet({
         tipo: 'Casino',
         conto: data.conto,

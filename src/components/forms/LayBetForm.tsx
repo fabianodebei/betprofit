@@ -176,24 +176,27 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
     
     // Controllo saldo per LayBet
     if (account) {
-      const saldoAttuale = 'saldo_attuale' in account ? account.saldo_attuale : account.saldoAttuale;
-      
+      const saldo = 'saldo_attuale' in account ? Number((account as any).saldo_attuale) : (account as any).saldoAttuale;
+      const bg = 'bilancio_giocate' in account ? Number((account as any).bilancio_giocate) : (account as any).bilancioGiocate;
+      const br = 'bilancio_giocate_rapide' in account ? Number((account as any).bilancio_giocate_rapide) : (account as any).bilancioGiocateRapide;
+      const disponibile = (saldo || 0) + (bg || 0) + (br || 0);
+
       if (data.metodo === 'Punta') {
-        // Per puntate normali, lo stake non deve superare il saldo
-        if (data.stake > saldoAttuale) {
+        // Per puntate normali, lo stake non deve superare il disponibile
+        if (data.stake > disponibile) {
           form.setError('stake', {
             type: 'manual',
-            message: `Saldo insufficiente! Disponibile: €${saldoAttuale.toFixed(2)}, Richiesto: €${data.stake.toFixed(2)}`
+            message: `Saldo insufficiente! Disponibile: €${disponibile.toFixed(2)}, Richiesto: €${data.stake.toFixed(2)}`
           });
           return;
         }
       } else if (data.metodo === 'Banca') {
-        // Per bancate, la liability (responsabilità) non deve superare il saldo
+        // Per bancate, la liability (responsabilità) non deve superare il disponibile
         const liability = data.stake * (data.quotaBanca - 1);
-        if (liability > saldoAttuale) {
+        if (liability > disponibile) {
           form.setError('stake', {
             type: 'manual',
-            message: `Saldo insufficiente per la liability! Disponibile: €${saldoAttuale.toFixed(2)}, Liability richiesta: €${liability.toFixed(2)}`
+            message: `Saldo insufficiente per la liability! Disponibile: €${disponibile.toFixed(2)}, Liability richiesta: €${liability.toFixed(2)}`
           });
           return;
         }
@@ -220,19 +223,7 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
         return;
       }
       
-      // Aggiorna saldo account prima di salvare (per evitare over-spend)
-      const account = accounts.find(a => a.conto === data.conto);
-      if (account) {
-        const toDeduct = data.metodo === 'Banca' ? data.stake * (data.quotaBanca - 1) : data.stake;
-        if (toDeduct > account.saldoAttuale) {
-          form.setError('stake', { type: 'manual', message: `Saldo insufficiente! Disponibile: €${account.saldoAttuale.toFixed(2)}, Richiesto: €${toDeduct.toFixed(2)}` });
-          return;
-        }
-        await updateAccount(account.id, {
-          saldoAttuale: account.saldoAttuale - toDeduct,
-          bilancioGiocate: account.bilancioGiocate - toDeduct,
-        });
-      }
+      // Nessuna modifica diretta al saldo: il controllo è già stato effettuato sul disponibile (saldo + bilanci) e i bilanci verranno ricalcolati automaticamente
       
       await addLayBet({
         parentBetId: betId,
