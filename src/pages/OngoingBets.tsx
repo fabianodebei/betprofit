@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, Zap } from 'lucide-react';
+import { Plus, Zap, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SingleBetForm } from '@/components/forms/SingleBetForm';
 import { CasinoBetForm } from '@/components/forms/CasinoBetForm';
@@ -17,7 +17,9 @@ import { useAdvancedFilters } from '@/hooks/useAdvancedFilters';
 import { useBets } from '@/contexts/BetContext';
 import { useYear } from '@/contexts/YearContext';
 import { useTags } from '@/contexts/TagContext';
+import { useLayBets } from '@/contexts/LayBetContext';
 import { formatDate } from '@/utils/dates';
+import { formatCurrency } from '@/utils/currency';
 import { ArchiveBetDialog } from '@/components/dialogs/ArchiveBetDialog';
 import { MultiplaDetailDialog } from '@/components/dialogs/MultiplaDetailDialog';
 import { MultiplaArchiveDialog } from '@/components/dialogs/MultiplaArchiveDialog';
@@ -28,6 +30,7 @@ export default function OngoingBets() {
   const { getOngoingBets, deleteBet, archiveBet, loading } = useBets();
   const { selectedYear } = useYear();
   const { tags } = useTags();
+  const { getLayBetsByParentId } = useLayBets();
   const allOngoingBets = getOngoingBets();
   const yearOngoingBets = allOngoingBets.filter(bet => bet.dataEvento.getFullYear() === selectedYear);
   
@@ -209,37 +212,78 @@ export default function OngoingBets() {
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedItems.map((bet, idx) => (
-                    <tr key={bet.id} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
-                      <td className="p-3 text-sm">{formatDate(bet.dataEvento)}</td>
-                      <td className="p-3">
-                        <Badge variant="info">{bet.tipo}</Badge>
-                      </td>
-                      <td className="p-3 text-sm">{bet.evento || bet.nomeGioco || '-'}</td>
-                      <td className="p-3">
-                        <Badge variant="secondary">{bet.tipoBonus || 'Nessuno'}</Badge>
-                      </td>
-                      <td className="p-3 text-sm">{bet.conto}</td>
-                      <td className="p-3">
-                        {bet.tag && <Badge variant="outline">{bet.tag}</Badge>}
-                      </td>
-                      <td className="p-3 text-sm">{bet.note || '-'}</td>
-                      <td className="p-3">
-                        <div className="flex gap-1">
-                          {bet.tipo === 'Multipla' && (
-                            <Button size="sm" variant="outline" onClick={() => handleShowMultiplaDetail(bet)}>Dettagli</Button>
-                          )}
-                          {bet.tipo === 'Singola' && (
-                            <Button size="sm" variant="outline" onClick={() => handleShowSingleBetDetail(bet)}>Dettagli</Button>
-                          )}
-                          <Button size="sm" variant="outline" onClick={() => handleDetail(bet)}>Modifica</Button>
-                          <Button size="sm" variant="outline" onClick={() => handleArchive(bet)}>Archivia</Button>
-                          <Button size="sm" variant="outline" onClick={() => handleClone(bet)}>Clona</Button>
-                          <Button size="sm" variant="destructive" onClick={() => deleteBet(bet.id)}>Elimina</Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                    {paginatedItems.map((bet, idx) => {
+                      const layBets = getLayBetsByParentId(bet.id);
+                      return (
+                        <>
+                          <tr key={bet.id} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
+                            <td className="p-3 text-sm">{formatDate(bet.dataEvento)}</td>
+                            <td className="p-3">
+                              <Badge variant="info">{bet.tipo}</Badge>
+                            </td>
+                            <td className="p-3 text-sm">{bet.evento || bet.nomeGioco || '-'}</td>
+                            <td className="p-3">
+                              <Badge variant="secondary">{bet.tipoBonus || 'Nessuno'}</Badge>
+                            </td>
+                            <td className="p-3 text-sm">{bet.conto}</td>
+                            <td className="p-3">
+                              {bet.tag && <Badge variant="outline">{bet.tag}</Badge>}
+                            </td>
+                            <td className="p-3 text-sm">{bet.note || '-'}</td>
+                            <td className="p-3">
+                              <div className="flex gap-1">
+                                {bet.tipo === 'Multipla' && (
+                                  <Button size="sm" variant="outline" onClick={() => handleShowMultiplaDetail(bet)}>Dettagli</Button>
+                                )}
+                                {bet.tipo === 'Singola' && (
+                                  <Button size="sm" variant="outline" onClick={() => handleShowSingleBetDetail(bet)}>Dettagli</Button>
+                                )}
+                                <Button size="sm" variant="outline" onClick={() => handleDetail(bet)}>Modifica</Button>
+                                <Button size="sm" variant="outline" onClick={() => handleArchive(bet)}>Archivia</Button>
+                                <Button size="sm" variant="outline" onClick={() => handleClone(bet)}>Clona</Button>
+                                <Button size="sm" variant="destructive" onClick={() => deleteBet(bet.id)}>Elimina</Button>
+                              </div>
+                            </td>
+                          </tr>
+                          {layBets.map((layBet) => {
+                            const liability = layBet.stake * (layBet.quotaBanca - 1);
+                            return (
+                              <tr key={`lay-${layBet.id}`} className={`${idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'} border-l-4 border-l-warning`}>
+                                <td className="p-3 text-sm pl-8">
+                                  <div className="flex items-center gap-2">
+                                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                                    {formatDate(layBet.dataEvento)}
+                                  </div>
+                                </td>
+                                <td className="p-3">
+                                  <Badge variant="warning">{layBet.metodo}</Badge>
+                                </td>
+                                <td className="p-3 text-sm">{layBet.evento}</td>
+                                <td className="p-3 text-sm">
+                                  <div className="text-xs">
+                                    <div>Stake: {formatCurrency(layBet.stake)}</div>
+                                    <div>Bancata: {formatCurrency(liability)}</div>
+                                  </div>
+                                </td>
+                                <td className="p-3 text-sm">{layBet.conto}</td>
+                                <td className="p-3 text-sm">
+                                  <div className="text-xs">
+                                    <div>Q.Punta: {layBet.quotaPunta}</div>
+                                    <div>Q.Banca: {layBet.quotaBanca}</div>
+                                  </div>
+                                </td>
+                                <td className="p-3 text-sm">{layBet.mercato}</td>
+                                <td className="p-3">
+                                  <div className="flex gap-1">
+                                    <Button size="sm" variant="outline" onClick={() => handleShowSingleBetDetail(bet)}>Vedi Puntata</Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </>
+                      );
+                    })}
                 </tbody>
               </table>
               </div>
