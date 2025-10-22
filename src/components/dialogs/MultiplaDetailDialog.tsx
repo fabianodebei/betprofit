@@ -223,7 +223,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
           open={showLayBetForm}
           onOpenChange={setShowLayBetForm}
           parentBet={bet}
-          parentBetId={bet.id}
+          parentBetId={bet?.id}
           editingLayBet={editingLayBet}
           betLegs={betLegs}
         />

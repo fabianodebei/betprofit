@@ -271,7 +271,7 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
           setShowLayBetForm(open);
           if (!open) setEditingLayBet(null);
         }}
-        parentBetId={bet.id}
+        parentBetId={bet?.id}
         editingLayBet={editingLayBet}
         mode={editingLayBet ? 'edit' : 'create'}
         parentBet={bet}
