@@ -46,9 +46,9 @@ export function MultiplaArchiveDialog({
     if (selectedOption === 'win') {
       risultatoCalcolato = calculations.scenarioVincita;
     } else {
-      // Trova il risultato per la gamba selezionata
-      const gambaResult = calculations.perGamba.find((g) => g.id === selectedOption);
-      risultatoCalcolato = gambaResult?.risultato || 0;
+      // Trova il risultato per la partita selezionata
+      const partitaResult = calculations.perGamba.find((g) => g.id === selectedOption);
+      risultatoCalcolato = partitaResult?.risultato || 0;
     }
 
     onConfirm(risultatoCalcolato);
@@ -96,17 +96,17 @@ export function MultiplaArchiveDialog({
                     </div>
                   </Label>
 
-                  {/* Opzioni: Multipla Persa per ciascuna gamba */}
+                  {/* Opzioni: Multipla Persa per ciascuna partita */}
                   {layBets.length > 0 && (
                     <>
                       <Separator />
                       <div className="space-y-3">
                         <p className="text-sm font-semibold text-muted-foreground">
-                          Multipla Persa su una gamba specifica:
+                          Multipla Persa su una partita specifica:
                         </p>
                         {layBets.map((layBet) => {
-                          const gambaResult = calculations.perGamba.find((g) => g.id === layBet.id);
-                          const risultato = gambaResult?.risultato || 0;
+                          const partitaResult = calculations.perGamba.find((g) => g.id === layBet.id);
+                          const risultato = partitaResult?.risultato || 0;
 
                           return (
                             <Label

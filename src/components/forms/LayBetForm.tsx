@@ -100,27 +100,7 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
     if (selectedParentBet?.tipo === 'Multipla' && selectedParentBetId) {
       const legs = getBetLegsByBetId(selectedParentBetId);
       console.log('Loading bet legs for multipla:', selectedParentBetId, 'legs:', legs);
-      if (legs && legs.length > 0) {
-        setDynamicBetLegs(legs);
-      } else if (selectedParentBet?.evento) {
-        // Fallback: crea gambe da stringa eventi della multipla (es. "A, B, C")
-        const parts = String(selectedParentBet.evento)
-          .split(',')
-          .map((p) => p.trim())
-          .filter(Boolean);
-        const fallbackLegs = parts.map((name, i) => ({
-          id: `fallback-${i}`,
-          evento: name,
-          selezione: name,
-          mercato: '',
-          quota: selectedParentBet?.quotaPunta || 1.01,
-          dataEvento: new Date(selectedParentBet.dataEvento),
-        }));
-        console.log('Using fallback bet legs from parentBet.evento:', fallbackLegs);
-        setDynamicBetLegs(fallbackLegs);
-      } else {
-        setDynamicBetLegs([]);
-      }
+      setDynamicBetLegs(legs || []);
     } else {
       setDynamicBetLegs([]);
     }
@@ -272,18 +252,18 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
               <>
                 <div className="p-3 bg-muted/50 rounded-lg">
                   <p className="text-sm text-muted-foreground">
-                    Gambe disponibili: {effectiveBetLegs.length}
+                    Partite disponibili: {effectiveBetLegs.length}
                     {effectiveBetLegs.length === 0 && ' - Caricamento...'}
                   </p>
                 </div>
                 
-                {effectiveBetLegs.length > 0 && (
+                {effectiveBetLegs.length > 0 ? (
                   <FormField
                     control={form.control}
                     name="evento"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Seleziona Gamba della Multipla da Bancare *</FormLabel>
+                        <FormLabel>Seleziona Partita della Multipla da Bancare *</FormLabel>
                         <Select 
                           onValueChange={(value) => {
                             const leg = effectiveBetLegs.find(l => l.id === value);
@@ -301,7 +281,7 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Seleziona gamba da bancare" />
+                              <SelectValue placeholder="Seleziona partita da bancare" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -316,6 +296,10 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                       </FormItem>
                     )}
                   />
+                ) : (
+                  <div className="p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
+                    Questa multipla non ha partite salvate. Non è possibile bancarla.
+                  </div>
                 )}
 
                 {/* Warning se mercato incompatibile */}
