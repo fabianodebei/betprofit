@@ -4,17 +4,34 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { useAccounts } from '@/contexts/AccountContext';
 import { useWallets } from '@/contexts/WalletContext';
 import { useBets } from '@/contexts/BetContext';
+import { useLayBets } from '@/contexts/LayBetContext';
 import { formatCurrency } from '@/utils/currency';
 import { formatDate } from '@/utils/dates';
+import { useMemo } from 'react';
 
 export default function Balance() {
   const { accounts, getTotalBalance: getAccountsBalance } = useAccounts();
   const { getTotalBalance: getWalletsBalance } = useWallets();
-  const { getTotalStakeInCorso } = useBets();
+  const { getTotalStakeInCorso, getOngoingBets } = useBets();
+  const { layBets } = useLayBets();
 
   const saldoBookmakers = getAccountsBalance();
   const saldoWallets = getWalletsBalance();
-  const puntateInCorso = getTotalStakeInCorso();
+  
+  // Calcola puntate in corso includendo le liability delle bancate
+  const puntateInCorso = useMemo(() => {
+    const stakeInCorso = getTotalStakeInCorso();
+    const ongoingBets = getOngoingBets();
+    const ongoingBetIds = new Set(ongoingBets.map(b => b.id));
+    
+    // Somma le liability delle bancate associate a puntate in corso
+    const liabilityBancate = layBets
+      .filter(lb => lb.metodo === 'Banca' && ongoingBetIds.has(lb.parentBetId))
+      .reduce((sum, lb) => sum + (lb.stake * (lb.quotaBanca - 1)), 0);
+    
+    return stakeInCorso + liabilityBancate;
+  }, [getTotalStakeInCorso, getOngoingBets, layBets]);
+  
   const saldoTotale = saldoBookmakers + saldoWallets;
 
   return (
