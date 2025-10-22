@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { SingleBetForm } from '@/components/forms/SingleBetForm';
 import { CasinoBetForm } from '@/components/forms/CasinoBetForm';
 import { MultiplaBetForm } from '@/components/forms/MultiplaBetForm';
+import { MatchedBettingCalculator } from '@/components/forms/MatchedBettingCalculator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Badge } from '@/components/common/Badge';
 import { SortableTableHeader } from '@/components/common/SortableTableHeader';
@@ -59,6 +61,7 @@ export default function OngoingBets() {
   const [showMultiplaArchiveDialog, setShowMultiplaArchiveDialog] = useState(false);
   const [editingBet, setEditingBet] = useState<Bet | null>(null);
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'clone'>('create');
+  const [showCalculator, setShowCalculator] = useState(false);
 
   const handleArchive = (bet: Bet) => {
     setSelectedBet(bet);
@@ -160,6 +163,13 @@ export default function OngoingBets() {
           className="rounded-b-none"
         >
           Nuova Puntata Casinò
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => setShowCalculator(true)}
+          className="rounded-b-none ml-auto"
+        >
+          📊 Calcolatore Matched Betting
         </Button>
       </div>
 
@@ -304,6 +314,11 @@ export default function OngoingBets() {
         onOpenChange={setShowArchiveDialog}
         onConfirm={handleConfirmArchive}
       />
+      <Dialog open={showCalculator} onOpenChange={setShowCalculator}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <MatchedBettingCalculator />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
