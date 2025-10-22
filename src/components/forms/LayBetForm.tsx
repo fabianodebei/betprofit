@@ -99,17 +99,11 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
   useEffect(() => {
     if (selectedParentBet?.tipo === 'Multipla' && selectedParentBetId) {
       const legs = getBetLegsByBetId(selectedParentBetId);
-      console.log('Loading bet legs for multipla:', selectedParentBetId, 'legs:', legs);
       setDynamicBetLegs(legs || []);
     } else {
       setDynamicBetLegs([]);
     }
   }, [selectedParentBet, selectedParentBetId, getBetLegsByBetId]);
-
-  // Debug: log effectiveBetLegs
-  useEffect(() => {
-    console.log('effectiveBetLegs:', effectiveBetLegs, 'betLegs prop:', betLegs, 'dynamicBetLegs:', dynamicBetLegs);
-  }, [effectiveBetLegs, betLegs, dynamicBetLegs]);
 
   useEffect(() => {
     if (editingLayBet && open) {
@@ -131,15 +125,21 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
       // Se è una multipla, usa i dati della prima selezione
       const firstLeg = betLegs.length > 0 ? betLegs[0] : null;
       
+      // Calcola quota e stake ottimali per matched betting
+      const quotaPunta = Number(firstLeg?.quota || parentBet.quota || 1.01);
+      const quotaBancaOttimale = quotaPunta * 1.02; // +2% per compensare commissioni
+      const stakePunta = Number(parentBet.stake) || 0;
+      const stakeOttimale = (stakePunta * quotaPunta) / quotaBancaOttimale;
+      
       form.reset({
         metodo: 'Banca',
         evento: firstLeg?.evento || parentBet.evento || '',
         dataEvento: new Date(firstLeg?.dataEvento || parentBet.dataEvento),
         mercato: firstLeg?.mercato || parentBet.mercato || '',
         conto: '',
-        stake: 0,
-        quotaBanca: 1.01,
-        quotaPunta: firstLeg?.quota || parentBet.quota || 1.01,
+        stake: stakeOttimale > 0 ? Number(stakeOttimale.toFixed(2)) : 0,
+        quotaBanca: Number(quotaBancaOttimale.toFixed(2)),
+        quotaPunta: quotaPunta,
         tassePercentuale: 0,
         urlEvento: parentBet.urlEvento || '',
       });
@@ -267,7 +267,7 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                         <Select 
                           onValueChange={(value) => {
                             const leg = effectiveBetLegs.find(l => l.id === value);
-                            if (leg) {
+                            if (leg && selectedParentBet) {
                               setSelectedBetLeg(leg);
                               form.setValue('evento', leg.evento);
                               form.setValue('dataEvento', new Date(leg.dataEvento));
@@ -275,6 +275,17 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                               const suggestedMarket = `Esito Finale - ${leg.selezione || leg.mercato}`;
                               form.setValue('mercato', suggestedMarket);
                               form.setValue('quotaPunta', leg.quota);
+                              
+                              // Calcola quota banca ottimale (leggermente più alta della quota punta)
+                              const quotaPunta = Number(leg.quota);
+                              const quotaBancaOttimale = quotaPunta * 1.02; // +2% per compensare commissioni
+                              form.setValue('quotaBanca', Number(quotaBancaOttimale.toFixed(2)));
+                              
+                              // Calcola stake ottimale per matched betting perfetto
+                              // Formula: stake_lay = (stake_back * quota_back) / quota_lay
+                              const stakePunta = Number(selectedParentBet.stake) || 0;
+                              const stakeOttimale = (stakePunta * quotaPunta) / quotaBancaOttimale;
+                              form.setValue('stake', Number(stakeOttimale.toFixed(2)));
                             }
                           }}
                           defaultValue={selectedBetLeg?.id}
