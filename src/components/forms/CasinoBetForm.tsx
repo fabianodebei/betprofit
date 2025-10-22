@@ -18,6 +18,8 @@ import { useAccounts } from '@/contexts/AccountContext';
 import { useIntestatari } from '@/contexts/IntestatariContext';
 import { CASINO_MARKETS } from '@/constants/markets';
 import { Bet } from '@/types';
+import { toast } from 'sonner';
+import { formatCurrency } from '@/utils/currency';
 const casinoBetSchema = z.object({
   nomeGioco: z.string().min(1, 'Nome gioco è obbligatorio'),
   dataEvento: z.date(),
@@ -117,6 +119,16 @@ export function CasinoBetForm({
     }
   }, [editingBet, open, form, accounts]);
   const onSubmit = async (data: CasinoBetFormData) => {
+    const account = accounts.find(a => a.conto === data.conto);
+    
+    // Controllo saldo: impedisci di puntare più soldi di quelli disponibili (tranne Free Bet)
+    if (account && data.stake > 0 && data.tipoBonus !== 'Free Bet') {
+      if (data.stake > account.saldoAttuale) {
+        toast.error(`Saldo insufficiente! Disponibile: €${account.saldoAttuale.toFixed(2)}, Richiesto: €${data.stake.toFixed(2)}`);
+        return;
+      }
+    }
+    
     if (mode === 'edit' && editingBet) {
       await updateBet(editingBet.id, {
         tipo: 'Casino',
@@ -130,7 +142,6 @@ export function CasinoBetForm({
         rimborso: data.rimborso
       });
     } else {
-      const account = accounts.find(a => a.conto === data.conto);
       // Non detrarre saldo per Free Bet o quando lo stake è 0 (bonus totale)
       if (account && data.stake > 0 && data.tipoBonus !== 'Free Bet') {
         const newBalance = account.saldoAttuale - data.stake;

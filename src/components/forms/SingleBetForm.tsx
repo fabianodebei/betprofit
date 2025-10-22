@@ -266,6 +266,14 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
 
     const account = accounts.find((a) => a.conto === data.conto);
     
+    // Controllo saldo: impedisci di puntare più soldi di quelli disponibili (tranne Free Bet e Bonus)
+    if (account && data.stake > 0 && data.tipoBonus !== 'Free Bet' && data.tipoBonus !== 'Bonus') {
+      if (data.stake > account.saldoAttuale) {
+        toast.error(`Saldo insufficiente! Disponibile: ${formatCurrency(account.saldoAttuale)}, Richiesto: ${formatCurrency(data.stake)}`);
+        return;
+      }
+    }
+    
     // Save last used account to localStorage
     localStorage.setItem('last_used_conto', data.conto);
     

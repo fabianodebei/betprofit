@@ -25,6 +25,7 @@ import { ALL_SPORT_MARKETS } from '@/constants/markets';
 import { Bet, BetLeg } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { formatCurrency } from '@/utils/currency';
 
 interface BetSelection {
   evento: string;
@@ -260,6 +261,14 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
       if (!account) {
         toast.error('Conto non trovato');
         return;
+      }
+      
+      // Controllo saldo: impedisci di puntare più soldi di quelli disponibili (tranne Free Bet e Bonus)
+      if (data.stake > 0 && data.tipoBonus !== 'Free Bet' && data.tipoBonus !== 'Bonus') {
+        if (data.stake > account.saldoAttuale) {
+          toast.error(`Saldo insufficiente! Disponibile: ${formatCurrency(account.saldoAttuale)}, Richiesto: ${formatCurrency(data.stake)}`);
+          return;
+        }
       }
 
       if (mode === 'edit' && editingBet) {
