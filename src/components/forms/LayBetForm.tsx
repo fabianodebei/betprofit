@@ -125,10 +125,11 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
       // Se è una multipla, usa i dati della prima selezione
       const firstLeg = betLegs.length > 0 ? betLegs[0] : null;
       
-      // Per multiple sequenziali: stake bancata = stake punta per portare a 0€
+      // Calcola quota e stake ottimali per matched betting
       const quotaPunta = Number(firstLeg?.quota || parentBet.quota || 1.01);
-      const quotaBancaOttimale = quotaPunta + 0.02; // Quota leggermente più alta
+      const quotaBancaOttimale = quotaPunta * 1.02; // +2% per compensare commissioni
       const stakePunta = Number(parentBet.stake) || 0;
+      const stakeOttimale = (stakePunta * quotaPunta) / quotaBancaOttimale;
       
       form.reset({
         metodo: 'Banca',
@@ -136,7 +137,7 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
         dataEvento: new Date(firstLeg?.dataEvento || parentBet.dataEvento),
         mercato: firstLeg?.mercato || parentBet.mercato || '',
         conto: '',
-        stake: stakePunta > 0 ? Number(stakePunta.toFixed(2)) : 0,
+        stake: stakeOttimale > 0 ? Number(stakeOttimale.toFixed(2)) : 0,
         quotaBanca: Number(quotaBancaOttimale.toFixed(2)),
         quotaPunta: quotaPunta,
         tassePercentuale: 0,
@@ -275,18 +276,16 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                               form.setValue('mercato', suggestedMarket);
                               form.setValue('quotaPunta', leg.quota);
                               
-                              // Per multiple sequenziali: stake bancata = stake punta per portare a 0€
-                              // La quota banca non influisce sul risultato della prima gamba
-                              const stakePunta = Number(selectedParentBet.stake) || 0;
+                              // Calcola quota banca ottimale (leggermente più alta della quota punta)
                               const quotaPunta = Number(leg.quota);
-                              
-                              // Suggerisci quota leggermente più alta per sicurezza
-                              const quotaBancaOttimale = quotaPunta + 0.02;
+                              const quotaBancaOttimale = quotaPunta * 1.02; // +2% per compensare commissioni
                               form.setValue('quotaBanca', Number(quotaBancaOttimale.toFixed(2)));
                               
-                              // Per la prima gamba: stake = stake punta (risultato = 0€)
-                              // Per gambe successive dipende dalle liability precedenti
-                              form.setValue('stake', Number(stakePunta.toFixed(2)));
+                              // Calcola stake ottimale per matched betting perfetto
+                              // Formula: stake_lay = (stake_back * quota_back) / quota_lay
+                              const stakePunta = Number(selectedParentBet.stake) || 0;
+                              const stakeOttimale = (stakePunta * quotaPunta) / quotaBancaOttimale;
+                              form.setValue('stake', Number(stakeOttimale.toFixed(2)));
                             }
                           }}
                           defaultValue={selectedBetLeg?.id}
