@@ -186,7 +186,7 @@ export function QuickBetForm({
               field.onChange(value);
               setSelectedIntestatario(value);
               form.setValue('conto', '');
-            }} defaultValue={field.value}>
+            }} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleziona intestatario" />
@@ -207,7 +207,7 @@ export function QuickBetForm({
                   <Select onValueChange={value => {
               field.onChange(value);
               setSelectedConto(value);
-            }} defaultValue={field.value}>
+            }} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleziona conto" />
@@ -233,7 +233,7 @@ export function QuickBetForm({
             field
           }) => <FormItem>
                   <FormLabel>Metodo *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleziona metodo" />
