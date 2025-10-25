@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, Zap, Edit } from 'lucide-react';
+import { Plus, Zap, Edit, Scale } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { QuickBetForm } from '@/components/forms/QuickBetForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -75,17 +75,30 @@ export default function QuickBets() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Giocate Rapide</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Saldo Giocate Rapide: <span className="font-semibold text-foreground">{formatCurrency(totalQuickBets)}</span>
-          </p>
-        </div>
+        <h1 className="text-3xl font-bold text-foreground">Giocate Rapide</h1>
         <Button onClick={() => setShowQuickBetForm(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Nuova Giocata
         </Button>
       </div>
+
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Saldo Giocate Rapide
+              </p>
+              <p className="mt-1 text-3xl font-bold text-foreground">
+                {formatCurrency(totalQuickBets)}
+              </p>
+            </div>
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+              <Scale className="h-7 w-7 text-primary" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <AdvancedFilterBar
         filters={filters}
