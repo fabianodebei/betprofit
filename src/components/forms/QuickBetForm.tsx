@@ -27,7 +27,7 @@ const createQuickBetSchema = (tagRequired: boolean) => z.object({
   intestatario: z.string().trim().min(1, 'Intestatario è obbligatorio').max(100),
   conto: z.string().trim().min(1, 'Conto è obbligatorio').max(100),
   metodo: z.string().trim().min(1, 'Metodo è obbligatorio').max(100),
-  movimento: z.coerce.number().refine((v) => v !== 0 && !Number.isNaN(v), { message: 'Movimento è obbligatorio' }),
+  movimento: z.number(),
   registrato: z.date(),
   note: z.string().trim().max(500).optional(),
   tag: tagRequired ? z.string().trim().min(1, 'Tag è obbligatorio').max(100) : z.string().trim().max(100).optional()
@@ -69,7 +69,7 @@ export function QuickBetForm({
   // Get the selected account's wallet info
   const selectedAccount = accounts.find(a => a.conto === selectedConto);
   const selectedWallet = selectedAccount?.walletId ? wallets.find(w => w.id === selectedAccount.walletId) : null;
-  const quickBetSchema = createQuickBetSchema(true);
+  const quickBetSchema = createQuickBetSchema(settings.tag);
   const form = useForm<QuickBetFormData>({
     resolver: zodResolver(quickBetSchema),
     defaultValues: {
@@ -115,7 +115,7 @@ export function QuickBetForm({
       setSelectedIntestatario('');
       setSelectedConto('');
     }
-  }, [editingBet, form]);
+  }, [editingBet, form, accounts]);
   const onSubmit = async (data: QuickBetFormData) => {
     const account = accounts.find(a => a.conto === data.conto);
 
@@ -177,18 +177,7 @@ export function QuickBetForm({
           <DialogTitle>{editingBet ? 'Modifica Giocata Rapida' : 'Nuova Giocata Rapida'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
-              const messages = [
-                errors.intestatario?.message as string | undefined,
-                errors.conto?.message as string | undefined,
-                errors.metodo?.message as string | undefined,
-                errors.movimento?.message as string | undefined,
-                errors.tag?.message as string | undefined,
-              ].filter(Boolean) as string[];
-              if (messages.length) {
-                toast.error(messages[0]);
-              }
-            })} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField control={form.control} name="intestatario" render={({
             field
           }) => <FormItem>
@@ -197,23 +186,18 @@ export function QuickBetForm({
               field.onChange(value);
               setSelectedIntestatario(value);
               form.setValue('conto', '');
-            }} value={field.value}>
+            }} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger className={form.formState.errors.intestatario ? 'border-red-500' : ''}>
+                      <SelectTrigger>
                         <SelectValue placeholder="Seleziona intestatario" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="z-[60] bg-background">
+                    <SelectContent>
                       {availableIntestatari.map(intestatario => <SelectItem key={intestatario.id} value={intestatario.nome}>
                           {intestatario.nome}
                         </SelectItem>)}
                     </SelectContent>
                   </Select>
-                  {form.formState.submitCount > 0 && form.formState.errors.intestatario && (
-                    <p className="text-sm font-medium text-red-500 mt-1">
-                      {form.formState.errors.intestatario.message}
-                    </p>
-                  )}
                   <FormMessage />
                 </FormItem>} />
             <FormField control={form.control} name="conto" render={({
@@ -223,13 +207,13 @@ export function QuickBetForm({
                   <Select onValueChange={value => {
               field.onChange(value);
               setSelectedConto(value);
-            }} value={field.value}>
+            }} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger className={form.formState.errors.conto ? 'border-red-500' : ''}>
+                      <SelectTrigger>
                         <SelectValue placeholder="Seleziona conto" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="z-[60] bg-background">
+                    <SelectContent>
                       {accounts.filter(account => account.intestatario === selectedIntestatario).map(account => {
                   const wallet = account.walletId ? wallets.find(w => w.id === account.walletId) : null;
                   return <SelectItem key={account.id} value={account.conto}>
@@ -242,61 +226,20 @@ export function QuickBetForm({
                   {selectedWallet && <p className="text-xs text-muted-foreground mt-1">
                       Wallet: {selectedWallet.nome}
                     </p>}
-                  {form.formState.submitCount > 0 && form.formState.errors.conto && (
-                    <p className="text-sm font-medium text-red-500 mt-1">
-                      {form.formState.errors.conto.message}
-                    </p>
-                  )}
                   <FormDescription>Questo conto non è modificabile dopo l'inserimento</FormDescription>
                   <FormMessage />
                 </FormItem>} />
-            <FormField control={form.control} name="metodo" render={({
-            field
-          }) => <FormItem>
-                  <FormLabel>Metodo *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className={form.formState.errors.metodo ? 'border-red-500' : ''}>
-                        <SelectValue placeholder="Seleziona metodo" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="z-[60] bg-background">
-                      {QUICK_BET_METHODS.map((m) => (
-                        <SelectItem key={m} value={m}>
-                          {m}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {form.formState.submitCount > 0 && form.formState.errors.metodo && (
-                    <p className="text-sm font-medium text-red-500 mt-1">
-                      {form.formState.errors.metodo.message}
-                    </p>
-                  )}
-                  <FormMessage />
-                </FormItem>} />
+            
             <FormField control={form.control} name="movimento" render={({
             field
           }) => <FormItem>
                   <FormLabel>Movimento *</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        className={form.formState.submitCount > 0 && form.formState.errors.movimento ? 'border-red-500' : ''}
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.value)}
-                      />
+                      <Input type="number" step="0.01" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                     </div>
                   </FormControl>
-                  {form.formState.submitCount > 0 && form.formState.errors.movimento && (
-                    <p className="text-sm font-medium text-red-500 mt-1">
-                      {form.formState.errors.movimento.message as string}
-                    </p>
-                  )}
                   <FormDescription></FormDescription>
                   <FormMessage />
                 </FormItem>} />
@@ -322,56 +265,21 @@ export function QuickBetForm({
                   </Popover>
                   <FormMessage />
                 </FormItem>} />
-            <FormField control={form.control} name="tag" render={({
-            field
-          }) => <FormItem>
-                  <FormLabel>Tag *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className={form.formState.submitCount > 0 && !field.value ? 'border-red-500' : ''}>
-                        <SelectValue placeholder="Seleziona tag" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="z-[60]">
-                      {PREDEFINED_TAGS && PREDEFINED_TAGS.length > 0 && (
-                        <>
-                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                            Tag predefiniti
-                          </div>
-                          {PREDEFINED_TAGS.map((t) => (
-                            <SelectItem key={t} value={t}>
-                              {t}
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
-                      {tags && tags.length > 0 && (
-                        <>
-                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                            Tag personali
-                          </div>
-                          {tags.map((t) => (
-                            <SelectItem key={t.id} value={t.nome}>
-                              {t.nome}
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  {form.formState.submitCount > 0 && !field.value && (
-                    <p className="text-sm font-medium text-red-500 mt-1">
-                      Campo obbligatorio
-                    </p>
-                  )}
-                  <FormMessage />
-                </FormItem>} />
             <FormField control={form.control} name="note" render={({
             field
           }) => <FormItem>
                   <FormLabel>Note</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Note aggiuntive..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>} />
+            <FormField control={form.control} name="tag" render={({
+            field
+          }) => <FormItem>
+                  <FormLabel>Tag{settings.tag && ' *'}</FormLabel>
+                  <FormControl>
+                    <Input placeholder={settings.tag ? "Inserisci tag" : "Inserisci tag (opzionale)"} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>} />
