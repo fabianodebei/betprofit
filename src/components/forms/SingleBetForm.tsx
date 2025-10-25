@@ -602,11 +602,24 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                           inputMode="decimal"
                           placeholder="1,30"
                           value={quotaInput}
-                          onChange={(e) => setQuotaInput(e.target.value)}
+                          onChange={(e) => {
+                            let value = e.target.value.replace(/[^\d]/g, ''); // Solo numeri
+                            if (value.length === 0) {
+                              setQuotaInput('');
+                            } else if (value.length === 1) {
+                              setQuotaInput('0,0' + value);
+                            } else if (value.length === 2) {
+                              setQuotaInput('0,' + value);
+                            } else {
+                              const intPart = value.slice(0, -2);
+                              const decPart = value.slice(-2);
+                              setQuotaInput(intPart + ',' + decPart);
+                            }
+                          }}
                           onFocus={(e) => e.target.select()}
                           onBlur={() => {
                             const num = parseDecimal(quotaInput);
-                            form.setValue('quota', Number.isFinite(num) ? num : 1.30, { shouldValidate: true });
+                            form.setValue('quota', Number.isFinite(num) && num > 0 ? num : 1.30, { shouldValidate: true });
                           }}
                           className={cn(isLowOdds && "border-orange-500")}
                         />
