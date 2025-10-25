@@ -99,25 +99,19 @@ async function checkReminders(supabase: any, supabaseUrl: string, serviceKey: st
 
     // Calculate notification time based on period
     switch (reminder.notifica_periodo) {
-      case '15min':
-        notificationTime.setMinutes(notificationTime.getMinutes() - 15);
+      case '24h':
+        notificationTime.setHours(notificationTime.getHours() - 24);
         break;
-      case '30min':
-        notificationTime.setMinutes(notificationTime.getMinutes() - 30);
+      case '12h':
+        notificationTime.setHours(notificationTime.getHours() - 12);
         break;
-      case '1h':
-        notificationTime.setHours(notificationTime.getHours() - 1);
-        break;
-      case '1g':
-        notificationTime.setDate(notificationTime.getDate() - 1);
-        break;
-      case '1set':
-        notificationTime.setDate(notificationTime.getDate() - 7);
+      case '0h':
+        // No adjustment needed, notify at exact time
         break;
     }
 
-    // Send notification if time has arrived
-    if (now >= notificationTime) {
+    // Send notification if time has arrived (with 1 minute tolerance)
+    if (now >= new Date(notificationTime.getTime() - 60000)) {
       const message = `🔔 <b>PROMEMORIA IN SCADENZA</b>\n\n` +
         `📋 Metodo: ${reminder.metodo}\n` +
         `💳 Conto: ${reminder.conto}\n` +
@@ -263,6 +257,7 @@ function formatDate(date: Date): string {
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: 'Europe/Rome',
   });
 }
 
