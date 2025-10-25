@@ -23,16 +23,16 @@ import { useIntestatari } from '@/contexts/IntestatariContext';
 import { QUICK_BET_METHODS } from '@/constants/markets';
 import { PREDEFINED_TAGS } from '@/constants/predefinedTags';
 import { toast } from 'sonner';
-const createQuickBetSchema = (tagRequired: boolean) => z.object({
+const quickBetSchema = z.object({
   intestatario: z.string().trim().min(1, 'Intestatario è obbligatorio').max(100),
   conto: z.string().trim().min(1, 'Conto è obbligatorio').max(100),
   metodo: z.string().trim().min(1, 'Metodo è obbligatorio').max(100),
   movimento: z.number(),
   registrato: z.date(),
   note: z.string().trim().max(500).optional(),
-  tag: tagRequired ? z.string().trim().min(1, 'Tag è obbligatorio').max(100) : z.string().trim().max(100).optional()
+  tag: z.string().trim().max(100).optional()
 });
-type QuickBetFormData = z.infer<ReturnType<typeof createQuickBetSchema>>;
+type QuickBetFormData = z.infer<typeof quickBetSchema>;
 interface QuickBetFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -69,7 +69,6 @@ export function QuickBetForm({
   // Get the selected account's wallet info
   const selectedAccount = accounts.find(a => a.conto === selectedConto);
   const selectedWallet = selectedAccount?.walletId ? wallets.find(w => w.id === selectedAccount.walletId) : null;
-  const quickBetSchema = createQuickBetSchema(settings.tag);
   const form = useForm<QuickBetFormData>({
     resolver: zodResolver(quickBetSchema),
     defaultValues: {
@@ -264,21 +263,34 @@ export function QuickBetForm({
                   </Popover>
                   <FormMessage />
                 </FormItem>} />
+            <FormField control={form.control} name="tag" render={({
+            field
+          }) => <FormItem>
+                  <FormLabel>Tag</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className={cn(form.formState.submitCount > 0 && form.formState.errors.tag && 'border-destructive')}>
+                        <SelectValue placeholder="Seleziona tag (opzionale)" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-background z-50">
+                      <SelectItem value="">Nessun tag</SelectItem>
+                      {PREDEFINED_TAGS.map(tag => <SelectItem key={tag} value={tag}>
+                          {tag}
+                        </SelectItem>)}
+                      {tags.filter(tag => !(PREDEFINED_TAGS as readonly string[]).includes(tag.nome)).map(tag => <SelectItem key={tag.id} value={tag.nome}>
+                          {tag.nome}
+                        </SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  {form.formState.submitCount > 0 && form.formState.errors.tag && <p className="text-sm font-medium text-destructive mt-1">{form.formState.errors.tag.message}</p>}
+                </FormItem>} />
             <FormField control={form.control} name="note" render={({
             field
           }) => <FormItem>
                   <FormLabel>Note</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Note aggiuntive..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>} />
-            <FormField control={form.control} name="tag" render={({
-            field
-          }) => <FormItem>
-                  <FormLabel>Tag{settings.tag && ' *'}</FormLabel>
-                  <FormControl>
-                    <Input placeholder={settings.tag ? "Inserisci tag" : "Inserisci tag (opzionale)"} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>} />
