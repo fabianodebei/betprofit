@@ -103,7 +103,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
       dataEvento: new Date(),
       mercato: '',
       conto: '',
-      stake: 0,
+      stake: 50,
       quota: 1.30,
       tipoBonus: 'Nessuno',
       bonus: 0,
@@ -234,7 +234,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         dataEvento: addHours(new Date(), 1), // Default to 1 hour from now
         mercato: '',
         conto: preselectedConto,
-        stake: 0,
+        stake: 50,
         quota: 1.30,
         tipoBonus: 'Nessuno',
         bonus: 0,
@@ -250,7 +250,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
   // Sync local numeric inputs after reset
     const s = form.getValues('stake');
     const q = form.getValues('quota');
-    setStakeInput(s !== undefined && s !== null && s !== 0 ? String(s) : '');
+    setStakeInput(s !== undefined && s !== null ? String(s) : '50');
     setQuotaInput(q !== undefined && q !== null ? String(q) : '1.30');
   }, [open, editingBet?.id]);
 
