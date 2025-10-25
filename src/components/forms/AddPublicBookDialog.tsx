@@ -40,14 +40,14 @@ export const AddPublicBookDialog = () => {
       <DialogTrigger asChild>
         <Button variant="outline" onClick={handleOpen}>
           <Plus className="h-4 w-4 mr-2" />
-          Aggiungi Book Pubblico
+          Aggiungi book ADM
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>Aggiungi Book Pubblico</DialogTitle>
+          <DialogTitle>Aggiungi book ADM</DialogTitle>
           <DialogDescription>
-            Seleziona un book dalla lista di quelli disponibili pubblicamente
+            Seleziona un book dalla lista ADM
           </DialogDescription>
         </DialogHeader>
 
