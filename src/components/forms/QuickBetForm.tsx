@@ -27,7 +27,7 @@ const createQuickBetSchema = (tagRequired: boolean) => z.object({
   intestatario: z.string().trim().min(1, 'Intestatario è obbligatorio').max(100),
   conto: z.string().trim().min(1, 'Conto è obbligatorio').max(100),
   metodo: z.string().trim().min(1, 'Metodo è obbligatorio').max(100),
-  movimento: z.number(),
+  movimento: z.coerce.number({ message: 'Movimento è obbligatorio' }),
   registrato: z.date(),
   note: z.string().trim().max(500).optional(),
   tag: tagRequired ? z.string().trim().min(1, 'Tag è obbligatorio').max(100) : z.string().trim().max(100).optional()
@@ -177,7 +177,18 @@ export function QuickBetForm({
           <DialogTitle>{editingBet ? 'Modifica Giocata Rapida' : 'Nuova Giocata Rapida'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit, (errors) => { if (errors.tag) { toast.error(errors.tag.message || 'Tag è obbligatorio'); } if (errors.metodo) { toast.error(errors.metodo.message || 'Metodo è obbligatorio'); } })} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
+              const messages = [
+                errors.intestatario?.message as string | undefined,
+                errors.conto?.message as string | undefined,
+                errors.metodo?.message as string | undefined,
+                errors.movimento?.message as string | undefined,
+                errors.tag?.message as string | undefined,
+              ].filter(Boolean) as string[];
+              if (messages.length) {
+                toast.error(messages[0]);
+              }
+            })} className="space-y-4">
             <FormField control={form.control} name="intestatario" render={({
             field
           }) => <FormItem>
@@ -192,7 +203,7 @@ export function QuickBetForm({
                         <SelectValue placeholder="Seleziona intestatario" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="z-[60] bg-background">
                       {availableIntestatari.map(intestatario => <SelectItem key={intestatario.id} value={intestatario.nome}>
                           {intestatario.nome}
                         </SelectItem>)}
@@ -213,7 +224,7 @@ export function QuickBetForm({
                         <SelectValue placeholder="Seleziona conto" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="z-[60] bg-background">
                       {accounts.filter(account => account.intestatario === selectedIntestatario).map(account => {
                   const wallet = account.walletId ? wallets.find(w => w.id === account.walletId) : null;
                   return <SelectItem key={account.id} value={account.conto}>
@@ -239,7 +250,7 @@ export function QuickBetForm({
                         <SelectValue placeholder="Seleziona metodo" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="z-[60] bg-background">
                       {QUICK_BET_METHODS.map((m) => (
                         <SelectItem key={m} value={m}>
                           {m}
@@ -255,7 +266,7 @@ export function QuickBetForm({
                   <FormLabel>Movimento *</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <Input type="number" step="0.01" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
+                      <Input type="number" step="0.01" placeholder="0.00" {...field} onChange={(e) => field.onChange(e.target.value)} />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                     </div>
                   </FormControl>
