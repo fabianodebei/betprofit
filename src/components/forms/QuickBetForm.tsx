@@ -115,7 +115,7 @@ export function QuickBetForm({
       setSelectedIntestatario('');
       setSelectedConto('');
     }
-  }, [editingBet, form, accounts]);
+  }, [editingBet, form]);
   const onSubmit = async (data: QuickBetFormData) => {
     const account = accounts.find(a => a.conto === data.conto);
 
@@ -284,21 +284,33 @@ export function QuickBetForm({
                   </Popover>
                   <FormMessage />
                 </FormItem>} />
+            <FormField control={form.control} name="tag" render={({
+            field
+          }) => <FormItem>
+                  <FormLabel>Tag *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleziona tag" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="z-[60]">
+                      {Array.from(new Set([...(PREDEFINED_TAGS || []), ...tags.map(t => t.nome)]))
+                        .map((t) => (
+                          <SelectItem key={t} value={t}>
+                            {t}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>} />
             <FormField control={form.control} name="note" render={({
             field
           }) => <FormItem>
                   <FormLabel>Note</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Note aggiuntive..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>} />
-            <FormField control={form.control} name="tag" render={({
-            field
-          }) => <FormItem>
-                  <FormLabel>Tag *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Inserisci tag" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>} />
