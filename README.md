@@ -1,73 +1,222 @@
-# Welcome to your Lovable project
+📊 Bet Profit - Piattaforma di Gestione Scommesse Sportive
+Soluzione completa e professionale per gestire puntate, conti bookmaker, wallet e profitti in modo intelligente e sicuro.
 
-## Project info
+🎯 Caratteristiche Principali
+Dashboard Avanzata:
 
-**URL**: https://lovable.dev/projects/a0312f8f-1b02-41f8-aec5-c1b60df1bae3
+KPI in tempo reale con grafici interattivi e sparklines
 
-## How can I edit this code?
+Analisi mensile e annuale dei guadagni, trend visivi
 
-There are several ways of editing your application.
+Metriche dettagliate (win rate, ROI, streak)
 
-**Use Lovable**
+ROI per bookmaker, confronti e classifiche
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/a0312f8f-1b02-41f8-aec5-c1b60df1bae3) and start prompting.
+Distribuzione tipi di puntata con grafici circolari
 
-Changes made via Lovable will be committed automatically to this repo.
+Insights intelligenti generati dai dati
 
-**Use your preferred IDE**
+Gestione Finanziaria:
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Wallet multipli, separazione fondi
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Conti bookmaker con stato e metodi di pagamento
 
-Follow these steps:
+Transazioni dettagliate, categorie e note
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+Storico trasferimenti tra wallet
+
+Depositi/prelievi tracciati per ogni bookmaker
+
+Bilancio consolidato
+
+Sistema di Puntate:
+
+Puntate singole e multiple con calcolo profitto automatico
+
+Puntate rapide, lay betting con calcolo responsabilità
+
+Casino betting separato
+
+Matched betting calculator
+
+Archiviazione automatica, statistiche
+
+Notifiche e Promemoria:
+
+Reminder personalizzabili, notifiche Telegram
+
+Alert automatici eventi importanti
+
+Configurazione Avanzata:
+
+Gestione bookmaker (abilitato/disabilitato)
+
+Bookmaker pubblici condivisi
+
+Intestatari multipli, tag personalizzati
+
+Filtri avanzati
+
+Selezione anno fiscale
+
+Import/Export per backup/migrazione
+
+Pannello Admin:
+
+Dashboard amministrativa, gestione utenti/ruoli
+
+Widget drag & drop
+
+Analytics utenti, audit log
+
+Grafici KPI admin
+
+🛠️ Stack Tecnologico
+Frontend:
+
+React 18.3, TypeScript 5.8, Vite 5.4
+
+Tailwind CSS 3.4, shadcn/ui, Radix UI
+
+React Router, React Hook Form, Zod
+
+TanStack Query, Recharts, date-fns, Lucide React, DND Kit
+
+Backend (Lovable Cloud):
+
+Supabase 2.58, PostgreSQL
+
+Row Level Security
+
+Edge Functions (cron, Telegram, admin-delete-user)
+
+Authentication completa
+
+🗄️ Schema Database
+Utenti e Autenticazione:
+profiles, user_roles, admin_audit_log
+
+Finanziario:
+wallets, wallet_transactions, accounts, transactions
+
+Puntate:
+bets, bet_legs, lay_bets
+
+Configurazione:
+books, intestatari, tags, reminders
+
+Sistema:
+telegram_config, notification_logs
+
+🔐 Sicurezza
+RLS su tutte le tabelle utente
+
+SECURITY DEFINER e authorization checks
+
+JWT e HMAC su endpoint sensibili
+
+Rate limiting
+
+Validazione input con Zod
+
+Audit log per operazioni admin
+
+Protected/ Admin routes
+
+Nessun XSS tramite user content
+
+Error logging dettagliato
+
+🚀 Quick Start
+Prerequisiti
+Node.js >= 18.x
+
+npm >= 9.x (supportato anche bun/pnpm)
+
+Installazione
+bash
 git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+cd bet-profit
+npm install
+# Variabili Supabase gestite da Lovable Cloud
 npm run dev
-```
+# → App su http://localhost:5173
+Build Produzione
+bash
+npm run build
+npm run preview
+📁 Struttura Progetto
+text
+bet-profit/
+├── src/
+│   ├── components/ (admin, auth, common, dashboard, dialogs, filters, forms, layout, ui)
+│   ├── contexts/
+│   ├── hooks/
+│   ├── integrations/supabase/
+│   ├── pages/
+│   ├── types/
+│   ├── utils/
+│   └── constants/
+├── supabase/
+│   ├── functions/
+│   ├── migrations/
+│   └── config.toml
+└── public/
+🌍 Deploy
+Lovable Platform:
 
-**Edit a file directly in GitHub**
+Share → Publish nell’editor
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Subdomain o dominio personalizzato
 
-**Use GitHub Codespaces**
+Self-hosting:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Vercel, Netlify, Cloudflare Pages, AWS S3 + CloudFront
 
-## What technologies are used for this project?
+Configurare variabili d’ambiente
 
-This project is built with:
+🔧 Telegram & Admin
+Crea bot Telegram → ottieni token → invia messaggio → recupera chat ID
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Configura in Impostazioni → Telegram
 
-## How can I deploy this project?
+Secret NOTIFICATION_HMAC_SECRET per sicurezza
 
-Simply open [Lovable](https://lovable.dev/projects/a0312f8f-1b02-41f8-aec5-c1b60df1bae3) and click on Share -> Publish.
+Il primo utente è admin, promuovi altri via SQL
 
-## Can I connect a custom domain to my Lovable project?
+sql
+UPDATE user_roles SET role = 'admin' WHERE user_id = '<USER_UUID>';
+📊 Funzionalità Dashboard
+KPI Cards con sparkline, confronto annuale/mensile
 
-Yes, you can!
+Grafici: trend mensile, ROI bookmaker, distribuzione puntate, confronto mensile
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+Quick insights: migliori bookmaker/tipi puntata, alert negativi
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Messaggi: nuovo/letto, scadenza, detail
+
+🎨 Design System
+shadcn/ui, Dark/Light, ARIA, animazioni fluide
+
+Responsive mobile-first, keyboard navigation
+
+🧪 Testing & Quality
+ESLint, strict mode TypeScript, Prettier
+
+Lazy loading, React.memo, code splitting
+
+Asset optimization
+
+🤝 Contributi
+Issue su bug/feature
+
+Screenshot, info browser/device/OS
+
+📄 Licenza
+Proprietaria © 2025 Centurion Club 
+
+📞 Supporto
+Email: fabianodebei@gmail.com
+
+Documentazione, Discord/Telegram
