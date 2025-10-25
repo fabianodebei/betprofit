@@ -84,9 +84,6 @@ export default function Redditometro() {
           </div>
           <div>
             <h1 className="text-3xl font-bold text-foreground">Redditometro</h1>
-            <p className="text-muted-foreground mt-2">
-              Totale Anno: 
-            </p>
           </div>
         </div>
         <Button variant="outline" onClick={() => navigate('/impostazioni')}>
