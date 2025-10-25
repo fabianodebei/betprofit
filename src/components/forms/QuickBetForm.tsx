@@ -122,7 +122,7 @@ export function QuickBetForm({
       setSelectedIntestatario('');
       setSelectedConto('');
     }
-  }, [editingBet, form, accounts]);
+  }, [editingBet, form]);
 
   // Ensure selected account remains valid when list changes
   useEffect(() => {
