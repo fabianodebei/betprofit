@@ -417,7 +417,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
   };
 
   const getArchivedBets = () => {
-    return bets.filter((bet) => bet.stato === 'Archiviata');
+    return bets.filter((bet) => bet.stato === 'Archiviata' && bet.tipo !== 'Rapida');
   };
 
   const getQuickBets = () => {
