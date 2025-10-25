@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { BookOpen, Check, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import logo from "@/assets/logo_centurion.webp";
+import logo from "@/assets/logo_centurion_new.png";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { authStorage } from "@/utils/authStorage";
 import { cn } from "@/lib/utils";
