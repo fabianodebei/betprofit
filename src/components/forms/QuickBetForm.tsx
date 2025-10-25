@@ -245,7 +245,7 @@ export function QuickBetForm({
                             : null;
                           return (
                             <SelectItem key={account.id} value={account.conto}>
-                              {account.conto} (€{account.saldoAttuale.toFixed(2)})
+                              {account.conto} (Rapide: €{account.bilancioGiocateRapide.toFixed(2)})
                               {wallet && <span className="text-muted-foreground text-xs ml-1"> - {wallet.nome}</span>}
                             </SelectItem>
                           );
@@ -313,15 +313,6 @@ export function QuickBetForm({
                   </Popover>
                   <FormMessage />
                 </FormItem>} />
-            <FormField control={form.control} name="note" render={({
-            field
-          }) => <FormItem>
-                  <FormLabel>Note</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Note aggiuntive..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>} />
             <FormField control={form.control} name="tag" render={({
             field
           }) => <FormItem>
@@ -356,6 +347,15 @@ export function QuickBetForm({
                       )}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>} />
+            <FormField control={form.control} name="note" render={({
+            field
+          }) => <FormItem>
+                  <FormLabel>Note</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Note aggiuntive..." {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>} />
             <DialogFooter>
