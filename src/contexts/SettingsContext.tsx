@@ -20,7 +20,7 @@ const defaultSettings: Settings = {
   singole: false,
   multiple: false,
   wallets: false,
-  tag: false,
+  tag: true,
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
