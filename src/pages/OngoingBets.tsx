@@ -286,6 +286,23 @@ export default function OngoingBets() {
                               </div>
                             </td>
                           </tr>
+                          {/* Statistics row for multipla without lay bets */}
+                          {bet.tipo === 'Multipla' && !hasLayBets && bet.vincitaPotenziale !== undefined && (
+                            <tr className={`${idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'} border-t border-muted`}>
+                              <td colSpan={8} className="p-3">
+                                <div className="flex items-center justify-center gap-8 text-sm">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-muted-foreground">Perdita massima:</span>
+                                    <span className="font-semibold text-destructive">{formatCurrency(bet.stake)}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-muted-foreground">Vincita potenziale:</span>
+                                    <span className="font-semibold text-green-600">{formatCurrency(bet.vincitaPotenziale)}</span>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
                           {isExpanded && layBets.map((layBet) => {
                             const liability = layBet.stake * (layBet.quotaBanca - 1);
                             return (
