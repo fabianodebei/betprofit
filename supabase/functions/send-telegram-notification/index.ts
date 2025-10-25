@@ -125,9 +125,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Validate token format before use
     if (!config.telegram_bot_token.match(/^\d+:[A-Za-z0-9_-]{35,}$/)) {
-      console.error('Invalid bot token format in database');
+      console.error('Invalid bot token format in database:', config.telegram_bot_token.substring(0, 10) + '...');
       return new Response(
-        JSON.stringify({ success: false, error: 'Invalid bot token format' }),
+        JSON.stringify({ success: false, error: 'Invalid Telegram configuration' }),
         { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
@@ -136,7 +136,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (!config.telegram_chat_id.match(/^-?\d+$/)) {
       console.error('Invalid chat ID format in database');
       return new Response(
-        JSON.stringify({ success: false, error: 'Invalid chat ID format' }),
+        JSON.stringify({ success: false, error: 'Invalid Telegram configuration' }),
         { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
