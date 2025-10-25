@@ -48,6 +48,7 @@ const Auth = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -92,15 +93,20 @@ const Auth = () => {
   }, [activeTab]);
   const handleLogin = async (data: LoginFormData) => {
     setIsLoading(true);
+    setLoginError(null);
     try {
-      await signIn(data.email, data.password);
-      authStorage.saveEmail(data.email, rememberMe);
-      toast.success("Accesso effettuato con successo!", {
-        description: "Benvenuto in Centurion Club"
-      });
-      navigate("/");
+      const result = await signIn(data.email, data.password);
+      if (result.error) {
+        setLoginError("Credenziali non valide. Verifica email e password.");
+      } else {
+        authStorage.saveEmail(data.email, rememberMe);
+        toast.success("Accesso effettuato con successo!", {
+          description: "Benvenuto in Centurion Club"
+        });
+        navigate("/");
+      }
     } catch (error) {
-      // Errore già gestito da AuthContext
+      setLoginError("Credenziali non valide. Verifica email e password.");
     } finally {
       setIsLoading(false);
     }
@@ -175,6 +181,12 @@ const Auth = () => {
             </TabsList>
 
             <TabsContent value="login" className="animate-fade-in">
+              {loginError && (
+                <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                  <p className="text-sm text-destructive font-medium">{loginError}</p>
+                </div>
+              )}
+              
               <Button type="button" variant="outline" className="w-full mb-4 relative" onClick={handleGoogleSignIn} disabled={isGoogleLoading || isLoading}>
                 <svg className="absolute left-4 h-5 w-5" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
