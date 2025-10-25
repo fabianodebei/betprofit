@@ -10,6 +10,7 @@ import { SkeletonTable } from '@/components/common/SkeletonTable';
 import { AdvancedFilterBar } from '@/components/filters/AdvancedFilterBar';
 import { useAdvancedFilters } from '@/hooks/useAdvancedFilters';
 import { useBets } from '@/contexts/BetContext';
+import { useAccounts } from '@/contexts/AccountContext';
 import { useYear } from '@/contexts/YearContext';
 import { useTags } from '@/contexts/TagContext';
 import { formatCurrency } from '@/utils/currency';
@@ -18,6 +19,7 @@ import { Bet } from '@/types';
 
 export default function QuickBets() {
   const { getQuickBets, deleteBet, loading } = useBets();
+  const { accounts } = useAccounts();
   const { selectedYear } = useYear();
   const { tags } = useTags();
   const allQuickBets = getQuickBets();
@@ -149,11 +151,16 @@ export default function QuickBets() {
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedItems.map((bet, idx) => (
+                    {paginatedItems.map((bet, idx) => {
+                      const account = accounts.find(a => a.conto === bet.conto);
+                      return (
                       <tr key={bet.id} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
                         <td className="p-3 text-sm">{(currentPage - 1) * pageSize + idx + 1}</td>
                         <td className="p-3 text-sm">{formatDateTime(bet.createdAt)}</td>
-                        <td className="p-3 text-sm">{bet.conto}</td>
+                        <td className="p-3 text-sm">
+                          {account?.intestatario && <span className="font-medium">{account.intestatario} - </span>}
+                          {bet.conto}
+                        </td>
                         <td className="p-3 text-sm">{bet.metodo || '-'}</td>
                         <td className="p-3 text-sm">{bet.tag || '-'}</td>
                         <td className="p-3 text-sm">{bet.note || '-'}</td>
@@ -169,7 +176,8 @@ export default function QuickBets() {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
