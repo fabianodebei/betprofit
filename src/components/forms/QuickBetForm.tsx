@@ -226,7 +226,6 @@ export function QuickBetForm({
                   {selectedWallet && <p className="text-xs text-muted-foreground mt-1">
                       Wallet: {selectedWallet.nome}
                     </p>}
-                  <FormDescription>Questo conto non è modificabile dopo l'inserimento</FormDescription>
                   <FormMessage />
                 </FormItem>} />
             
