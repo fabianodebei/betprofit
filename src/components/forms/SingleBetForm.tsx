@@ -380,7 +380,15 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                       <Input 
                         placeholder="Es: Roma vs Lazio" 
                         autoFocus
-                        {...field} 
+                        {...field}
+                        onChange={(e) => {
+                          let value = e.target.value;
+                          // Se l'utente digita uno spazio e non c'è già "vs" nel testo
+                          if (value.endsWith(' ') && !value.includes('vs') && value.trim().split(' ').length === 1) {
+                            value = value.trim() + ' vs ';
+                          }
+                          field.onChange(value);
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
