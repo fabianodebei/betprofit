@@ -290,19 +290,42 @@ export function QuickBetForm({
                   <FormLabel>Tag *</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className={!field.value ? 'border-red-500' : ''}>
                         <SelectValue placeholder="Seleziona tag" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="z-[60]">
-                      {Array.from(new Set([...(PREDEFINED_TAGS || []), ...tags.map(t => t.nome)]))
-                        .map((t) => (
-                          <SelectItem key={t} value={t}>
-                            {t}
-                          </SelectItem>
-                        ))}
+                      {PREDEFINED_TAGS && PREDEFINED_TAGS.length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                            Tag predefiniti
+                          </div>
+                          {PREDEFINED_TAGS.map((t) => (
+                            <SelectItem key={t} value={t}>
+                              {t}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                      {tags && tags.length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                            Tag personali
+                          </div>
+                          {tags.map((t) => (
+                            <SelectItem key={t.id} value={t.nome}>
+                              {t.nome}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
+                  {!field.value && (
+                    <p className="text-sm font-medium text-red-500 mt-1">
+                      Campo obbligatorio
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>} />
             <FormField control={form.control} name="note" render={({
