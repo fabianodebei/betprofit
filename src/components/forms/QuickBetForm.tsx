@@ -27,7 +27,7 @@ const createQuickBetSchema = (tagRequired: boolean) => z.object({
   intestatario: z.string().trim().min(1, 'Intestatario è obbligatorio').max(100),
   conto: z.string().trim().min(1, 'Conto è obbligatorio').max(100),
   metodo: z.string().trim().min(1, 'Metodo è obbligatorio').max(100),
-  movimento: z.coerce.number({ message: 'Movimento è obbligatorio' }),
+  movimento: z.coerce.number().refine((v) => v !== 0 && !Number.isNaN(v), { message: 'Movimento è obbligatorio' }),
   registrato: z.date(),
   note: z.string().trim().max(500).optional(),
   tag: tagRequired ? z.string().trim().min(1, 'Tag è obbligatorio').max(100) : z.string().trim().max(100).optional()
@@ -209,7 +209,7 @@ export function QuickBetForm({
                         </SelectItem>)}
                     </SelectContent>
                   </Select>
-                  {form.formState.isSubmitted && form.formState.errors.intestatario && (
+                  {form.formState.submitCount > 0 && form.formState.errors.intestatario && (
                     <p className="text-sm font-medium text-red-500 mt-1">
                       {form.formState.errors.intestatario.message}
                     </p>
@@ -242,7 +242,7 @@ export function QuickBetForm({
                   {selectedWallet && <p className="text-xs text-muted-foreground mt-1">
                       Wallet: {selectedWallet.nome}
                     </p>}
-                  {form.formState.isSubmitted && form.formState.errors.conto && (
+                  {form.formState.submitCount > 0 && form.formState.errors.conto && (
                     <p className="text-sm font-medium text-red-500 mt-1">
                       {form.formState.errors.conto.message}
                     </p>
@@ -268,7 +268,7 @@ export function QuickBetForm({
                       ))}
                     </SelectContent>
                   </Select>
-                  {form.formState.isSubmitted && form.formState.errors.metodo && (
+                  {form.formState.submitCount > 0 && form.formState.errors.metodo && (
                     <p className="text-sm font-medium text-red-500 mt-1">
                       {form.formState.errors.metodo.message}
                     </p>
@@ -281,10 +281,22 @@ export function QuickBetForm({
                   <FormLabel>Movimento *</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <Input type="number" step="0.01" placeholder="0.00" {...field} onChange={(e) => field.onChange(e.target.value)} />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        className={form.formState.submitCount > 0 && form.formState.errors.movimento ? 'border-red-500' : ''}
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                     </div>
                   </FormControl>
+                  {form.formState.submitCount > 0 && form.formState.errors.movimento && (
+                    <p className="text-sm font-medium text-red-500 mt-1">
+                      {form.formState.errors.movimento.message as string}
+                    </p>
+                  )}
                   <FormDescription></FormDescription>
                   <FormMessage />
                 </FormItem>} />
@@ -316,7 +328,7 @@ export function QuickBetForm({
                   <FormLabel>Tag *</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger className={form.formState.isSubmitted && !field.value ? 'border-red-500' : ''}>
+                      <SelectTrigger className={form.formState.submitCount > 0 && !field.value ? 'border-red-500' : ''}>
                         <SelectValue placeholder="Seleziona tag" />
                       </SelectTrigger>
                     </FormControl>
@@ -347,7 +359,7 @@ export function QuickBetForm({
                       )}
                     </SelectContent>
                   </Select>
-                  {form.formState.isSubmitted && !field.value && (
+                  {form.formState.submitCount > 0 && !field.value && (
                     <p className="text-sm font-medium text-red-500 mt-1">
                       Campo obbligatorio
                     </p>
