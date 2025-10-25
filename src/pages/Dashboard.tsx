@@ -263,27 +263,8 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Performance Analysis Section */}
+      {/* Trend Chart and Messages */}
       <div className="grid gap-6 lg:grid-cols-3 mb-8">
-        <PerformanceMetricsCard
-          winRateRegular={winRateRegular}
-          winRateQuick={winRateQuick}
-          averageOdds={averageOdds}
-          currentStreak={currentStreak}
-          overallROI={overallROI}
-        />
-        <div className="lg:col-span-2">
-          <ROIByBookmakerChart data={bookmakerStats} />
-        </div>
-      </div>
-
-      {/* Distribution & Insights */}
-      <div className="grid gap-6 lg:grid-cols-2 mb-8">
-        <BetTypeDistributionChart data={betTypeDistribution} />
-        <QuickInsightsPanel insights={insights} />
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
         {/* Trend Chart */}
         <div className="lg:col-span-2">
           <TrendChart data={chartData} title={`Trend Guadagni ${selectedYear}`} />
@@ -378,6 +359,26 @@ export default function Dashboard() {
             </Tabs>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Performance Analysis Section */}
+      <div className="grid gap-6 lg:grid-cols-3 mb-8">
+        <PerformanceMetricsCard
+          winRateRegular={winRateRegular}
+          winRateQuick={winRateQuick}
+          averageOdds={averageOdds}
+          currentStreak={currentStreak}
+          overallROI={overallROI}
+        />
+        <div className="lg:col-span-2">
+          <ROIByBookmakerChart data={bookmakerStats} />
+        </div>
+      </div>
+
+      {/* Distribution & Insights */}
+      <div className="grid gap-6 lg:grid-cols-2 mb-8">
+        <BetTypeDistributionChart data={betTypeDistribution} />
+        <QuickInsightsPanel insights={insights} />
       </div>
     </div>
   );
