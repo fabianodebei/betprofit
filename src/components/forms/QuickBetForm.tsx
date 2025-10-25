@@ -297,16 +297,7 @@ export function QuickBetForm({
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Chiudi
               </Button>
-              <Button 
-                type="submit" 
-                disabled={
-                  !form.watch('intestatario') || 
-                  !form.watch('conto') || 
-                  !form.watch('metodo') || 
-                  form.watch('movimento') === 0 ||
-                  !form.watch('registrato')
-                }
-              >
+              <Button type="submit">
                 Salva
               </Button>
             </DialogFooter>
