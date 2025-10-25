@@ -569,6 +569,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                             placeholder={tipoBonus === 'Nessuno' ? '0,00' : '0,00 (lascia 0 per solo bonus)'}
                             value={stakeInput}
                             onChange={(e) => setStakeInput(e.target.value)}
+                            onFocus={(e) => e.target.select()}
                             onBlur={() => {
                               const num = parseDecimal(stakeInput);
                               form.setValue('stake', Number.isFinite(num) ? num : 0, { shouldValidate: true });
