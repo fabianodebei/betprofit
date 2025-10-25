@@ -139,10 +139,10 @@ export default function Dashboard() {
   }, [archivedBets]);
 
   const winRateQuick = useMemo(() => {
-    const quickArchivedBets = archivedBets.filter(b => b.tipo === 'Rapida');
+    const quickArchivedBets = quickBets.filter(b => b.stato === 'Archiviata');
     const wins = quickArchivedBets.filter(b => b.risultato && b.risultato > 0).length;
     return quickArchivedBets.length > 0 ? (wins / quickArchivedBets.length) * 100 : 0;
-  }, [archivedBets]);
+  }, [quickBets]);
 
   const averageOdds = useMemo(() => {
     // Exclude quick bets from average odds calculation (they don't have odds)
