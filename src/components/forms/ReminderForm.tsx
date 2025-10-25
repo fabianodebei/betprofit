@@ -194,13 +194,9 @@ export function ReminderForm({ open, onOpenChange }: ReminderFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="15min">15 minuti prima</SelectItem>
-                      <SelectItem value="30min">30 minuti prima</SelectItem>
-                      <SelectItem value="1h">1 ora prima</SelectItem>
-                      <SelectItem value="2h">2 ore prima</SelectItem>
-                      <SelectItem value="1day">1 giorno prima</SelectItem>
-                      <SelectItem value="2days">2 giorni prima</SelectItem>
-                      <SelectItem value="1week">1 settimana prima</SelectItem>
+                      <SelectItem value="24h">24 Ore prima</SelectItem>
+                      <SelectItem value="12h">12 Ore prima</SelectItem>
+                      <SelectItem value="0h">Alla scadenza</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
