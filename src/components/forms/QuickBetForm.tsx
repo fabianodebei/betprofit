@@ -32,7 +32,7 @@ const createQuickBetSchema = (tagRequired: boolean) => z.object({
   registrato: z.date(),
   note: z.string().trim().max(500).optional(),
   tag: tagRequired 
-    ? z.string().trim().min(1, 'Tag è obbligatorio').max(100)
+    ? z.string().trim().min(1, 'Tag è obbligatorio').max(100).refine(val => val !== 'none', 'Seleziona un tag valido')
     : z.string().trim().max(100).optional()
 });
 
@@ -313,12 +313,36 @@ export function QuickBetForm({
             field
           }) => <FormItem>
                   <FormLabel>Tag{settings.tag && ' *'}</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder={settings.tag ? "Inserisci tag" : "Inserisci tag (opzionale)"} 
-                      {...field} 
-                    />
-                  </FormControl>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={settings.tag ? "Seleziona tag" : "Seleziona tag (opzionale)"} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {!settings.tag && <SelectItem value="none">Nessuno</SelectItem>}
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase">
+                        Predefinito
+                      </div>
+                      {PREDEFINED_TAGS.map((tag) => (
+                        <SelectItem key={tag} value={tag}>
+                          {tag}
+                        </SelectItem>
+                      ))}
+                      {tags.length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase mt-2">
+                            Tag Personali
+                          </div>
+                          {tags.map((tag) => (
+                            <SelectItem key={tag.id} value={tag.nome}>
+                              {tag.nome}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>} />
             <DialogFooter>

@@ -350,8 +350,6 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
     account => account.intestatario === selectedIntestatario && account.stato === 'Abilitato'
   );
 
-  const allTags = [...PREDEFINED_TAGS, ...tags.map(t => t.nome)];
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -788,11 +786,26 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="none">-- Seleziona Tag --</SelectItem>
-                          {allTags.map((tag) => (
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase">
+                            Predefinito
+                          </div>
+                          {PREDEFINED_TAGS.map((tag) => (
                             <SelectItem key={tag} value={tag}>
                               {tag}
                             </SelectItem>
                           ))}
+                          {tags.length > 0 && (
+                            <>
+                              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase mt-2">
+                                Tag Personali
+                              </div>
+                              {tags.map((tag) => (
+                                <SelectItem key={tag.id} value={tag.nome}>
+                                  {tag.nome}
+                                </SelectItem>
+                              ))}
+                            </>
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />
