@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -87,6 +87,11 @@ export function QuickBetForm({
   // Get available intestatari (abilitati)
   const availableIntestatari = intestatari.filter(int => int.stato === 'Abilitato');
 
+  // Accounts filtered by intestatario (memoized so Select rerenders on changes)
+  const filteredAccounts = useMemo(() => {
+    return accounts.filter(account => account.intestatario === selectedIntestatario);
+  }, [accounts, selectedIntestatario]);
+
   // Reset form with editing bet data when it changes
   useEffect(() => {
     if (editingBet) {
@@ -118,6 +123,15 @@ export function QuickBetForm({
       setSelectedConto('');
     }
   }, [editingBet, form, accounts]);
+
+  // Ensure selected account remains valid when list changes
+  useEffect(() => {
+    const current = form.getValues('conto');
+    if (current && !filteredAccounts.some(a => a.conto === current)) {
+      form.setValue('conto', '');
+      setSelectedConto('');
+    }
+  }, [filteredAccounts, form]);
   
   const onSubmit = async (data: QuickBetFormData) => {
     const account = accounts.find(a => a.conto === data.conto);
@@ -217,6 +231,7 @@ export function QuickBetForm({
                       setSelectedConto(value);
                     }} 
                     value={field.value}
+                    key={`${selectedIntestatario}-${filteredAccounts.length}`}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -224,9 +239,7 @@ export function QuickBetForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {accounts
-                        .filter(account => account.intestatario === selectedIntestatario)
-                        .map(account => {
+                      {filteredAccounts.map(account => {
                           const wallet = account.walletId 
                             ? wallets.find(w => w.id === account.walletId)
                             : null;
