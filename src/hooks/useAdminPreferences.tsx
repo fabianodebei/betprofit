@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export interface AdminPreferences {
   dashboardLayout?: string[];
@@ -62,8 +63,8 @@ export const useAdminPreferences = () => {
     loadPreferences();
   }, []);
 
-  // Save preferences to database (debounced)
-  const savePreferences = useCallback(async (newPreferences: AdminPreferences) => {
+  // Save preferences to database
+  const savePreferencesImmediate = useCallback(async (newPreferences: AdminPreferences) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -88,25 +89,27 @@ export const useAdminPreferences = () => {
     }
   }, [toast]);
 
-  // Update preferences locally and save
+  // Debounced save function with proper cleanup
+  const debouncedSave = useDebounce(savePreferencesImmediate, 500);
+
+  // Update preferences locally and save with debouncing
   const updatePreferences = useCallback((updates: Partial<AdminPreferences>) => {
     setPreferences(prev => {
       const newPreferences = { ...prev, ...updates };
-      // Debounce the save operation
-      setTimeout(() => savePreferences(newPreferences), 500);
+      debouncedSave(newPreferences);
       return newPreferences;
     });
-  }, [savePreferences]);
+  }, [debouncedSave]);
 
   // Reset to default preferences
   const resetPreferences = useCallback(async () => {
     setPreferences(DEFAULT_PREFERENCES);
-    await savePreferences(DEFAULT_PREFERENCES);
+    await savePreferencesImmediate(DEFAULT_PREFERENCES);
     toast({
       title: 'Preferenze ripristinate',
       description: 'Le preferenze sono state ripristinate ai valori predefiniti',
     });
-  }, [savePreferences, toast]);
+  }, [savePreferencesImmediate, toast]);
 
   return {
     preferences,

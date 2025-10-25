@@ -3,6 +3,7 @@ import { Bet } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
+import { calculateDeleteBetUpdate } from '@/utils/betCalculations';
 
 interface BetContextType {
   bets: Bet[];
@@ -228,13 +229,12 @@ export function BetProvider({ children }: { children: ReactNode }) {
 
   const deleteBet = async (id: string) => {
     try {
-      // Trova la bet da eliminare
       const betToDelete = bets.find(b => b.id === id);
       if (!betToDelete) {
         throw new Error('Puntata non trovata');
       }
 
-      // Trova l'account per ripristinare i saldi (tenendo conto di possibili duplicati)
+      // Find the associated account
       let accountQuery = supabase
         .from('accounts')
         .select('*')
@@ -246,54 +246,24 @@ export function BetProvider({ children }: { children: ReactNode }) {
       }
 
       const { data: account, error: accountError } = await accountQuery.limit(1).maybeSingle();
-
       if (accountError) throw accountError;
 
+      // Calculate and apply balance updates using helper function
       if (account) {
-        // Ripristina i saldi tenendo conto dello stato della scommessa
-        // - Se Archiviata: annulla sia la detrazione iniziale (stake) che l'accredito in archivio (stake+profitto o solo profitto per Free/Bonus)
-        //   => saldo: +stake - amountAddedOnArchive; bilancio: -risultato (si rimuove il profitto o si restituisce la perdita)
-        // - Se In Corso: annulla solo la detrazione iniziale
-        const isFreeOrBonus = betToDelete.tipoBonus === 'Free Bet' || betToDelete.tipoBonus === 'Bonus';
-        const risultatoVal = Number(betToDelete.risultato ?? 0);
-        const stakeVal = Number(betToDelete.stake) || 0;
+        const updateData = calculateDeleteBetUpdate(betToDelete, account);
 
-        let updateData: any = {};
+        if (Object.keys(updateData).length > 0) {
+          const { error: updateAccountError } = await supabase
+            .from('accounts')
+            .update(updateData)
+            .eq('id', account.id);
 
-        if (betToDelete.stato === 'Archiviata') {
-          // Giocate archiviate: rimuovi solo dal bilancio (il ricalcolo automatico gestirà il resto)
-          // Calcola lo stake da ripristinare per bet non Free/Bonus
-          const addBackStake = !isFreeOrBonus && stakeVal > 0 ? stakeVal : 0;
-          if (betToDelete.tipo === 'Rapida') {
-            // Giocate rapide: inverti archiviazione (−risultato) e ripristina detrazione iniziale (+stake)
-            updateData.bilancio_giocate_rapide = Number(account.bilancio_giocate_rapide) - risultatoVal + addBackStake;
-          } else {
-            // Giocate normali: inverti l'archiviazione (−risultato) e ripristina la detrazione iniziale (+stake)
-            updateData.bilancio_giocate = Number(account.bilancio_giocate) - risultatoVal + addBackStake;
-          }
-        } else {
-          // Non archiviata (In Corso): restituiamo lo stake detratto inizialmente
-          if (betToDelete.tipo === 'Rapida') {
-            // Le giocate rapide sono sempre archiviate, questo branch non dovrebbe mai essere raggiunto
-            updateData.bilancio_giocate_rapide = Number(account.bilancio_giocate_rapide) + stakeVal;
-          } else if (!isFreeOrBonus) {
-            // Giocate normali In Corso: ripristina lo stake nel bilancio
-            updateData.bilancio_giocate = Number(account.bilancio_giocate) + stakeVal;
-          }
+          if (updateAccountError) throw updateAccountError;
+          window.dispatchEvent(new Event('refresh-accounts'));
         }
-
-        const { error: updateAccountError } = await supabase
-          .from('accounts')
-          .update(updateData)
-          .eq('id', account.id);
-
-        if (updateAccountError) throw updateAccountError;
-        // Forza refresh della UI conti
-        window.dispatchEvent(new Event('refresh-accounts'));
       }
 
-
-      // Elimina la bet
+      // Delete the bet
       const { error } = await supabase
         .from('bets')
         .delete()

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,36 +22,47 @@ import { BookProvider } from "./contexts/BookContext";
 import { TagProvider } from "./contexts/TagContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
 import { YearProvider } from "./contexts/YearContext";
-import Auth from "./pages/Auth";
-import SetupGuide from "./pages/SetupGuide";
-import Dashboard from "./pages/Dashboard";
-import Wallets from "./pages/Wallets";
-import Accounts from "./pages/Accounts";
-import OngoingBets from "./pages/OngoingBets";
-import QuickBets from "./pages/QuickBets";
-import ArchivedBets from "./pages/ArchivedBets";
-import Deposits from "./pages/Deposits";
-import Balance from "./pages/Balance";
-import Promemoria from "./pages/Promemoria";
-import Settings from "./pages/Settings";
-import TelegramSettings from "./pages/TelegramSettings";
-import Transactions from "./pages/Transactions";
-import Redditometro from "./pages/Redditometro";
-import Report from "./pages/Report";
-import Intestatari from "./pages/Intestatari";
-import Books from "./pages/Books";
-import Tags from "./pages/Tags";
-import ImportExport from "./pages/ImportExport";
-import NotFound from "./pages/NotFound";
-import Admin from "./pages/Admin";
+import { ErrorBoundary } from "./components/common/ErrorBoundary";
+
+// Lazy load pages for better initial load performance
+const Auth = lazy(() => import("./pages/Auth"));
+const SetupGuide = lazy(() => import("./pages/SetupGuide"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Wallets = lazy(() => import("./pages/Wallets"));
+const Accounts = lazy(() => import("./pages/Accounts"));
+const OngoingBets = lazy(() => import("./pages/OngoingBets"));
+const QuickBets = lazy(() => import("./pages/QuickBets"));
+const ArchivedBets = lazy(() => import("./pages/ArchivedBets"));
+const Deposits = lazy(() => import("./pages/Deposits"));
+const Balance = lazy(() => import("./pages/Balance"));
+const Promemoria = lazy(() => import("./pages/Promemoria"));
+const Settings = lazy(() => import("./pages/Settings"));
+const TelegramSettings = lazy(() => import("./pages/TelegramSettings"));
+const Transactions = lazy(() => import("./pages/Transactions"));
+const Redditometro = lazy(() => import("./pages/Redditometro"));
+const Report = lazy(() => import("./pages/Report"));
+const Intestatari = lazy(() => import("./pages/Intestatari"));
+const Books = lazy(() => import("./pages/Books"));
+const Tags = lazy(() => import("./pages/Tags"));
+const ImportExport = lazy(() => import("./pages/ImportExport"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Admin = lazy(() => import("./pages/Admin"));
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+  </div>
+);
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <BrowserRouter>
-        <AuthProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <BrowserRouter>
+          <AuthProvider>
           <TelegramConfigProvider>
             <YearProvider>
               <SettingsProvider>
@@ -66,9 +78,10 @@ const App = () => (
                                   <ReminderProvider>
                                   <Toaster />
                                   <Sonner />
-                                  <Routes>
-                                    <Route path="/auth" element={<Auth />} />
-                                    <Route path="/guida" element={<SetupGuide />} />
+                                  <Suspense fallback={<PageLoader />}>
+                                    <Routes>
+                                      <Route path="/auth" element={<Auth />} />
+                                      <Route path="/guida" element={<SetupGuide />} />
                                     <Route path="/admin" element={
                                       <AdminRoute>
                                         <Admin />
@@ -108,7 +121,8 @@ const App = () => (
                                         </ProtectedRoute>
                                       }
                                     />
-                                  </Routes>
+                                    </Routes>
+                                  </Suspense>
                                   </ReminderProvider>
                                 </TransactionProvider>
                               </LayBetProvider>
@@ -122,10 +136,11 @@ const App = () => (
               </SettingsProvider>
             </YearProvider>
           </TelegramConfigProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

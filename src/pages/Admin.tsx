@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,14 +11,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Shield, Search, UserCog, Users, Activity, Database, TrendingUp, ArrowLeft, RotateCcw, Trash } from 'lucide-react';
-import { format, subDays, eachDayOfInterval } from 'date-fns';
+import { Shield, Search, UserCog, ArrowLeft, RotateCcw, Trash } from 'lucide-react';
+import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { AdminKPICard } from '@/components/admin/AdminKPICard';
 import { UserActivityTable } from '@/components/admin/UserActivityTable';
-import { UserEarningsChart } from '@/components/admin/UserEarningsChart';
-import { UserRegistrationChart } from '@/components/admin/UserRegistrationChart';
 import { useAdminPreferences } from '@/hooks/useAdminPreferences';
+import { useDebounce } from '@/hooks/useDebounce';
 import { DraggableWidget } from '@/components/admin/DraggableWidget';
 import { 
   DndContext, 
@@ -35,6 +33,17 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
+import {
+  KPIUsersWidget,
+  KPIBetsWidget,
+  KPITransactionsWidget,
+  KPIAccountsWidget,
+  RegistrationChartWidget,
+  EarningsChartWidget,
+  StatsGeneralWidget,
+  StatsBetsWidget,
+  StatsAccountsWidget,
+} from '@/components/admin/MemoizedWidgets';
 
 interface UserProfile {
   id: string;
@@ -120,17 +129,22 @@ export default function Admin() {
     }
   };
 
-  useEffect(() => {
-    if (searchTerm) {
+  // Debounced search to avoid filtering on every keystroke
+  const debouncedSearch = useDebounce((term: string) => {
+    if (term) {
       const filtered = users.filter(user =>
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
+        user.email.toLowerCase().includes(term.toLowerCase()) ||
+        user.full_name?.toLowerCase().includes(term.toLowerCase())
       );
       setFilteredUsers(filtered);
     } else {
       setFilteredUsers(users);
     }
-  }, [searchTerm, users]);
+  }, 300);
+
+  useEffect(() => {
+    debouncedSearch(searchTerm);
+  }, [searchTerm, users, debouncedSearch]);
 
   const fetchUsers = async () => {
     try {
@@ -291,113 +305,18 @@ export default function Admin() {
     );
   }
 
-  // Widget components map
-  const widgetComponents: Record<string, JSX.Element> = {
-    'kpi-users': (
-      <AdminKPICard
-        title="Totale Utenti"
-        value={systemStats?.totalUsers || 0}
-        icon={Users}
-        trend={{
-          value: systemStats?.newUsersThisWeek || 0,
-          label: 'questa settimana'
-        }}
-      />
-    ),
-    'kpi-bets': (
-      <AdminKPICard
-        title="Utenti Attivi"
-        value={systemStats?.activeUsers || 0}
-        icon={Activity}
-        description="Ultimi 30 giorni"
-      />
-    ),
-    'kpi-transactions': (
-      <AdminKPICard
-        title="Nuovi Utenti"
-        value={systemStats?.newUsersThisMonth || 0}
-        icon={TrendingUp}
-        description="Ultimo mese"
-      />
-    ),
-    'kpi-accounts': (
-      <AdminKPICard
-        title="Database"
-        value={`${systemStats?.totalBets || 0} bets`}
-        icon={Database}
-        description={`${systemStats?.totalTransactions || 0} transazioni`}
-      />
-    ),
-    'chart-registrations': <UserRegistrationChart data={registrationData} height={350} />,
-    'chart-roles': <UserEarningsChart data={userEarnings} height={350} />,
-    'stats-general': (
-      <Card>
-        <CardHeader>
-          <CardTitle>Statistiche Database</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Bets</span>
-            <span className="font-semibold">{systemStats?.totalBets || 0}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Transazioni</span>
-            <span className="font-semibold">{systemStats?.totalTransactions || 0}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Conti</span>
-            <span className="font-semibold">{systemStats?.totalAccounts || 0}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Wallet</span>
-            <span className="font-semibold">{systemStats?.totalWallets || 0}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Tag</span>
-            <span className="font-semibold">{systemStats?.totalTags || 0}</span>
-          </div>
-        </CardContent>
-      </Card>
-    ),
-    'stats-bets': (
-      <Card>
-        <CardHeader>
-          <CardTitle>Distribuzione Ruoli</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Admin</span>
-            <Badge variant="default">{systemStats?.roleDistribution.admin || 0}</Badge>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Free</span>
-            <Badge variant="outline">{systemStats?.roleDistribution.free || 0}</Badge>
-          </div>
-        </CardContent>
-      </Card>
-    ),
-    'stats-accounts': (
-      <Card>
-        <CardHeader>
-          <CardTitle>Crescita Utenti</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Questa settimana</span>
-            <span className="font-semibold text-success">+{systemStats?.newUsersThisWeek || 0}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Questo mese</span>
-            <span className="font-semibold text-success">+{systemStats?.newUsersThisMonth || 0}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Attivi (30gg)</span>
-            <span className="font-semibold">{systemStats?.activeUsers || 0}</span>
-          </div>
-        </CardContent>
-      </Card>
-    ),
-  };
+  // Memoized widget components map to prevent unnecessary re-renders
+  const widgetComponents = useMemo(() => ({
+    'kpi-users': <KPIUsersWidget systemStats={systemStats} />,
+    'kpi-bets': <KPIBetsWidget systemStats={systemStats} />,
+    'kpi-transactions': <KPITransactionsWidget systemStats={systemStats} />,
+    'kpi-accounts': <KPIAccountsWidget systemStats={systemStats} />,
+    'chart-registrations': <RegistrationChartWidget registrationData={registrationData} />,
+    'chart-roles': <EarningsChartWidget userEarnings={userEarnings} />,
+    'stats-general': <StatsGeneralWidget systemStats={systemStats} />,
+    'stats-bets': <StatsBetsWidget systemStats={systemStats} />,
+    'stats-accounts': <StatsAccountsWidget systemStats={systemStats} />,
+  }), [systemStats, registrationData, userEarnings]);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
