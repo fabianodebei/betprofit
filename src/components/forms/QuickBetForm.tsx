@@ -245,7 +245,7 @@ export function QuickBetForm({
                             : null;
                           return (
                             <SelectItem key={account.id} value={account.conto}>
-                              {account.conto} (Rapide: €{account.bilancioGiocateRapide.toFixed(2)})
+                              {account.conto} (€{account.saldoAttuale.toFixed(2)})
                               {wallet && <span className="text-muted-foreground text-xs ml-1"> - {wallet.nome}</span>}
                             </SelectItem>
                           );
@@ -324,7 +324,6 @@ export function QuickBetForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {!settings.tag && <SelectItem value="none">Nessuno</SelectItem>}
                       <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase">
                         Predefinito
                       </div>
