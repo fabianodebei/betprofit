@@ -41,6 +41,38 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         )
         .subscribe();
 
+      const betsChannel = supabase
+        .channel('bets-balance')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'bets',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            fetchAccounts();
+          }
+        )
+        .subscribe();
+
+      const transactionsChannel = supabase
+        .channel('transactions-balance')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'transactions',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            fetchAccounts();
+          }
+        )
+        .subscribe();
+
       const layChannel = supabase
         .channel('lay-bets-balance')
         .on(
@@ -59,6 +91,8 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
       return () => {
         supabase.removeChannel(channel);
+        supabase.removeChannel(betsChannel);
+        supabase.removeChannel(transactionsChannel);
         supabase.removeChannel(layChannel);
       };
     } else {
@@ -292,11 +326,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   const getTotalBalance = () => {
     return accounts
       .filter((a) => a.stato === 'Abilitato')
-      .reduce((sum, account) => {
-        // Saldo reale = saldo disponibile (depositi/prelievi) + profitti dalle scommesse
-        const profitto = account.bilancioGiocate + account.bilancioGiocateRapide;
-        return sum + account.saldoAttuale + profitto;
-      }, 0);
+      .reduce((sum, account) => sum + account.saldoAttuale, 0);
   };
 
   return (
