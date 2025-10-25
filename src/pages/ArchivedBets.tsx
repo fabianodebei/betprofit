@@ -81,7 +81,7 @@ export default function ArchivedBets() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <SkeletonTable rows={5} columns={9} />
+            <SkeletonTable rows={5} columns={10} />
           ) : filteredItems.length === 0 ? (
             <EmptyState
               icon={Archive}
@@ -95,6 +95,13 @@ export default function ArchivedBets() {
                   <thead>
                     <tr className="border-b bg-muted/50">
                       <th className="p-3 text-left text-xs font-semibold uppercase">ID</th>
+                      <SortableTableHeader
+                        label="Tipo"
+                        sortKey="tipo"
+                        currentSort={sortBy}
+                        currentOrder={sortOrder}
+                        onSort={setSortBy as any}
+                      />
                       <SortableTableHeader
                         label="Data Evento"
                         sortKey="dataEvento"
@@ -133,6 +140,9 @@ export default function ArchivedBets() {
                     {paginatedItems.map((bet, idx) => (
                       <tr key={bet.id} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
                         <td className="p-3 text-sm font-medium">{bet.id.slice(0, 8)}</td>
+                        <td className="p-3">
+                          <Badge variant="info">{bet.tipo}</Badge>
+                        </td>
                         <td className="p-3 text-sm">{formatDate(bet.dataEvento)}</td>
                         <td className="p-3 text-sm">{bet.evento || bet.nomeGioco || '-'}</td>
                         <td className="p-3">
