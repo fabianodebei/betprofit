@@ -199,7 +199,7 @@ export function QuickBetForm({
               form.setValue('conto', '');
             }} value={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className={form.formState.errors.intestatario ? 'border-red-500' : ''}>
                         <SelectValue placeholder="Seleziona intestatario" />
                       </SelectTrigger>
                     </FormControl>
@@ -209,6 +209,11 @@ export function QuickBetForm({
                         </SelectItem>)}
                     </SelectContent>
                   </Select>
+                  {form.formState.isSubmitted && form.formState.errors.intestatario && (
+                    <p className="text-sm font-medium text-red-500 mt-1">
+                      {form.formState.errors.intestatario.message}
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>} />
             <FormField control={form.control} name="conto" render={({
@@ -220,7 +225,7 @@ export function QuickBetForm({
               setSelectedConto(value);
             }} value={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className={form.formState.errors.conto ? 'border-red-500' : ''}>
                         <SelectValue placeholder="Seleziona conto" />
                       </SelectTrigger>
                     </FormControl>
@@ -237,6 +242,11 @@ export function QuickBetForm({
                   {selectedWallet && <p className="text-xs text-muted-foreground mt-1">
                       Wallet: {selectedWallet.nome}
                     </p>}
+                  {form.formState.isSubmitted && form.formState.errors.conto && (
+                    <p className="text-sm font-medium text-red-500 mt-1">
+                      {form.formState.errors.conto.message}
+                    </p>
+                  )}
                   <FormDescription>Questo conto non è modificabile dopo l'inserimento</FormDescription>
                   <FormMessage />
                 </FormItem>} />
@@ -246,7 +256,7 @@ export function QuickBetForm({
                   <FormLabel>Metodo *</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className={form.formState.errors.metodo ? 'border-red-500' : ''}>
                         <SelectValue placeholder="Seleziona metodo" />
                       </SelectTrigger>
                     </FormControl>
@@ -258,6 +268,11 @@ export function QuickBetForm({
                       ))}
                     </SelectContent>
                   </Select>
+                  {form.formState.isSubmitted && form.formState.errors.metodo && (
+                    <p className="text-sm font-medium text-red-500 mt-1">
+                      {form.formState.errors.metodo.message}
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>} />
             <FormField control={form.control} name="movimento" render={({
