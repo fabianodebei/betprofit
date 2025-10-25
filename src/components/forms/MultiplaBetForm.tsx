@@ -82,6 +82,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
   const [selectedConto, setSelectedConto] = useState<string>('');
   const [tipoBonus, setTipoBonus] = useState<Bet['tipoBonus']>('Nessuno');
   const [selectionErrors, setSelectionErrors] = useState<number[]>([]);
+  const [quotaInputs, setQuotaInputs] = useState<string[]>(['1,50', '1,50']);
   
   // State for bet selections
   const [selections, setSelections] = useState<BetSelection[]>([
@@ -177,14 +178,16 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
       if (mode === 'edit') {
         const existingLegs = getBetLegsByBetId(editingBet.id);
         if (existingLegs.length > 0) {
-          setSelections(existingLegs.map(leg => ({
+          const loadedSelections = existingLegs.map(leg => ({
             evento: leg.evento,
             competizione: leg.competizione || '',
             mercato: leg.mercato || '',
             selezione: leg.selezione,
             quota: leg.quota,
             dataEvento: new Date(leg.dataEvento),
-          })));
+          }));
+          setSelections(loadedSelections);
+          setQuotaInputs(loadedSelections.map(sel => sel.quota.toFixed(2).replace('.', ',')));
         }
       }
     } else if (!editingBet && open) {
@@ -203,6 +206,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
         { evento: '', competizione: '', mercato: '', selezione: '', quota: 1.5, dataEvento: new Date() },
         { evento: '', competizione: '', mercato: '', selezione: '', quota: 1.5, dataEvento: new Date() },
       ]);
+      setQuotaInputs(['1,50', '1,50']);
     }
   }, [editingBet, open, intestatari, accounts, mode]);
 
@@ -219,6 +223,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
       quota: 1.5,
       dataEvento: new Date(),
     }]);
+    setQuotaInputs([...quotaInputs, '1,50']);
   };
 
   const handleRemoveSelection = (index: number) => {
@@ -227,6 +232,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
       return;
     }
     setSelections(selections.filter((_, i) => i !== index));
+    setQuotaInputs(quotaInputs.filter((_, i) => i !== index));
   };
 
   const handleSelectionChange = (index: number, field: keyof BetSelection, value: any) => {
@@ -340,6 +346,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
         { evento: '', competizione: '', mercato: '', selezione: '', quota: 1.5, dataEvento: new Date() },
         { evento: '', competizione: '', mercato: '', selezione: '', quota: 1.5, dataEvento: new Date() },
       ]);
+      setQuotaInputs(['1,50', '1,50']);
     } catch (error: any) {
       console.error('Error in MultiplaBetForm:', error);
       toast.error(error.message || 'Errore durante il salvataggio');
@@ -460,10 +467,32 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                       <div>
                         <label className="text-sm font-medium">Quota *</label>
                         <Input
-                          type="number"
-                          step="0.01"
-                          value={selection.quota}
-                          onChange={(e) => handleSelectionChange(index, 'quota', parseFloat(e.target.value) || 1.5)}
+                          type="text"
+                          inputMode="decimal"
+                          value={quotaInputs[index] || ''}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) => {
+                            let value = e.target.value.replace(/[^\d]/g, ''); // Solo numeri
+                            const newQuotaInputs = [...quotaInputs];
+                            
+                            if (value.length === 0) {
+                              newQuotaInputs[index] = '';
+                              setQuotaInputs(newQuotaInputs);
+                            } else if (value.length <= 2) {
+                              newQuotaInputs[index] = value;
+                              setQuotaInputs(newQuotaInputs);
+                            } else {
+                              const intPart = value.slice(0, -2);
+                              const decPart = value.slice(-2);
+                              newQuotaInputs[index] = intPart + ',' + decPart;
+                              setQuotaInputs(newQuotaInputs);
+                            }
+                          }}
+                          onBlur={() => {
+                            const value = quotaInputs[index];
+                            const num = parseFloat(value.replace(',', '.'));
+                            handleSelectionChange(index, 'quota', Number.isFinite(num) && num > 0 ? num : 1.5);
+                          }}
                           className={cn(
                             selectionErrors.includes(index) && selection.quota <= 1 && 
                             "border-destructive focus-visible:ring-destructive"
