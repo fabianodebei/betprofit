@@ -46,11 +46,15 @@ const navigation = [{
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const { selectedYear, setSelectedYear } = useYear();
-  const { signOut } = useAuth();
+  const {
+    selectedYear,
+    setSelectedYear
+  } = useYear();
+  const {
+    signOut
+  } = useAuth();
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -58,16 +62,17 @@ export function Header() {
         setSearchOpen(true);
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
-  return <header className="sticky top-0 z-50 w-full border-b shadow-sm rounded-none" style={{ backgroundColor: 'hsl(210, 33%, 15%)' }}>
+  return <header className="sticky top-0 z-50 w-full border-b shadow-sm rounded-none" style={{
+    backgroundColor: 'hsl(210, 33%, 15%)'
+  }}>
       <div className="container mx-auto px-4 bg-transparent">
         <div className="flex h-20 items-center justify-between rounded-none bg-transparent">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="Centurion Club" className="w-auto" style={{ height: '90px' }} />
+            
           </Link>
 
           {/* Desktop Navigation */}
@@ -79,23 +84,13 @@ export function Header() {
                   {item.name}
                 </Link>;
           })}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSearchOpen(true)}
-              className="ml-2 text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground"
-            >
+            <Button variant="ghost" size="sm" onClick={() => setSearchOpen(true)} className="ml-2 text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground">
               <Search className="h-4 w-4" />
             </Button>
             <Link to="/impostazioni" className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${isActive('/impostazioni') ? 'bg-primary-foreground/20 text-primary-foreground' : 'text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground'}`}>
               <Settings className="h-5 w-5" />
             </Link>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={signOut}
-              className="text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground"
-            >
+            <Button variant="ghost" size="sm" onClick={signOut} className="text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground">
               <LogOut className="h-4 w-4" />
             </Button>
           </nav>
@@ -133,13 +128,10 @@ export function Header() {
                 <Settings className="h-5 w-5" />
                 Impostazioni
               </Link>
-              <button
-                onClick={() => {
-                  signOut();
-                  setMobileMenuOpen(false);
-                }}
-                className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors text-primary-foreground/80 hover:bg-primary-foreground/10"
-              >
+              <button onClick={() => {
+            signOut();
+            setMobileMenuOpen(false);
+          }} className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors text-primary-foreground/80 hover:bg-primary-foreground/10">
                 <LogOut className="h-5 w-5" />
                 Esci
               </button>
