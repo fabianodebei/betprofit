@@ -108,9 +108,12 @@ export default function Report() {
       if (!accountInfo) return;
       
       // Determine tipo based on bet type
-      let tipo = bet.mercato || 'Altro';
+      let tipo: string;
       if (activeTab === 'giocate-rapide') {
         tipo = bet.metodo || 'Altro';
+      } else {
+        // For regular bets, use the bet type (Singola, Multipla, Multipla Bancata)
+        tipo = bet.tipo || 'Altro';
       }
       
       const key = `${accountInfo.intestatario}|${tipo}`;
