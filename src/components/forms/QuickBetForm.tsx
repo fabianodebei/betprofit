@@ -290,7 +290,7 @@ export function QuickBetForm({
                   <FormLabel>Tag *</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger className={!field.value ? 'border-red-500' : ''}>
+                      <SelectTrigger className={form.formState.isSubmitted && !field.value ? 'border-red-500' : ''}>
                         <SelectValue placeholder="Seleziona tag" />
                       </SelectTrigger>
                     </FormControl>
@@ -321,7 +321,7 @@ export function QuickBetForm({
                       )}
                     </SelectContent>
                   </Select>
-                  {!field.value && (
+                  {form.formState.isSubmitted && !field.value && (
                     <p className="text-sm font-medium text-red-500 mt-1">
                       Campo obbligatorio
                     </p>
