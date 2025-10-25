@@ -192,7 +192,7 @@ export function QuickBetForm({
                       setSelectedIntestatario(value);
                       form.setValue('conto', '');
                     }} 
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -216,7 +216,7 @@ export function QuickBetForm({
                       field.onChange(value);
                       setSelectedConto(value);
                     }} 
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
