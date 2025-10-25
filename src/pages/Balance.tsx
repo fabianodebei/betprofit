@@ -99,7 +99,6 @@ export default function Balance() {
                 <tbody>
                   {accounts.map((account, idx) => {
                     const profitto = account.bilancioGiocate + account.bilancioGiocateRapide;
-                    const saldoDisponibile = account.saldoAttuale + profitto;
                     return (
                       <tr key={account.id} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
                         <td className="p-3 text-sm">{idx + 1}</td>
@@ -108,7 +107,7 @@ export default function Balance() {
                         <td className="p-3 text-sm font-medium">{account.conto}</td>
                         <td className="p-3 text-sm">{formatCurrency(account.bilancioGiocate)}</td>
                         <td className="p-3 text-sm">{formatCurrency(account.bilancioGiocateRapide)}</td>
-                        <td className="p-3 text-sm font-semibold">{formatCurrency(saldoDisponibile)}</td>
+                        <td className="p-3 text-sm font-semibold">{formatCurrency(account.saldoAttuale)}</td>
                         <td className="p-3">
                           <span className={`font-semibold ${profitto >= 0 ? 'text-success' : 'text-destructive'}`}>
                             {formatCurrency(profitto)}
