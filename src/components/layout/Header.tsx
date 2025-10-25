@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { GlobalSearchDialog } from '@/components/layout/GlobalSearchDialog';
 import { useYear } from '@/contexts/YearContext';
 import { useAuth } from '@/contexts/AuthContext';
-import logo from '@/assets/logo_centurion.webp';
+import logo from '@/assets/logo_centurion_new.png';
 const navigation = [{
   name: 'Dashboard',
   href: '/',
