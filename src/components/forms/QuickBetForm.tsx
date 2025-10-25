@@ -69,7 +69,7 @@ export function QuickBetForm({
   // Get the selected account's wallet info
   const selectedAccount = accounts.find(a => a.conto === selectedConto);
   const selectedWallet = selectedAccount?.walletId ? wallets.find(w => w.id === selectedAccount.walletId) : null;
-  const quickBetSchema = createQuickBetSchema(settings.tag);
+  const quickBetSchema = createQuickBetSchema(true);
   const form = useForm<QuickBetFormData>({
     resolver: zodResolver(quickBetSchema),
     defaultValues: {
@@ -177,7 +177,7 @@ export function QuickBetForm({
           <DialogTitle>{editingBet ? 'Modifica Giocata Rapida' : 'Nuova Giocata Rapida'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit, (errors) => { if (errors.tag) { toast.error(errors.tag.message || 'Tag è obbligatorio'); } if (errors.metodo) { toast.error(errors.metodo.message || 'Metodo è obbligatorio'); } })} className="space-y-4">
             <FormField control={form.control} name="intestatario" render={({
             field
           }) => <FormItem>
@@ -239,7 +239,13 @@ export function QuickBetForm({
                         <SelectValue placeholder="Seleziona metodo" />
                       </SelectTrigger>
                     </FormControl>
-                    
+                    <SelectContent>
+                      {QUICK_BET_METHODS.map((m) => (
+                        <SelectItem key={m} value={m}>
+                          {m}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>} />
@@ -290,9 +296,9 @@ export function QuickBetForm({
             <FormField control={form.control} name="tag" render={({
             field
           }) => <FormItem>
-                  <FormLabel>Tag{settings.tag && ' *'}</FormLabel>
+                  <FormLabel>Tag *</FormLabel>
                   <FormControl>
-                    <Input placeholder={settings.tag ? "Inserisci tag" : "Inserisci tag (opzionale)"} {...field} />
+                    <Input placeholder="Inserisci tag" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>} />
