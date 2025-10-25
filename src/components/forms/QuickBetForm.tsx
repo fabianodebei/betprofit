@@ -228,6 +228,25 @@ export function QuickBetForm({
                   <FormMessage />
                 </FormItem>} />
             
+            <FormField control={form.control} name="metodo" render={({
+            field
+          }) => <FormItem>
+                  <FormLabel>Metodo *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleziona metodo" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-background z-50">
+                      {QUICK_BET_METHODS.map((m) => (
+                        <SelectItem key={m} value={m}>{m}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>} />
+            
             <FormField control={form.control} name="movimento" render={({
             field
           }) => <FormItem>
