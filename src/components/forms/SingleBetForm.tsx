@@ -247,11 +247,11 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
       setTipoBonus('Nessuno');
     }
 
-    // Sync local numeric inputs after reset
+  // Sync local numeric inputs after reset
     const s = form.getValues('stake');
     const q = form.getValues('quota');
-    setStakeInput(s !== undefined && s !== null ? String(s) : '');
-    setQuotaInput(q !== undefined && q !== null ? String(q) : '');
+    setStakeInput(s !== undefined && s !== null && s !== 0 ? String(s) : '');
+    setQuotaInput(q !== undefined && q !== null ? String(q) : '1.30');
   }, [open, editingBet?.id]);
 
   const onSubmit = async (data: SingleBetFormData) => {
