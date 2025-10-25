@@ -158,8 +158,8 @@ export default function QuickBets() {
                         <td className="p-3 text-sm">{(currentPage - 1) * pageSize + idx + 1}</td>
                         <td className="p-3 text-sm">{formatDateTime(bet.createdAt)}</td>
                         <td className="p-3 text-sm">
-                          {account?.intestatario && <span className="font-medium">{account.intestatario} - </span>}
                           {bet.conto}
+                          {account?.intestatario && <span className="text-muted-foreground"> - {account.intestatario}</span>}
                         </td>
                         <td className="p-3 text-sm">{bet.metodo || '-'}</td>
                         <td className="p-3 text-sm">{bet.tag || '-'}</td>
