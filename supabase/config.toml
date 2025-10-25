@@ -5,7 +5,6 @@ verify_jwt = true
 
 [functions.check-notifications]
 verify_jwt = false
-import_map = "./functions/import_map.json"
 
 [functions.check-notifications.env]
 NOTIFICATION_HMAC_SECRET = "env:NOTIFICATION_HMAC_SECRET"

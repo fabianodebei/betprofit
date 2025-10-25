@@ -3,12 +3,54 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-notification-signature',
 };
 
 // Rate limiting: track last execution time
 let lastExecutionTime = 0;
 const RATE_LIMIT_MS = 50000; // 50 seconds minimum between calls
+
+// HMAC signature verification
+async function verifySignature(request: Request, body: string): Promise<boolean> {
+  const secret = Deno.env.get('NOTIFICATION_HMAC_SECRET');
+  if (!secret) {
+    console.error('NOTIFICATION_HMAC_SECRET not configured');
+    return false;
+  }
+
+  const signature = request.headers.get('x-notification-signature');
+  if (!signature) {
+    console.error('Missing x-notification-signature header');
+    return false;
+  }
+
+  try {
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['verify']
+    );
+
+    const signatureBytes = new Uint8Array(
+      signature.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16))
+    );
+
+    const isValid = await crypto.subtle.verify(
+      'HMAC',
+      key,
+      signatureBytes,
+      encoder.encode(body)
+    );
+
+    return isValid;
+  } catch (error) {
+    console.error('Signature verification error:', error);
+    return false;
+  }
+}
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === 'OPTIONS') {
@@ -16,6 +58,21 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Verify HMAC signature
+    const bodyText = await req.text();
+    const isValidSignature = await verifySignature(req, bodyText);
+    
+    if (!isValidSignature) {
+      console.error('Invalid or missing HMAC signature');
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+
     // Rate limiting check
     const now = Date.now();
     if (now - lastExecutionTime < RATE_LIMIT_MS) {
