@@ -50,7 +50,7 @@ export default function Redditometro() {
       }
       const accredito = transaction.accredito || 0;
       const addebito = transaction.addebito || 0;
-      const netto = accredito - addebito;
+      const netto = addebito - accredito;
       entry.monthly[month] += netto;
       entry.totalNetto += netto;
     });
