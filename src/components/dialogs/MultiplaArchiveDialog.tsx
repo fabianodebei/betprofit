@@ -41,6 +41,9 @@ export function MultiplaArchiveDialog({
 
     if (selectedOption === 'win') {
       risultatoCalcolato = calculations.scenarioVincita;
+    } else if (selectedOption === 'lost') {
+      // Multipla persa senza bancate
+      risultatoCalcolato = -bet.stake;
     } else {
       // Trova il risultato per la partita selezionata
       const partitaResult = calculations.perGamba.find((g) => g.id === selectedOption);
@@ -84,13 +87,34 @@ export function MultiplaArchiveDialog({
                         Multipla Vinta
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Tutte le selezioni sono andate a segno. Perdi tutte le bancate.
+                        Tutte le selezioni sono andate a segno.{layBets.length > 0 && ' Perdi tutte le bancate.'}
                       </p>
                       <p className="text-lg font-bold mt-2" style={{ color: calculations.scenarioVincita >= 0 ? 'green' : 'red' }}>
                         Risultato: {formatCurrency(calculations.scenarioVincita)}
                       </p>
                     </div>
                   </Label>
+
+                  {/* Opzione: Multipla Persa (senza bancate) */}
+                  {layBets.length === 0 && (
+                    <Label 
+                      htmlFor="lost" 
+                      className="flex items-start space-x-3 p-4 rounded-lg border-2 border-muted hover:border-primary transition-colors cursor-pointer"
+                    >
+                      <RadioGroupItem value="lost" id="lost" className="mt-1" />
+                      <div className="flex-1">
+                        <div className="text-base font-semibold">
+                          Multipla Persa
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Almeno una selezione non è andata a segno. Perdi lo stake puntato.
+                        </p>
+                        <p className="text-lg font-bold mt-2 text-destructive">
+                          Risultato: {formatCurrency(-bet.stake)}
+                        </p>
+                      </div>
+                    </Label>
+                  )}
 
                   {/* Opzioni: Multipla Persa per ciascuna partita */}
                   {layBets.length > 0 && (
