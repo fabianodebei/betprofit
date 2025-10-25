@@ -74,6 +74,22 @@ serve(async (req: Request): Promise<Response> => {
 
     const targetUserId = parsed.data.user_id;
 
+    // Log the admin action BEFORE deletion
+    try {
+      await supabaseAdmin.from("admin_audit_log").insert({
+        admin_user_id: authData.user.id,
+        action: "DELETE_USER",
+        target_user_id: targetUserId,
+        details: { 
+          timestamp: new Date().toISOString(),
+          ip_address: req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown"
+        },
+      });
+    } catch (auditErr) {
+      console.error("Failed to log audit:", auditErr);
+      // Continue with deletion even if audit logging fails
+    }
+
     // Best-effort cleanup of user data in public tables
     const tables = [
       "user_telegram_config",
@@ -87,6 +103,7 @@ serve(async (req: Request): Promise<Response> => {
       "books",
       "intestatari",
       "user_roles",
+      "admin_audit_log", // Clean up audit logs for this user too
     ];
 
     await Promise.all(

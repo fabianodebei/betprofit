@@ -64,6 +64,36 @@ export type Database = {
           },
         ]
       }
+      admin_audit_log: {
+        Row: {
+          action: string
+          admin_user_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_user_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       admin_preferences: {
         Row: {
           created_at: string
@@ -607,6 +637,10 @@ export type Database = {
       add_public_book_to_user: {
         Args: { _book_metodo: string; _book_nome: string }
         Returns: string
+      }
+      admin_delete_user_with_audit: {
+        Args: { target_user_id: string }
+        Returns: undefined
       }
       admin_get_all_users: {
         Args: never
