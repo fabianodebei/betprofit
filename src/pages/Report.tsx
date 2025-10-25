@@ -73,8 +73,8 @@ export default function Report() {
       
       const entry = grouped.get(key)!;
       const month = bet.dataEvento.getMonth();
-      // For quick bets, use stake as the result (negative as it's a loss)
-      const amount = bet.tipo === 'Rapida' ? -bet.stake : (bet.risultato || 0);
+      // For quick bets, use risultato if available, otherwise stake
+      const amount = bet.tipo === 'Rapida' ? (bet.risultato || 0) : (bet.risultato || 0);
       entry.monthly[month] = (entry.monthly[month] || 0) + amount;
       entry.total += amount;
     });
@@ -125,8 +125,8 @@ export default function Report() {
       
       const entry = grouped.get(key)!;
       const month = bet.dataEvento.getMonth();
-      // For quick bets, use stake as the result (negative as it's a loss)
-      const amount = bet.tipo === 'Rapida' ? -bet.stake : (bet.risultato || 0);
+      // For quick bets, use risultato if available, otherwise stake
+      const amount = bet.tipo === 'Rapida' ? (bet.risultato || 0) : (bet.risultato || 0);
       entry.monthly[month] = (entry.monthly[month] || 0) + amount;
       entry.total += amount;
     });
