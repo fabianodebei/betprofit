@@ -606,10 +606,8 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                             let value = e.target.value.replace(/[^\d]/g, ''); // Solo numeri
                             if (value.length === 0) {
                               setQuotaInput('');
-                            } else if (value.length === 1) {
-                              setQuotaInput('0,0' + value);
-                            } else if (value.length === 2) {
-                              setQuotaInput('0,' + value);
+                            } else if (value.length <= 2) {
+                              setQuotaInput(value);
                             } else {
                               const intPart = value.slice(0, -2);
                               const decPart = value.slice(-2);
