@@ -136,6 +136,7 @@ export default function Redditometro() {
                       {month}
                     </th>
                   ))}
+                  <th className="p-4 text-center text-sm font-semibold whitespace-nowrap border-l bg-muted/30">Totale Anno</th>
                 </tr>
               </thead>
               <tbody>
@@ -150,6 +151,9 @@ export default function Redditometro() {
                         </td>
                       );
                     })}
+                    <td className="p-4 text-sm text-center whitespace-nowrap border-l bg-muted/30 font-semibold">
+                      {renderValue(entry.totalNetto)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
