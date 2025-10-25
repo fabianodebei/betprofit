@@ -104,7 +104,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
       mercato: '',
       conto: '',
       stake: 0,
-      quota: 1.01,
+      quota: 1.30,
       tipoBonus: 'Nessuno',
       bonus: 0,
       rimborso: 0,
@@ -235,7 +235,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
         mercato: '',
         conto: preselectedConto,
         stake: 0,
-        quota: 1.01,
+        quota: 1.30,
         tipoBonus: 'Nessuno',
         bonus: 0,
         rimborso: 0,
@@ -600,12 +600,13 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                         <Input
                           type="text"
                           inputMode="decimal"
-                          placeholder="1,01"
+                          placeholder="1,30"
                           value={quotaInput}
                           onChange={(e) => setQuotaInput(e.target.value)}
+                          onFocus={(e) => e.target.select()}
                           onBlur={() => {
                             const num = parseDecimal(quotaInput);
-                            form.setValue('quota', Number.isFinite(num) ? num : 1.01, { shouldValidate: true });
+                            form.setValue('quota', Number.isFinite(num) ? num : 1.30, { shouldValidate: true });
                           }}
                           className={cn(isLowOdds && "border-orange-500")}
                         />
