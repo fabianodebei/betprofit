@@ -393,7 +393,14 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                         <label className="text-sm font-medium">Evento *</label>
                         <Input
                           value={selection.evento}
-                          onChange={(e) => handleSelectionChange(index, 'evento', e.target.value)}
+                          onChange={(e) => {
+                            let value = e.target.value;
+                            // Se l'utente digita uno spazio e non c'è già "vs" nel testo
+                            if (value.endsWith(' ') && !value.includes('vs') && value.trim().split(' ').length === 1) {
+                              value = value.trim() + ' vs ';
+                            }
+                            handleSelectionChange(index, 'evento', value);
+                          }}
                           placeholder="Es: Manchester United vs Liverpool"
                           className={cn(
                             selectionErrors.includes(index) && !selection.evento && 
