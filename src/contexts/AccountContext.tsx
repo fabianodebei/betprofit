@@ -159,7 +159,9 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       for (const acc of mappedAccounts) {
         const newBG = giocateMap[acc.conto] ?? 0;
         const newBR = rapideMap[acc.conto] ?? 0;
-        const newSaldo = saldoDisponibileMap[acc.conto] ?? 0;
+        const saldoBase = saldoDisponibileMap[acc.conto] ?? 0;
+        // Il saldo attuale è: saldo base (depositi - prelievi) + bilancio giocate + bilancio rapide
+        const newSaldo = saldoBase + newBG + newBR;
         
         const needsUpdate = 
           newBG !== acc.bilancioGiocate || 
