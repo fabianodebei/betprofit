@@ -2,14 +2,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, Target, Zap, Percent } from 'lucide-react';
 
 interface PerformanceMetricsCardProps {
-  winRate: number;
+  winRateRegular: number;
+  winRateQuick: number;
   averageOdds: number;
   currentStreak: { count: number; type: 'vincente' | 'perdente' };
   overallROI: number;
 }
 
 export function PerformanceMetricsCard({ 
-  winRate, 
+  winRateRegular,
+  winRateQuick,
   averageOdds, 
   currentStreak, 
   overallROI 
@@ -26,12 +28,27 @@ export function PerformanceMetricsCard({
               <Target className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-sm font-medium">Win Rate</p>
-              <p className="text-xs text-muted-foreground">Percentuale vincite</p>
+              <p className="text-sm font-medium">Win Rate Puntate</p>
+              <p className="text-xs text-muted-foreground">Singole/Multiple/Casino</p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-bold">{winRate.toFixed(1)}%</p>
+            <p className="text-2xl font-bold">{winRateRegular.toFixed(1)}%</p>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+          <div className="flex items-center gap-3">
+            <div className="rounded-full bg-primary/10 p-2">
+              <Target className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-medium">Win Rate Rapide</p>
+              <p className="text-xs text-muted-foreground">Giocate rapide</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-2xl font-bold">{winRateQuick.toFixed(1)}%</p>
           </div>
         </div>
 

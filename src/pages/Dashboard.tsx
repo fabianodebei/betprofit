@@ -132,9 +132,16 @@ export default function Dashboard() {
     }));
   }, [bets]);
 
-  const winRate = useMemo(() => {
-    const wins = archivedBets.filter(b => b.risultato && b.risultato > 0).length;
-    return archivedBets.length > 0 ? (wins / archivedBets.length) * 100 : 0;
+  const winRateRegular = useMemo(() => {
+    const regularBets = archivedBets.filter(b => b.tipo !== 'Rapida');
+    const wins = regularBets.filter(b => b.risultato && b.risultato > 0).length;
+    return regularBets.length > 0 ? (wins / regularBets.length) * 100 : 0;
+  }, [archivedBets]);
+
+  const winRateQuick = useMemo(() => {
+    const quickArchivedBets = archivedBets.filter(b => b.tipo === 'Rapida');
+    const wins = quickArchivedBets.filter(b => b.risultato && b.risultato > 0).length;
+    return quickArchivedBets.length > 0 ? (wins / quickArchivedBets.length) * 100 : 0;
   }, [archivedBets]);
 
   const averageOdds = useMemo(() => {
@@ -259,7 +266,8 @@ export default function Dashboard() {
       {/* Performance Analysis Section */}
       <div className="grid gap-6 lg:grid-cols-3 mb-8">
         <PerformanceMetricsCard
-          winRate={winRate}
+          winRateRegular={winRateRegular}
+          winRateQuick={winRateQuick}
           averageOdds={averageOdds}
           currentStreak={currentStreak}
           overallROI={overallROI}
