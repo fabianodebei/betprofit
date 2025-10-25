@@ -274,7 +274,6 @@ export function QuickBetForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="bg-background z-50">
-                      <SelectItem value="">Nessun tag</SelectItem>
                       {PREDEFINED_TAGS.map(tag => <SelectItem key={tag} value={tag}>
                           {tag}
                         </SelectItem>)}
