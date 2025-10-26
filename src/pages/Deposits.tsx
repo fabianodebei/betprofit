@@ -34,7 +34,7 @@ export default function Deposits() {
 
   // Calculate balance by bookmaker
   const bookmakerStats = useMemo(() => {
-    const statsByBook: Record<string, { depositi: number; prelievi: number; bilancio: number; conto: string; intestatario: string }> = {};
+    const statsByBook: Record<string, { depositi: number; prelievi: number; bilancio: number; conto: string; intestatario: string; disponibilePrelievo: number }> = {};
     
     transactions.forEach(t => {
       if (!statsByBook[t.conto]) {
@@ -44,7 +44,8 @@ export default function Deposits() {
           prelievi: 0,
           bilancio: 0,
           conto: t.conto,
-          intestatario: account?.intestatario || ''
+          intestatario: account?.intestatario || '',
+          disponibilePrelievo: 0
         };
       }
       
@@ -55,12 +56,13 @@ export default function Deposits() {
       }
     });
     
-    // Calculate bilancio for each bookmaker
+    // Calculate bilancio and disponibile for each bookmaker
     Object.values(statsByBook).forEach(stat => {
       stat.bilancio = stat.prelievi - stat.depositi;
+      stat.disponibilePrelievo = stat.depositi - stat.prelievi;
     });
     
-    return Object.values(statsByBook).sort((a, b) => b.bilancio - a.bilancio);
+    return Object.values(statsByBook).sort((a, b) => b.disponibilePrelievo - a.disponibilePrelievo);
   }, [transactions, accounts]);
 
   // Calculate overall balance
@@ -116,9 +118,9 @@ export default function Deposits() {
                     <thead>
                       <tr className="border-b">
                         <th className="p-3 text-left text-sm font-semibold">Bookmaker</th>
-                        <th className="p-3 text-right text-sm font-semibold">Depositi</th>
-                        <th className="p-3 text-right text-sm font-semibold">Prelievi</th>
-                        <th className="p-3 text-right text-sm font-semibold">Bilancio</th>
+                        <th className="p-3 text-right text-sm font-semibold">Versato</th>
+                        <th className="p-3 text-right text-sm font-semibold">Prelevato</th>
+                        <th className="p-3 text-right text-sm font-semibold">Disponibile per Prelievo</th>
                         <th className="p-3 text-center text-sm font-semibold">Stato</th>
                       </tr>
                     </thead>
@@ -135,12 +137,12 @@ export default function Deposits() {
                           <td className="p-3 text-right font-semibold text-success">
                             {formatCurrency(stat.prelievi)}
                           </td>
-                          <td className={`p-3 text-right font-bold ${stat.bilancio >= 0 ? 'text-success' : 'text-destructive'}`}>
-                            {formatCurrency(stat.bilancio)}
+                          <td className={`p-3 text-right font-bold ${stat.disponibilePrelievo > 0 ? 'text-success' : 'text-destructive'}`}>
+                            {formatCurrency(stat.disponibilePrelievo)}
                           </td>
                           <td className="p-3 text-center">
-                            <Badge variant={stat.bilancio >= 0 ? "success" : "destructive"}>
-                              {stat.bilancio >= 0 ? '✓ In Vincita' : '✗ In Perdita'}
+                            <Badge variant={stat.disponibilePrelievo > 0 ? "success" : stat.disponibilePrelievo === 0 ? "default" : "destructive"}>
+                              {stat.disponibilePrelievo > 0 ? '✓ Puoi prelevare' : stat.disponibilePrelievo === 0 ? '≈ Pareggio' : '✗ Book sta vincendo'}
                             </Badge>
                           </td>
                         </tr>
