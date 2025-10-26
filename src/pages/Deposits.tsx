@@ -105,55 +105,7 @@ export default function Deposits() {
         Nuovo Movimento
       </Button>
 
-      {transactions.length > 0 && (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Totale Depositi</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-destructive">
-                  {formatCurrency(balanceStats.totalDepositi)}
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Totale Prelievi</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-success">
-                  {formatCurrency(balanceStats.totalPrelievi)}
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Bilancio Totale</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className={`text-2xl font-bold ${balanceStats.bilancio >= 0 ? 'text-success' : 'text-destructive'}`}>
-                  {formatCurrency(balanceStats.bilancio)}
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Situazione</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Badge variant={balanceStats.isWinning ? "success" : "destructive"}>
-                  {balanceStats.isWinning ? '🎉 Tu stai vincendo' : '📊 Il book sta vincendo'}
-                </Badge>
-              </CardContent>
-            </Card>
-          </div>
-
-          {bookmakerStats.length > 0 && (
+      {transactions.length > 0 && bookmakerStats.length > 0 && (
             <Card className="mb-6">
               <CardHeader>
                 <CardTitle>Bilancio per Bookmaker</CardTitle>
@@ -199,8 +151,6 @@ export default function Deposits() {
               </CardContent>
             </Card>
           )}
-        </>
-      )}
 
       <div className="mb-4 text-sm text-muted-foreground">
         Visualizzo 1-{filteredTransactions.length} di {transactions.length} elementi.
