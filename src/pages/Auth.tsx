@@ -92,6 +92,21 @@ const Auth = () => {
       confirmPassword: ""
     }
   });
+
+  // Sync validation: show immediate hint when passwords don't match
+  const password = signupForm.watch("password");
+  const confirmPassword = signupForm.watch("confirmPassword");
+  useEffect(() => {
+    if (confirmPassword && password !== confirmPassword) {
+      signupForm.setError("confirmPassword", {
+        type: "validate",
+        message: "Le password non coincidono",
+      });
+    } else {
+      signupForm.clearErrors("confirmPassword");
+    }
+  }, [password, confirmPassword, signupForm]);
+
   const resetPasswordForm = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
     mode: "onChange",
@@ -137,12 +152,26 @@ const Auth = () => {
   };
   const handleSignup = async (data: SignupFormData) => {
     setIsLoading(true);
+
+    // Blocco immediato se le password non combaciano
+    if (data.password !== data.confirmPassword) {
+      signupForm.setError("confirmPassword", {
+        type: "validate",
+        message: "Le password non coincidono",
+      });
+      toast.error("Le password non coincidono", {
+        description: "Assicurati che i due campi coincidano."
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const result = await signUp(data.email.toLowerCase().trim(), data.password, data.fullName.trim());
       
       if (result.error) {
         // Gestione errori specifici da Supabase
-        const errorMessage = result.error.message;
+        const errorMessage = result.error.message || "";
         if (errorMessage.includes('Invalid email')) {
           toast.error("Email non valida", {
             description: "L'indirizzo email inserito non è valido. Verifica e riprova."
@@ -161,6 +190,9 @@ const Auth = () => {
         toast.success("Account creato con successo!", {
           description: "Controlla la tua email per confermare l'account"
         });
+        // Porta l'utente al login dopo la registrazione
+        setActiveTab("login");
+        signupForm.reset();
       }
     } catch (error) {
       toast.error("Errore durante la registrazione", {
