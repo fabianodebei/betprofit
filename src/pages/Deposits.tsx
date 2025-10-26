@@ -49,17 +49,21 @@ export default function Deposits() {
         };
       }
       
-      if (t.metodo === 'Deposito') {
-        statsByBook[t.conto].depositi += (t.addebito || 0);
-      } else if (t.metodo === 'Prelievo') {
-        statsByBook[t.conto].prelievi += (t.accredito || 0);
+      // Somma tutto ciò che è stato accreditato sul conto (soldi versati)
+      if (t.accredito && t.accredito > 0) {
+        statsByBook[t.conto].depositi += t.accredito;
+      }
+      
+      // Somma tutto ciò che è stato addebitato dal conto (soldi prelevati)
+      if (t.addebito && t.addebito > 0) {
+        statsByBook[t.conto].prelievi += t.addebito;
       }
     });
     
     // Calculate bilancio and disponibile for each bookmaker
     Object.values(statsByBook).forEach(stat => {
-      stat.bilancio = stat.prelievi - stat.depositi;
       stat.disponibilePrelievo = stat.depositi - stat.prelievi;
+      stat.bilancio = stat.disponibilePrelievo;
     });
     
     return Object.values(statsByBook).sort((a, b) => b.disponibilePrelievo - a.disponibilePrelievo);
