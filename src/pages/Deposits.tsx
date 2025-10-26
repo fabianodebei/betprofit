@@ -32,7 +32,38 @@ export default function Deposits() {
     return accounts.filter(acc => acc.stato === 'Abilitato');
   }, [accounts]);
 
-  // Calculate balance
+  // Calculate balance by bookmaker
+  const bookmakerStats = useMemo(() => {
+    const statsByBook: Record<string, { depositi: number; prelievi: number; bilancio: number; conto: string; intestatario: string }> = {};
+    
+    transactions.forEach(t => {
+      if (!statsByBook[t.conto]) {
+        const account = accounts.find(acc => acc.conto === t.conto);
+        statsByBook[t.conto] = {
+          depositi: 0,
+          prelievi: 0,
+          bilancio: 0,
+          conto: t.conto,
+          intestatario: account?.intestatario || ''
+        };
+      }
+      
+      if (t.metodo === 'Deposito') {
+        statsByBook[t.conto].depositi += (t.addebito || 0);
+      } else if (t.metodo === 'Prelievo') {
+        statsByBook[t.conto].prelievi += (t.accredito || 0);
+      }
+    });
+    
+    // Calculate bilancio for each bookmaker
+    Object.values(statsByBook).forEach(stat => {
+      stat.bilancio = stat.prelievi - stat.depositi;
+    });
+    
+    return Object.values(statsByBook).sort((a, b) => b.bilancio - a.bilancio);
+  }, [transactions, accounts]);
+
+  // Calculate overall balance
   const balanceStats = useMemo(() => {
     const totalDepositi = transactions
       .filter(t => t.metodo === 'Deposito')
@@ -74,52 +105,51 @@ export default function Deposits() {
         Nuovo Movimento
       </Button>
 
-      {transactions.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Totale Depositi</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-destructive">
-                {formatCurrency(balanceStats.totalDepositi)}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Totale Prelievi</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-success">
-                {formatCurrency(balanceStats.totalPrelievi)}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Bilancio</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${balanceStats.bilancio >= 0 ? 'text-success' : 'text-destructive'}`}>
-                {formatCurrency(balanceStats.bilancio)}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Situazione</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Badge variant={balanceStats.isWinning ? "success" : "destructive"}>
-                {balanceStats.isWinning ? '🎉 Tu stai vincendo' : '📊 Il book sta vincendo'}
-              </Badge>
-            </CardContent>
-          </Card>
-        </div>
+      {transactions.length > 0 && bookmakerStats.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Bilancio per Bookmaker</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="p-3 text-left text-sm font-semibold">Bookmaker</th>
+                    <th className="p-3 text-right text-sm font-semibold">Versato<br/><span className="text-xs text-muted-foreground font-normal">(Denaro Depositato)</span></th>
+                    <th className="p-3 text-right text-sm font-semibold">Prelevato<br/><span className="text-xs text-muted-foreground font-normal">(Denaro Ritirato)</span></th>
+                    <th className="p-3 text-right text-sm font-semibold">Bilancio Netto</th>
+                    <th className="p-3 text-center text-sm font-semibold">Stato</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bookmakerStats.map((stat) => (
+                    <tr key={stat.conto} className="border-b hover:bg-muted/20">
+                      <td className="p-3">
+                        <div className="font-medium">{stat.conto}</div>
+                        {stat.intestatario && <div className="text-sm text-muted-foreground">{stat.intestatario}</div>}
+                      </td>
+                      <td className="p-3 text-right font-semibold text-destructive">
+                        {formatCurrency(stat.depositi)}
+                      </td>
+                      <td className="p-3 text-right font-semibold text-success">
+                        {formatCurrency(stat.prelievi)}
+                      </td>
+                      <td className={`p-3 text-right font-bold ${stat.bilancio > 0 ? 'text-success' : stat.bilancio < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                        {formatCurrency(stat.bilancio)}
+                      </td>
+                      <td className="p-3 text-center">
+                        <Badge variant={stat.bilancio > 0 ? "success" : stat.bilancio < 0 ? "destructive" : "default"}>
+                          {stat.bilancio > 0 ? '🎉 Tu vinci' : stat.bilancio < 0 ? '📊 Book vince' : '⚖️ Pareggio'}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       <div className="mb-4 text-sm text-muted-foreground">
@@ -151,11 +181,9 @@ export default function Deposits() {
                     <th className="p-3 text-left text-xs font-semibold">Metodo</th>
                     <th className="p-3 text-left text-xs font-semibold">Registrato</th>
                     <th className="p-3 text-left text-xs font-semibold">Conto</th>
-                    <th className="p-3 text-left text-xs font-semibold">Addebito</th>
-                    <th className="p-3 text-left text-xs font-semibold">Accredito</th>
+                    <th className="p-3 text-left text-xs font-semibold">Versato<br/><span className="text-muted-foreground font-normal">(Denaro Depositato)</span></th>
+                    <th className="p-3 text-left text-xs font-semibold">Prelevato<br/><span className="text-muted-foreground font-normal">(Denaro Ritirato)</span></th>
                     <th className="p-3 text-left text-xs font-semibold">Wallet</th>
-                    <th className="p-3 text-left text-xs font-semibold">Addebito</th>
-                    <th className="p-3 text-left text-xs font-semibold">Accredito</th>
                     <th className="p-3 text-left text-xs font-semibold">Descrizione</th>
                     <th className="p-3 text-left text-xs font-semibold">Opzioni</th>
                   </tr>
@@ -220,20 +248,6 @@ export default function Deposits() {
                     <th className="p-2">
                       <Input
                         placeholder=""
-                        className="h-8 text-xs"
-                        disabled
-                      />
-                    </th>
-                    <th className="p-2">
-                      <Input
-                        placeholder=""
-                        className="h-8 text-xs"
-                        disabled
-                      />
-                    </th>
-                    <th className="p-2">
-                      <Input
-                        placeholder=""
                         value={filterDescrizione}
                         onChange={(e) => setFilterDescrizione(e.target.value)}
                         className="h-8 text-xs"
@@ -255,19 +269,13 @@ export default function Deposits() {
                         <td className="p-3 text-sm">{transaction.metodo}</td>
                         <td className="p-3 text-sm">{formatDateTime(transaction.registrato)}</td>
                         <td className="p-3 text-sm">{transaction.conto}{account && ` - ${account.intestatario}`}</td>
-                        <td className="p-3 text-sm font-semibold" style={{ color: transaction.addebito && transaction.addebito < 0 ? '#ef4444' : transaction.addebito ? '#22c55e' : undefined }}>
+                        <td className="p-3 text-sm font-semibold text-destructive">
                           {transaction.addebito ? formatCurrency(transaction.addebito) : ''}
                         </td>
-                        <td className="p-3 text-sm font-semibold" style={{ color: transaction.accredito && transaction.accredito < 0 ? '#ef4444' : transaction.accredito ? '#22c55e' : undefined }}>
+                        <td className="p-3 text-sm font-semibold text-success">
                           {transaction.accredito ? formatCurrency(transaction.accredito) : ''}
                         </td>
                         <td className="p-3 text-sm">{transaction.wallet ? (wallet ? `${wallet.nome} - ${wallet.intestatario}` : transaction.wallet) : ''}</td>
-                        <td className="p-3 text-sm font-semibold" style={{ color: transaction.addebito && transaction.addebito < 0 ? '#ef4444' : transaction.addebito ? '#22c55e' : undefined }}>
-                          {transaction.addebito ? formatCurrency(-transaction.addebito) : ''}
-                        </td>
-                        <td className="p-3 text-sm font-semibold" style={{ color: transaction.accredito && transaction.accredito < 0 ? '#ef4444' : transaction.accredito ? '#22c55e' : undefined }}>
-                          {transaction.accredito ? formatCurrency(-transaction.accredito) : ''}
-                        </td>
                         <td className="p-3 text-sm">{transaction.descrizione || ''}</td>
                         <td className="p-3">
                           <Button size="sm" variant="destructive" onClick={() => deleteTransaction(transaction.id)}>
