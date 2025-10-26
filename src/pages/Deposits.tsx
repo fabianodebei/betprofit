@@ -231,11 +231,11 @@ export default function Deposits() {
                     <th className="p-3 text-left text-xs font-semibold">Metodo</th>
                     <th className="p-3 text-left text-xs font-semibold">Registrato</th>
                     <th className="p-3 text-left text-xs font-semibold">Conto</th>
-                    <th className="p-3 text-left text-xs font-semibold">Addebito</th>
                     <th className="p-3 text-left text-xs font-semibold">Accredito</th>
+                    <th className="p-3 text-left text-xs font-semibold">Addebito</th>
                     <th className="p-3 text-left text-xs font-semibold">Wallet</th>
-                    <th className="p-3 text-left text-xs font-semibold">Addebito</th>
                     <th className="p-3 text-left text-xs font-semibold">Accredito</th>
+                    <th className="p-3 text-left text-xs font-semibold">Addebito</th>
                     <th className="p-3 text-left text-xs font-semibold">Descrizione</th>
                     <th className="p-3 text-left text-xs font-semibold">Opzioni</th>
                   </tr>
@@ -276,16 +276,16 @@ export default function Deposits() {
                     <th className="p-2">
                       <Input
                         placeholder=""
-                        value={filterAddebito}
-                        onChange={(e) => setFilterAddebito(e.target.value)}
+                        value={filterAccredito}
+                        onChange={(e) => setFilterAccredito(e.target.value)}
                         className="h-8 text-xs"
                       />
                     </th>
                     <th className="p-2">
                       <Input
                         placeholder=""
-                        value={filterAccredito}
-                        onChange={(e) => setFilterAccredito(e.target.value)}
+                        value={filterAddebito}
+                        onChange={(e) => setFilterAddebito(e.target.value)}
                         className="h-8 text-xs"
                       />
                     </th>
@@ -335,18 +335,18 @@ export default function Deposits() {
                         <td className="p-3 text-sm">{transaction.metodo}</td>
                         <td className="p-3 text-sm">{formatDateTime(transaction.registrato)}</td>
                         <td className="p-3 text-sm">{transaction.conto}{account && ` - ${account.intestatario}`}</td>
-                        <td className={`p-3 text-sm font-semibold ${transaction.addebito ? (transaction.addebito < 0 ? 'text-success' : 'text-destructive') : ''}`}>
-                          {transaction.addebito ? formatCurrency(-transaction.addebito) : ''}
-                        </td>
                         <td className={`p-3 text-sm font-semibold ${transaction.accredito ? (transaction.accredito < 0 ? 'text-destructive' : 'text-success') : ''}`}>
                           {transaction.accredito ? formatCurrency(transaction.accredito) : ''}
                         </td>
-                        <td className="p-3 text-sm">{transaction.wallet ? (wallet ? `${wallet.nome} - ${wallet.intestatario}` : transaction.wallet) : ''}</td>
-                        <td className={`p-3 text-sm font-semibold ${transaction.addebito ? (transaction.addebito < 0 ? 'text-destructive' : 'text-success') : ''}`}>
-                          {transaction.addebito ? formatCurrency(transaction.addebito) : ''}
+                        <td className={`p-3 text-sm font-semibold ${transaction.addebito ? (transaction.addebito < 0 ? 'text-success' : 'text-destructive') : ''}`}>
+                          {transaction.addebito ? formatCurrency(-transaction.addebito) : ''}
                         </td>
+                        <td className="p-3 text-sm">{transaction.wallet ? (wallet ? `${wallet.nome} - ${wallet.intestatario}` : transaction.wallet) : ''}</td>
                         <td className={`p-3 text-sm font-semibold ${transaction.accredito ? (transaction.accredito < 0 ? 'text-success' : 'text-destructive') : ''}`}>
                           {transaction.accredito ? formatCurrency(-transaction.accredito) : ''}
+                        </td>
+                        <td className={`p-3 text-sm font-semibold ${transaction.addebito ? (transaction.addebito < 0 ? 'text-destructive' : 'text-success') : ''}`}>
+                          {transaction.addebito ? formatCurrency(transaction.addebito) : ''}
                         </td>
                         <td className="p-3 text-sm">{transaction.descrizione || ''}</td>
                         <td className="p-3">
