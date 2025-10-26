@@ -116,9 +116,9 @@ export default function Deposits() {
                 <thead>
                   <tr className="border-b">
                     <th className="p-3 text-left text-sm font-semibold">Bookmaker</th>
-                    <th className="p-3 text-right text-sm font-semibold">Depositi</th>
-                    <th className="p-3 text-right text-sm font-semibold">Prelievi</th>
-                    <th className="p-3 text-right text-sm font-semibold">Bilancio</th>
+                    <th className="p-3 text-right text-sm font-semibold">Versato<br/><span className="text-xs text-muted-foreground font-normal">(Denaro Depositato)</span></th>
+                    <th className="p-3 text-right text-sm font-semibold">Prelevato<br/><span className="text-xs text-muted-foreground font-normal">(Denaro Ritirato)</span></th>
+                    <th className="p-3 text-right text-sm font-semibold">Bilancio Netto</th>
                     <th className="p-3 text-center text-sm font-semibold">Stato</th>
                   </tr>
                 </thead>
@@ -181,8 +181,8 @@ export default function Deposits() {
                     <th className="p-3 text-left text-xs font-semibold">Metodo</th>
                     <th className="p-3 text-left text-xs font-semibold">Registrato</th>
                     <th className="p-3 text-left text-xs font-semibold">Conto</th>
-                    <th className="p-3 text-left text-xs font-semibold">Deposito</th>
-                    <th className="p-3 text-left text-xs font-semibold">Prelievo</th>
+                    <th className="p-3 text-left text-xs font-semibold">Versato<br/><span className="text-muted-foreground font-normal">(Denaro Depositato)</span></th>
+                    <th className="p-3 text-left text-xs font-semibold">Prelevato<br/><span className="text-muted-foreground font-normal">(Denaro Ritirato)</span></th>
                     <th className="p-3 text-left text-xs font-semibold">Wallet</th>
                     <th className="p-3 text-left text-xs font-semibold">Descrizione</th>
                     <th className="p-3 text-left text-xs font-semibold">Opzioni</th>
