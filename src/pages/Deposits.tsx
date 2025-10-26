@@ -335,17 +335,17 @@ export default function Deposits() {
                         <td className="p-3 text-sm">{transaction.metodo}</td>
                         <td className="p-3 text-sm">{formatDateTime(transaction.registrato)}</td>
                         <td className="p-3 text-sm">{transaction.conto}{account && ` - ${account.intestatario}`}</td>
-                        <td className="p-3 text-sm font-semibold" style={{ color: transaction.addebito && transaction.addebito < 0 ? '#ef4444' : transaction.addebito ? '#22c55e' : undefined }}>
+                        <td className={`p-3 text-sm font-semibold ${transaction.addebito && transaction.addebito < 0 ? 'text-destructive' : transaction.addebito ? 'text-success' : ''}`}>
                           {transaction.addebito ? formatCurrency(transaction.addebito) : ''}
                         </td>
-                        <td className="p-3 text-sm font-semibold" style={{ color: transaction.accredito && transaction.accredito < 0 ? '#ef4444' : transaction.accredito ? '#22c55e' : undefined }}>
+                        <td className={`p-3 text-sm font-semibold ${transaction.accredito && transaction.accredito < 0 ? 'text-destructive' : transaction.accredito ? 'text-success' : ''}`}>
                           {transaction.accredito ? formatCurrency(transaction.accredito) : ''}
                         </td>
                         <td className="p-3 text-sm">{transaction.wallet ? (wallet ? `${wallet.nome} - ${wallet.intestatario}` : transaction.wallet) : ''}</td>
-                        <td className="p-3 text-sm font-semibold" style={{ color: transaction.addebito && transaction.addebito < 0 ? '#ef4444' : transaction.addebito ? '#22c55e' : undefined }}>
+                        <td className={`p-3 text-sm font-semibold ${transaction.addebito && transaction.addebito < 0 ? 'text-destructive' : transaction.addebito ? 'text-success' : ''}`}>
                           {transaction.addebito ? formatCurrency(-transaction.addebito) : ''}
                         </td>
-                        <td className="p-3 text-sm font-semibold" style={{ color: transaction.accredito && transaction.accredito < 0 ? '#ef4444' : transaction.accredito ? '#22c55e' : undefined }}>
+                        <td className={`p-3 text-sm font-semibold ${transaction.accredito && transaction.accredito < 0 ? 'text-destructive' : transaction.accredito ? 'text-success' : ''}`}>
                           {transaction.accredito ? formatCurrency(-transaction.accredito) : ''}
                         </td>
                         <td className="p-3 text-sm">{transaction.descrizione || ''}</td>
