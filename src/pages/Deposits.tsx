@@ -125,7 +125,6 @@ export default function Deposits() {
                         <th className="p-3 text-right text-sm font-semibold">Versato</th>
                         <th className="p-3 text-right text-sm font-semibold">Prelevato</th>
                         <th className="p-3 text-right text-sm font-semibold">Disponibile per Prelievo</th>
-                        <th className="p-3 text-center text-sm font-semibold">Stato</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -143,11 +142,6 @@ export default function Deposits() {
                           </td>
                           <td className={`p-3 text-right font-bold ${stat.disponibilePrelievo > 0 ? 'text-success' : 'text-destructive'}`}>
                             {formatCurrency(stat.disponibilePrelievo)}
-                          </td>
-                          <td className="p-3 text-center">
-                            <Badge variant={stat.disponibilePrelievo > 0 ? "success" : stat.disponibilePrelievo === 0 ? "default" : "destructive"}>
-                              {stat.disponibilePrelievo > 0 ? '✓ Puoi prelevare' : stat.disponibilePrelievo === 0 ? '≈ Pareggio' : '✗ Book sta vincendo'}
-                            </Badge>
                           </td>
                         </tr>
                       ))}
