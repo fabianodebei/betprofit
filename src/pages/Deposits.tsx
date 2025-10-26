@@ -32,6 +32,26 @@ export default function Deposits() {
     return accounts.filter(acc => acc.stato === 'Abilitato');
   }, [accounts]);
 
+  // Calculate balance
+  const balanceStats = useMemo(() => {
+    const totalDepositi = transactions
+      .filter(t => t.metodo === 'Deposito')
+      .reduce((sum, t) => sum + (t.addebito || 0), 0);
+    
+    const totalPrelievi = transactions
+      .filter(t => t.metodo === 'Prelievo')
+      .reduce((sum, t) => sum + (t.accredito || 0), 0);
+    
+    const bilancio = totalPrelievi - totalDepositi;
+    
+    return {
+      totalDepositi,
+      totalPrelievi,
+      bilancio,
+      isWinning: bilancio > 0
+    };
+  }, [transactions]);
+
   // Filtered transactions
   const filteredTransactions = useMemo(() => {
     return transactions.filter(transaction => {
@@ -53,6 +73,54 @@ export default function Deposits() {
         <Plus className="mr-2 h-4 w-4" />
         Nuovo Movimento
       </Button>
+
+      {transactions.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Totale Depositi</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-destructive">
+                {formatCurrency(balanceStats.totalDepositi)}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Totale Prelievi</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-success">
+                {formatCurrency(balanceStats.totalPrelievi)}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Bilancio</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className={`text-2xl font-bold ${balanceStats.bilancio >= 0 ? 'text-success' : 'text-destructive'}`}>
+                {formatCurrency(balanceStats.bilancio)}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Situazione</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Badge variant={balanceStats.isWinning ? "success" : "destructive"}>
+                {balanceStats.isWinning ? '🎉 Tu stai vincendo' : '📊 Il book sta vincendo'}
+              </Badge>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <div className="mb-4 text-sm text-muted-foreground">
         Visualizzo 1-{filteredTransactions.length} di {transactions.length} elementi.
