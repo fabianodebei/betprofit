@@ -297,15 +297,8 @@ export default function Admin() {
     }
   };
 
-  if (loading || prefsLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   // Memoized widget components map to prevent unnecessary re-renders
+  // IMPORTANT: Must be before any conditional returns to avoid React hooks error
   const widgetComponents = useMemo(() => ({
     'kpi-users': <KPIUsersWidget systemStats={systemStats} />,
     'kpi-bets': <KPIBetsWidget systemStats={systemStats} />,
@@ -318,41 +311,50 @@ export default function Admin() {
     'stats-accounts': <StatsAccountsWidget systemStats={systemStats} />,
   }), [systemStats, registrationData, userEarnings]);
 
+  if (loading || prefsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="container mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Shield className="h-8 w-8 text-primary" />
+          <Shield className="h-6 w-6 md:h-8 md:w-8 text-primary" />
           <div>
-            <h1 className="text-3xl font-bold">Admin Panel</h1>
-            <p className="text-muted-foreground">Dashboard e gestione sistema</p>
+            <h1 className="text-2xl md:text-3xl font-bold">Admin Panel</h1>
+            <p className="text-sm text-muted-foreground">Dashboard e gestione sistema</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={resetPreferences}
             title="Ripristina layout predefinito"
           >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Reset Layout
+            <RotateCcw className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Reset Layout</span>
           </Button>
           <Button
             variant="outline"
+            size="sm"
             onClick={() => navigate('/impostazioni')}
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Torna alle Impostazioni
+            <ArrowLeft className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Torna alle Impostazioni</span>
           </Button>
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="users">Gestione Utenti</TabsTrigger>
-          <TabsTrigger value="activity">Attività Utenti</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4 md:space-y-6">
+        <TabsList className="w-full md:w-auto grid grid-cols-3 md:inline-flex">
+          <TabsTrigger value="dashboard" className="text-xs md:text-sm">Dashboard</TabsTrigger>
+          <TabsTrigger value="users" className="text-xs md:text-sm">Utenti</TabsTrigger>
+          <TabsTrigger value="activity" className="text-xs md:text-sm">Attività</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard" className="space-y-6">
@@ -365,9 +367,9 @@ export default function Admin() {
               items={preferences.dashboardLayout || []}
               strategy={verticalListSortingStrategy}
             >
-              <div className="space-y-6">
+              <div className="space-y-4 md:space-y-6">
                 {/* KPI Cards - First 4 widgets */}
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   {preferences.dashboardLayout?.slice(0, 4).map((widgetId) => (
                     <DraggableWidget key={widgetId} id={widgetId}>
                       {widgetComponents[widgetId]}
@@ -376,7 +378,7 @@ export default function Admin() {
                 </div>
 
                 {/* Charts - Widgets 5-6 */}
-                <div className="grid gap-6 lg:grid-cols-2">
+                <div className="grid gap-4 lg:grid-cols-2">
                   {preferences.dashboardLayout?.slice(4, 6).map((widgetId) => (
                     <DraggableWidget key={widgetId} id={widgetId}>
                       {widgetComponents[widgetId]}
@@ -385,7 +387,7 @@ export default function Admin() {
                 </div>
 
                 {/* System Stats - Widgets 7-9 */}
-                <div className="grid gap-6 md:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {preferences.dashboardLayout?.slice(6, 9).map((widgetId) => (
                     <DraggableWidget key={widgetId} id={widgetId}>
                       {widgetComponents[widgetId]}
@@ -414,40 +416,41 @@ export default function Admin() {
             />
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Email</TableHead>
-                <TableHead>Nome</TableHead>
+                <TableHead className="min-w-[150px]">Email</TableHead>
+                <TableHead className="hidden md:table-cell">Nome</TableHead>
                 <TableHead>Ruolo</TableHead>
-                <TableHead>Registrato</TableHead>
-                 <TableHead>Azioni</TableHead>
+                <TableHead className="hidden sm:table-cell">Registrato</TableHead>
+                 <TableHead className="min-w-[180px]">Azioni</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredUsers.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.email}</TableCell>
-                  <TableCell>{user.full_name || '-'}</TableCell>
+                  <TableCell className="font-medium text-sm">{user.email}</TableCell>
+                  <TableCell className="hidden md:table-cell">{user.full_name || '-'}</TableCell>
                   <TableCell>
-                    <Badge variant={getRoleBadgeVariant(user.role)}>
+                    <Badge variant={getRoleBadgeVariant(user.role)} className="text-xs">
                       {getRoleLabel(user.role)}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell text-sm">
                     {format(new Date(user.created_at), 'dd MMM yyyy', { locale: it })}
                   </TableCell>
                   <TableCell>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => openRoleDialog(user)}
                           disabled={deletingId === user.id}
+                          className="text-xs"
                         >
-                          <UserCog className="h-4 w-4 mr-2" />
-                          Modifica Ruolo
+                          <UserCog className="h-3 w-3 sm:mr-1" />
+                          <span className="hidden sm:inline">Modifica</span>
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
@@ -455,9 +458,10 @@ export default function Admin() {
                               variant="destructive"
                               size="sm"
                               disabled={deletingId === user.id}
+                              className="text-xs"
                             >
-                              <Trash className="h-4 w-4 mr-2" />
-                              Elimina
+                              <Trash className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">Elimina</span>
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>

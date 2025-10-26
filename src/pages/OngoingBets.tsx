@@ -135,9 +135,9 @@ export default function OngoingBets() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground mb-4">Giocate In Corso</h1>
+    <div className="container mx-auto px-4 py-4 md:py-8">
+      <div className="mb-4 md:mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-4">Giocate In Corso</h1>
         <AdvancedFilterBar
           filters={filters}
           onFilterChange={setFilters}
@@ -149,34 +149,37 @@ export default function OngoingBets() {
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 flex gap-2 border-b">
+      <div className="mb-4 md:mb-6 flex flex-wrap gap-2 border-b pb-2">
         <Button
           variant={activeTab === 'singola' ? 'default' : 'ghost'}
+          size="sm"
           onClick={() => {
             setActiveTab('singola');
             setShowSingleBetForm(true);
           }}
-          className="rounded-b-none"
+          className="rounded-b-none text-xs md:text-sm"
         >
           Nuova Singola
         </Button>
         <Button
           variant={activeTab === 'multipla' ? 'default' : 'ghost'}
+          size="sm"
           onClick={() => {
             setActiveTab('multipla');
             handleNewMultipla();
           }}
-          className="rounded-b-none"
+          className="rounded-b-none text-xs md:text-sm"
         >
           Nuova Multipla
         </Button>
         <Button
           variant={activeTab === 'casino' ? 'default' : 'ghost'}
+          size="sm"
           onClick={() => {
             setActiveTab('casino');
             setShowCasinoBetForm(true);
           }}
-          className="rounded-b-none"
+          className="rounded-b-none text-xs md:text-sm"
         >
           Nuova Puntata Casinò
         </Button>
@@ -210,18 +213,17 @@ export default function OngoingBets() {
             />
           ) : (
             <>
-              <div className="overflow-x-auto">
-                <table className="w-full">
+              <div className="overflow-x-auto -mx-4 md:mx-0">
+                <table className="w-full min-w-[800px]">
                   <thead>
                     <tr className="border-b bg-muted/50">
-                      <SortableTableHeader label="Data Evento" sortKey="dataEvento" currentSort={sortBy} currentOrder={sortOrder} onSort={setSortBy as any} />
+                      <SortableTableHeader label="Data" sortKey="dataEvento" currentSort={sortBy} currentOrder={sortOrder} onSort={setSortBy as any} />
                       <SortableTableHeader label="Tipo" sortKey="tipo" currentSort={sortBy} currentOrder={sortOrder} onSort={setSortBy as any} />
-                      <SortableTableHeader label="Evento" sortKey="evento" currentSort={sortBy} currentOrder={sortOrder} onSort={setSortBy as any} />
-                      <th className="p-3 text-left text-xs font-semibold uppercase">Tipo Bonus</th>
+                      <th className="p-2 md:p-3 text-left text-xs font-semibold uppercase">Evento</th>
+                      <th className="p-2 md:p-3 text-left text-xs font-semibold uppercase hidden lg:table-cell">Bonus</th>
                       <SortableTableHeader label="Conto" sortKey="conto" currentSort={sortBy} currentOrder={sortOrder} onSort={setSortBy as any} />
-                      <th className="p-3 text-left text-xs font-semibold uppercase">Tag</th>
-                      <th className="p-3 text-left text-xs font-semibold uppercase">Note</th>
-                      <th className="p-3 text-left text-xs font-semibold uppercase">Azioni</th>
+                      <th className="p-2 md:p-3 text-left text-xs font-semibold uppercase hidden md:table-cell">Tag</th>
+                      <th className="p-2 md:p-3 text-left text-xs font-semibold uppercase">Azioni</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -233,56 +235,54 @@ export default function OngoingBets() {
                       return (
                         <>
                           <tr key={bet.id} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
-                            <td className="p-3 text-sm">
-                              <div className="flex items-center gap-2">
+                            <td className="p-2 md:p-3 text-xs md:text-sm">
+                              <div className="flex items-center gap-1 md:gap-2">
                                 {hasLayBets && (
                                   <Button
                                     size="sm"
                                     variant="ghost"
                                     onClick={() => toggleLayBets(bet.id)}
-                                    className="h-6 w-6 p-0"
+                                    className="h-5 w-5 md:h-6 md:w-6 p-0"
                                   >
                                     {isExpanded ? (
-                                      <ChevronDown className="h-4 w-4" />
+                                      <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />
                                     ) : (
-                                      <ChevronRight className="h-4 w-4" />
+                                      <ChevronRight className="h-3 w-3 md:h-4 md:w-4" />
                                     )}
                                   </Button>
                                 )}
-                                {formatDate(bet.dataEvento)}
+                                <span className="whitespace-nowrap">{formatDate(bet.dataEvento)}</span>
                               </div>
                             </td>
-                            <td className="p-3">
-                              <div className="flex items-center gap-2">
-                                <Badge variant="info">{bet.tipo}</Badge>
+                            <td className="p-2 md:p-3">
+                              <div className="flex flex-col gap-1">
+                                <Badge variant="info" className="text-xs">{bet.tipo}</Badge>
                                 {hasLayBets && (
-                                  <Badge variant="warning" className="text-xs">
+                                  <Badge variant="warning" className="text-xs whitespace-nowrap">
                                     {layBets.length} bancate
                                   </Badge>
                                 )}
                               </div>
                             </td>
-                            <td className="p-3 text-sm">{bet.evento || bet.nomeGioco || '-'}</td>
-                            <td className="p-3">
-                              <Badge variant="secondary">{bet.tipoBonus || 'Nessuno'}</Badge>
+                            <td className="p-2 md:p-3 text-xs md:text-sm max-w-[200px] truncate">{bet.evento || bet.nomeGioco || '-'}</td>
+                            <td className="p-2 md:p-3 hidden lg:table-cell">
+                              <Badge variant="secondary" className="text-xs">{bet.tipoBonus || 'Nessuno'}</Badge>
                             </td>
-                            <td className="p-3 text-sm">{bet.conto}</td>
-                            <td className="p-3">
-                              {bet.tag && <Badge variant="outline">{bet.tag}</Badge>}
+                            <td className="p-2 md:p-3 text-xs md:text-sm">{bet.conto}</td>
+                            <td className="p-2 md:p-3 hidden md:table-cell">
+                              {bet.tag && <Badge variant="outline" className="text-xs">{bet.tag}</Badge>}
                             </td>
-                            <td className="p-3 text-sm">{bet.note || '-'}</td>
-                            <td className="p-3">
-                              <div className="flex gap-1">
+                            <td className="p-2 md:p-3">
+                              <div className="flex flex-col md:flex-row gap-1">
                                 {bet.tipo === 'Multipla' && (
-                                  <Button size="sm" variant="outline" onClick={() => handleShowMultiplaDetail(bet)}>Dettagli</Button>
+                                  <Button size="sm" variant="outline" onClick={() => handleShowMultiplaDetail(bet)} className="text-xs whitespace-nowrap">Dettagli</Button>
                                 )}
                                 {bet.tipo === 'Singola' && (
-                                  <Button size="sm" variant="outline" onClick={() => handleShowSingleBetDetail(bet)}>Dettagli</Button>
+                                  <Button size="sm" variant="outline" onClick={() => handleShowSingleBetDetail(bet)} className="text-xs whitespace-nowrap">Dettagli</Button>
                                 )}
-                                <Button size="sm" variant="outline" onClick={() => handleDetail(bet)}>Modifica</Button>
-                                <Button size="sm" variant="outline" onClick={() => handleArchive(bet)}>Archivia</Button>
-                                <Button size="sm" variant="outline" onClick={() => handleClone(bet)}>Clona</Button>
-                                <Button size="sm" variant="destructive" onClick={() => deleteBet(bet.id)}>Elimina</Button>
+                                <Button size="sm" variant="outline" onClick={() => handleDetail(bet)} className="text-xs hidden md:inline-flex">Modifica</Button>
+                                <Button size="sm" variant="outline" onClick={() => handleArchive(bet)} className="text-xs">Archivia</Button>
+                                <Button size="sm" variant="destructive" onClick={() => deleteBet(bet.id)} className="text-xs hidden md:inline-flex">Elimina</Button>
                               </div>
                             </td>
                           </tr>
