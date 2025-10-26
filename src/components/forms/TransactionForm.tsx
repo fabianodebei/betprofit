@@ -64,6 +64,10 @@ export function TransactionForm({ open, onOpenChange, preselectedAccount }: Tran
       setSelectedIntestatario(preselectedAccount.intestatario);
       setSelectedAccountId(preselectedAccount.id);
     }
+    // Reset wallet selection when dialog opens to show fresh data
+    if (open) {
+      form.setValue('wallet', '');
+    }
   }, [open, preselectedAccount, form]);
 
   // Get filtered wallets based on selected intestatario
@@ -247,7 +251,10 @@ export function TransactionForm({ open, onOpenChange, preselectedAccount }: Tran
                       <SelectContent position="popper" className="z-[70] bg-popover">
                         {filteredWallets.map((wallet) => (
                           <SelectItem key={wallet.id} value={wallet.nome}>
-                            {wallet.nome} - {wallet.intestatario} (€{wallet.saldoAttuale.toFixed(2)})
+                            <div className="flex items-center justify-between w-full">
+                              <span>{wallet.nome}</span>
+                              <span className="ml-4 font-semibold text-success">€{wallet.saldoAttuale.toFixed(2)}</span>
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
