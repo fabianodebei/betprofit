@@ -11,6 +11,3 @@ NOTIFICATION_HMAC_SECRET = "env:NOTIFICATION_HMAC_SECRET"
 
 [functions.admin-delete-user]
 verify_jwt = true
-
-[functions.send-auth-email]
-verify_jwt = false
