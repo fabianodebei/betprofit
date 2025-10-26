@@ -85,13 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     });
 
-    if (error) {
-      // Non mostrare toast qui, lo gestirà il componente chiamante
-      return { error };
-    }
-
-    // Non fare navigate qui se c'è stato successo nella registrazione
-    return { error: null };
+    return { error };
   };
 
   const signIn = async (email: string, password: string) => {

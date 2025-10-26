@@ -16,36 +16,22 @@ import logo from "@/assets/logo_centurion_new.png";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { authStorage } from "@/utils/authStorage";
 import { cn } from "@/lib/utils";
-// Email validation schema with strict requirements
+// Email validation schema with essential requirements
 const emailSchema = z
   .string()
   .trim()
   .min(1, "Email richiesta")
-  .max(255, "Email troppo lunga (massimo 255 caratteri)")
+  .max(255, "Email troppo lunga")
   .email("Formato email non valido")
   .toLowerCase()
   .refine((email) => {
-    // Verifica che ci sia un dominio valido
+    // Verifica formato base email
     const parts = email.split('@');
     if (parts.length !== 2) return false;
-    const domain = parts[1];
-    // Verifica che il dominio abbia almeno un punto e un'estensione
-    return domain.includes('.') && domain.split('.').length >= 2 && domain.split('.').every(part => part.length > 0);
-  }, "Email non valida: dominio mancante o non valido")
-  .refine((email) => {
-    // Blocca email con caratteri non validi
-    const validPattern = /^[a-z0-9._+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
-    return validPattern.test(email);
-  }, "Email contiene caratteri non validi")
-  .refine((email) => {
-    // Blocca email temporanee comuni (lista base)
-    const disposableEmails = [
-      'tempmail.com', 'throwaway.email', '10minutemail.com',
-      'guerrillamail.com', 'mailinator.com', 'trashmail.com'
-    ];
-    const domain = email.split('@')[1];
-    return !disposableEmails.includes(domain);
-  }, "Email temporanea non consentita. Usa un indirizzo email permanente");
+    const [local, domain] = parts;
+    // Verifica che ci sia un dominio con estensione
+    return local.length > 0 && domain.includes('.') && domain.length > 3;
+  }, "Email non valida");
 
 const loginSchema = z.object({
   email: emailSchema,
@@ -60,11 +46,11 @@ const signupSchema = z.object({
   fullName: z.string()
     .trim()
     .min(2, "Il nome deve essere di almeno 2 caratteri")
-    .max(100, "Il nome è troppo lungo (massimo 100 caratteri)"),
+    .max(100, "Il nome è troppo lungo"),
   email: emailSchema,
   password: z.string()
     .min(6, "La password deve essere di almeno 6 caratteri")
-    .max(128, "La password è troppo lunga (massimo 128 caratteri)"),
+    .max(128, "La password è troppo lunga"),
   confirmPassword: z.string()
 }).refine(data => data.password === data.confirmPassword, {
   message: "Le password non coincidono",
