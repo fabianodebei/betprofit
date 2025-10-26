@@ -32,7 +32,38 @@ export default function Deposits() {
     return accounts.filter(acc => acc.stato === 'Abilitato');
   }, [accounts]);
 
-  // Calculate balance
+  // Calculate balance by bookmaker
+  const bookmakerStats = useMemo(() => {
+    const statsByBook: Record<string, { depositi: number; prelievi: number; bilancio: number; conto: string; intestatario: string }> = {};
+    
+    transactions.forEach(t => {
+      if (!statsByBook[t.conto]) {
+        const account = accounts.find(acc => acc.conto === t.conto);
+        statsByBook[t.conto] = {
+          depositi: 0,
+          prelievi: 0,
+          bilancio: 0,
+          conto: t.conto,
+          intestatario: account?.intestatario || ''
+        };
+      }
+      
+      if (t.metodo === 'Deposito') {
+        statsByBook[t.conto].depositi += (t.addebito || 0);
+      } else if (t.metodo === 'Prelievo') {
+        statsByBook[t.conto].prelievi += (t.accredito || 0);
+      }
+    });
+    
+    // Calculate bilancio for each bookmaker
+    Object.values(statsByBook).forEach(stat => {
+      stat.bilancio = stat.prelievi - stat.depositi;
+    });
+    
+    return Object.values(statsByBook).sort((a, b) => b.bilancio - a.bilancio);
+  }, [transactions, accounts]);
+
+  // Calculate overall balance
   const balanceStats = useMemo(() => {
     const totalDepositi = transactions
       .filter(t => t.metodo === 'Deposito')
@@ -75,51 +106,100 @@ export default function Deposits() {
       </Button>
 
       {transactions.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Totale Depositi</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-destructive">
-                {formatCurrency(balanceStats.totalDepositi)}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Totale Prelievi</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-success">
-                {formatCurrency(balanceStats.totalPrelievi)}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Bilancio</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${balanceStats.bilancio >= 0 ? 'text-success' : 'text-destructive'}`}>
-                {formatCurrency(balanceStats.bilancio)}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Situazione</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Badge variant={balanceStats.isWinning ? "success" : "destructive"}>
-                {balanceStats.isWinning ? '🎉 Tu stai vincendo' : '📊 Il book sta vincendo'}
-              </Badge>
-            </CardContent>
-          </Card>
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Totale Depositi</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-destructive">
+                  {formatCurrency(balanceStats.totalDepositi)}
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Totale Prelievi</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-success">
+                  {formatCurrency(balanceStats.totalPrelievi)}
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Bilancio Totale</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className={`text-2xl font-bold ${balanceStats.bilancio >= 0 ? 'text-success' : 'text-destructive'}`}>
+                  {formatCurrency(balanceStats.bilancio)}
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Situazione</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Badge variant={balanceStats.isWinning ? "success" : "destructive"}>
+                  {balanceStats.isWinning ? '🎉 Tu stai vincendo' : '📊 Il book sta vincendo'}
+                </Badge>
+              </CardContent>
+            </Card>
+          </div>
+
+          {bookmakerStats.length > 0 && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Bilancio per Bookmaker</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="p-3 text-left text-sm font-semibold">Bookmaker</th>
+                        <th className="p-3 text-right text-sm font-semibold">Depositi</th>
+                        <th className="p-3 text-right text-sm font-semibold">Prelievi</th>
+                        <th className="p-3 text-right text-sm font-semibold">Bilancio</th>
+                        <th className="p-3 text-center text-sm font-semibold">Stato</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bookmakerStats.map((stat) => (
+                        <tr key={stat.conto} className="border-b hover:bg-muted/20">
+                          <td className="p-3">
+                            <div className="font-medium">{stat.conto}</div>
+                            {stat.intestatario && <div className="text-sm text-muted-foreground">{stat.intestatario}</div>}
+                          </td>
+                          <td className="p-3 text-right font-semibold text-destructive">
+                            {formatCurrency(stat.depositi)}
+                          </td>
+                          <td className="p-3 text-right font-semibold text-success">
+                            {formatCurrency(stat.prelievi)}
+                          </td>
+                          <td className={`p-3 text-right font-bold ${stat.bilancio >= 0 ? 'text-success' : 'text-destructive'}`}>
+                            {formatCurrency(stat.bilancio)}
+                          </td>
+                          <td className="p-3 text-center">
+                            <Badge variant={stat.bilancio >= 0 ? "success" : "destructive"}>
+                              {stat.bilancio >= 0 ? '✓ In Vincita' : '✗ In Perdita'}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
 
       <div className="mb-4 text-sm text-muted-foreground">
