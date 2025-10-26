@@ -337,16 +337,16 @@ export default function Deposits() {
                         <td className="p-3 text-sm">{transaction.conto}{account && ` - ${account.intestatario}`}</td>
                         <td className="p-3 text-sm font-semibold text-destructive">
                           {transaction.addebito && transaction.addebito > 0 ? formatCurrency(-transaction.addebito) : ''}
-                          {transaction.accredito && transaction.accredito > 0 ? formatCurrency(-transaction.accredito) : ''}
                         </td>
                         <td className="p-3 text-sm font-semibold text-success">
+                          {transaction.accredito && transaction.accredito > 0 ? formatCurrency(transaction.accredito) : ''}
                         </td>
                         <td className="p-3 text-sm">{transaction.wallet ? (wallet ? `${wallet.nome} - ${wallet.intestatario}` : transaction.wallet) : ''}</td>
                         <td className="p-3 text-sm font-semibold text-destructive">
+                          {transaction.accredito && transaction.accredito > 0 ? formatCurrency(-transaction.accredito) : ''}
                         </td>
                         <td className="p-3 text-sm font-semibold text-success">
                           {transaction.addebito && transaction.addebito > 0 ? formatCurrency(transaction.addebito) : ''}
-                          {transaction.accredito && transaction.accredito > 0 ? formatCurrency(transaction.accredito) : ''}
                         </td>
                         <td className="p-3 text-sm">{transaction.descrizione || ''}</td>
                         <td className="p-3">
