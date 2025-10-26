@@ -86,12 +86,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     if (error) {
-      toast.error(translateAuthError(error.message));
+      // Non mostrare toast qui, lo gestirà il componente chiamante
       return { error };
     }
 
-    toast.success('Account creato con successo!');
-    navigate('/');
+    // Non fare navigate qui se c'è stato successo nella registrazione
     return { error: null };
   };
 

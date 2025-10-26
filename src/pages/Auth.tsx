@@ -16,17 +16,55 @@ import logo from "@/assets/logo_centurion_new.png";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { authStorage } from "@/utils/authStorage";
 import { cn } from "@/lib/utils";
+// Email validation schema with strict requirements
+const emailSchema = z
+  .string()
+  .trim()
+  .min(1, "Email richiesta")
+  .max(255, "Email troppo lunga (massimo 255 caratteri)")
+  .email("Formato email non valido")
+  .toLowerCase()
+  .refine((email) => {
+    // Verifica che ci sia un dominio valido
+    const parts = email.split('@');
+    if (parts.length !== 2) return false;
+    const domain = parts[1];
+    // Verifica che il dominio abbia almeno un punto e un'estensione
+    return domain.includes('.') && domain.split('.').length >= 2 && domain.split('.').every(part => part.length > 0);
+  }, "Email non valida: dominio mancante o non valido")
+  .refine((email) => {
+    // Blocca email con caratteri non validi
+    const validPattern = /^[a-z0-9._+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+    return validPattern.test(email);
+  }, "Email contiene caratteri non validi")
+  .refine((email) => {
+    // Blocca email temporanee comuni (lista base)
+    const disposableEmails = [
+      'tempmail.com', 'throwaway.email', '10minutemail.com',
+      'guerrillamail.com', 'mailinator.com', 'trashmail.com'
+    ];
+    const domain = email.split('@')[1];
+    return !disposableEmails.includes(domain);
+  }, "Email temporanea non consentita. Usa un indirizzo email permanente");
+
 const loginSchema = z.object({
-  email: z.string().email("Email non valida"),
+  email: emailSchema,
   password: z.string().min(6, "La password deve essere di almeno 6 caratteri")
 });
+
 const resetPasswordSchema = z.object({
-  email: z.string().email("Email non valida")
+  email: emailSchema
 });
+
 const signupSchema = z.object({
-  fullName: z.string().min(2, "Il nome deve essere di almeno 2 caratteri"),
-  email: z.string().email("Email non valida"),
-  password: z.string().min(6, "La password deve essere di almeno 6 caratteri"),
+  fullName: z.string()
+    .trim()
+    .min(2, "Il nome deve essere di almeno 2 caratteri")
+    .max(100, "Il nome è troppo lungo (massimo 100 caratteri)"),
+  email: emailSchema,
+  password: z.string()
+    .min(6, "La password deve essere di almeno 6 caratteri")
+    .max(128, "La password è troppo lunga (massimo 128 caratteri)"),
   confirmPassword: z.string()
 }).refine(data => data.password === data.confirmPassword, {
   message: "Le password non coincidono",
@@ -114,13 +152,34 @@ const Auth = () => {
   const handleSignup = async (data: SignupFormData) => {
     setIsLoading(true);
     try {
-      await signUp(data.email, data.password, data.fullName);
-      authStorage.saveEmail(data.email, false);
-      toast.success("Account creato con successo!", {
-        description: "Controlla la tua email per confermare l'account"
-      });
+      const result = await signUp(data.email.toLowerCase().trim(), data.password, data.fullName.trim());
+      
+      if (result.error) {
+        // Gestione errori specifici da Supabase
+        const errorMessage = result.error.message;
+        if (errorMessage.includes('Invalid email')) {
+          toast.error("Email non valida", {
+            description: "L'indirizzo email inserito non è valido. Verifica e riprova."
+          });
+        } else if (errorMessage.includes('already registered') || errorMessage.includes('User already registered')) {
+          toast.error("Email già registrata", {
+            description: "Questo indirizzo email è già associato a un account. Prova ad accedere."
+          });
+        } else {
+          toast.error("Errore durante la registrazione", {
+            description: "Si è verificato un problema. Riprova più tardi."
+          });
+        }
+      } else {
+        authStorage.saveEmail(data.email.toLowerCase(), false);
+        toast.success("Account creato con successo!", {
+          description: "Controlla la tua email per confermare l'account"
+        });
+      }
     } catch (error) {
-      // Errore già gestito da AuthContext
+      toast.error("Errore durante la registrazione", {
+        description: "Si è verificato un problema. Riprova più tardi."
+      });
     } finally {
       setIsLoading(false);
     }
