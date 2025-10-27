@@ -37,23 +37,20 @@ export default function Promemoria() {
   const handleTestNotifications = async () => {
     setTesting(true);
     try {
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('test-notifications', {
-        body: {}
+      const { data, error } = await supabase.functions.invoke('send-telegram-notification', {
+        body: { message: 'Messaggio di test: notifiche Telegram attive ✅' },
       });
       if (error) throw error;
       toast({
         title: 'Test completato',
-        description: 'Controlla il tuo Telegram per le notifiche!'
+        description: 'Controlla il tuo Telegram per il messaggio di test!',
       });
       console.log('Test result:', data);
     } catch (error: any) {
       toast({
         title: 'Errore',
-        description: error.message || 'Errore durante il test delle notifiche',
-        variant: 'destructive'
+        description: error?.message || 'Errore durante il test delle notifiche',
+        variant: 'destructive',
       });
       console.error('Test error:', error);
     } finally {
@@ -68,7 +65,10 @@ export default function Promemoria() {
           <Plus className="mr-2 h-4 w-4" />
           Nuovo Promemoria
         </Button>
-        
+        <Button variant="outline" onClick={handleTestNotifications} disabled={testing}>
+          <Bell className="mr-2 h-4 w-4" />
+          {testing ? 'Invio test...' : 'Test Notifiche'}
+        </Button>
       </div>
 
       <Card>

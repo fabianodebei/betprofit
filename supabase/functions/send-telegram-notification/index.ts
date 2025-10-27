@@ -55,17 +55,27 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { message, user_id: body_user_id } = validation.data;
 
-    // Determine user_id: either from body (for service role calls) or from JWT
+    // Determine user_id: allow internal service calls with service key, otherwise require user JWT
     let user_id: string;
+    const authHeader = req.headers.get('Authorization') || '';
     
     if (body_user_id) {
-      // If user_id is provided in body, use it (for calls from check-notifications)
+      // Only allow internal calls (e.g., from check-notifications) to specify user_id
+      if (authHeader !== `Bearer ${supabaseServiceKey}`) {
+        console.error('Unauthorized internal call: missing or invalid service key');
+        return new Response(
+          JSON.stringify({ success: false, error: 'Unauthorized' }),
+          {
+            status: 401,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          }
+        );
+      }
       user_id = body_user_id;
-      console.log('Using user_id from body:', user_id);
+      console.log('Using user_id from internal call:', user_id);
     } else {
-      // Otherwise, extract from JWT token
-      const authHeader = req.headers.get('Authorization');
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      // Otherwise, extract from user JWT
+      if (!authHeader.startsWith('Bearer ')) {
         console.error('Missing or invalid authorization header');
         return new Response(
           JSON.stringify({ success: false, error: 'Unauthorized' }),
