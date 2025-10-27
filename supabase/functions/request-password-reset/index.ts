@@ -44,8 +44,8 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-    // Redirect to app, not Supabase URL
-    const redirect = redirectTo || "https://betprofit.app";
+    // Redirect to reset password page
+    const redirect = redirectTo || "https://betprofit.app/reset-password";
 
     // Generate password recovery link using service role
     console.log("[request-password-reset] Generating recovery link...");

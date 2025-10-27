@@ -26,6 +26,7 @@ import { ErrorBoundary } from "./components/common/ErrorBoundary";
 
 // Lazy load pages for better initial load performance
 const Auth = lazy(() => import("./pages/Auth"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const SetupGuide = lazy(() => import("./pages/SetupGuide"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Wallets = lazy(() => import("./pages/Wallets"));
@@ -81,6 +82,7 @@ const App = () => (
                                   <Suspense fallback={<PageLoader />}>
                                     <Routes>
                                       <Route path="/auth" element={<Auth />} />
+                                      <Route path="/reset-password" element={<ResetPassword />} />
                                       <Route path="/guida" element={<SetupGuide />} />
                                     <Route path="/admin" element={
                                       <AdminRoute>
