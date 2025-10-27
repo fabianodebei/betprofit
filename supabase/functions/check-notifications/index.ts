@@ -58,16 +58,18 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Get service key for authentication check
+    // Get service key and cron secret for authentication check
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const cronSecret = Deno.env.get('NOTIFICATION_HMAC_SECRET')!;
     
-    // Check authentication: either valid HMAC signature OR service role key
+    // Check authentication: service role key, cron secret, or HMAC signature
     const authHeader = req.headers.get('Authorization') || '';
     const isServiceRole = authHeader === `Bearer ${supabaseServiceKey}`;
+    const isCronJob = authHeader === `Bearer ${cronSecret}`;
     
-    if (!isServiceRole) {
-      // If not service role, verify HMAC signature
+    if (!isServiceRole && !isCronJob) {
+      // If not service role or cron, verify HMAC signature
       const bodyText = await req.text();
       const isValidSignature = await verifySignature(req, bodyText);
       
@@ -82,7 +84,7 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
     } else {
-      console.log('Authenticated via service role key');
+      console.log('Authenticated via service role key or cron job');
     }
 
     // Rate limiting check
