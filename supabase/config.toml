@@ -13,4 +13,4 @@ NOTIFICATION_HMAC_SECRET = "env:NOTIFICATION_HMAC_SECRET"
 verify_jwt = true
 
 [functions.send-welcome-email]
-verify_jwt = true
+verify_jwt = false
