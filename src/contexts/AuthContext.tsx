@@ -145,18 +145,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const resetPassword = async (email: string) => {
     const redirectUrl = `${window.location.origin}/auth`;
-    
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectUrl,
-    });
 
-    if (error) {
-      toast.error(translateAuthError(error.message));
-      return { error };
+    try {
+      const { data, error } = await supabase.functions.invoke('request-password-reset', {
+        body: { email, redirectTo: redirectUrl },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('Email di recupero inviata! Controlla la tua casella di posta.');
+      return { error: null };
+    } catch (err: any) {
+      toast.error(translateAuthError(err?.message || 'Errore durante l\'invio dell\'email'));
+      return { error: err };
     }
-
-    toast.success('Email di recupero inviata! Controlla la tua casella di posta.');
-    return { error: null };
   };
 
   return (
