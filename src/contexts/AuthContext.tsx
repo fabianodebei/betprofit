@@ -88,12 +88,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!error) {
       // Invia email di benvenuto (non blocca la registrazione se fallisce)
       try {
-        await supabase.functions.invoke('send-welcome-email', {
+        console.log('[Auth] Invoking send-welcome-email');
+        const { data, error: fnError } = await supabase.functions.invoke('send-welcome-email', {
           body: { email, fullName }
         });
-        console.log('Welcome email sent successfully');
+        if (fnError) {
+          console.error('[Auth] send-welcome-email failed:', fnError);
+        } else {
+          console.log('[Auth] Welcome email edge response:', data);
+        }
       } catch (emailError) {
-        console.error('Failed to send welcome email:', emailError);
+        console.error('[Auth] Exception sending welcome email:', emailError);
         // Non mostriamo l'errore all'utente, la registrazione è comunque andata a buon fine
       }
     }
