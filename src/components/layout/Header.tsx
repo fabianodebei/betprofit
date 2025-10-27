@@ -70,10 +70,13 @@ export function Header() {
   }}>
       <div className="container mx-auto px-4 bg-transparent">
         <div className="flex h-20 items-center justify-between rounded-none bg-transparent">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            
+          {/* Logo - visible only on mobile */}
+          <Link to="/" className="flex items-center gap-2 lg:hidden">
+            <img src={logo} alt="Centurion Club" className="h-12 w-auto" />
           </Link>
+
+          {/* Empty div to keep layout balanced on desktop */}
+          <div className="hidden lg:block" />
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-1">
