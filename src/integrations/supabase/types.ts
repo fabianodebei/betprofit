@@ -297,6 +297,27 @@ export type Database = {
         }
         Relationships: []
       }
+      function_rate_limits: {
+        Row: {
+          created_at: string
+          id: string
+          last_execution_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          last_execution_at: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_execution_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       intestatari: {
         Row: {
           created_at: string
@@ -695,6 +716,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      try_acquire_rate_limit: {
+        Args: { function_id: string; rate_limit_seconds: number }
         Returns: boolean
       }
       validate_telegram_message: { Args: { message: string }; Returns: boolean }
