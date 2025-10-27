@@ -102,6 +102,9 @@ export default function Dashboard() {
   
   const monthlyAverage = totalYear / 12;
   const bestMonth = Math.max(...monthlyEarnings);
+  const bestMonthIndex = monthlyEarnings.indexOf(bestMonth);
+  const monthNames = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+  const bestMonthName = monthNames[bestMonthIndex];
 
   // Analytics calculations - include archived bets AND quick bets
   const bookmakerStats = useMemo(() => {
@@ -252,7 +255,7 @@ export default function Dashboard() {
           title="Miglior Mese"
           value={bestMonth}
           icon={Trophy}
-          subtitle="Performance massima"
+          subtitle={bestMonth > 0 ? bestMonthName : "Nessun dato"}
           trend="up"
         />
         <AdvancedKPICard
