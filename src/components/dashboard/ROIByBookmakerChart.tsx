@@ -81,14 +81,14 @@ export function ROIByBookmakerChart({
   }
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle>ROI per Bookmaker</CardTitle>
+    <Card className="h-full flex flex-col w-full overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
+        <CardTitle className="text-base sm:text-lg">ROI per Bookmaker</CardTitle>
         <FullscreenChart title="ROI per Bookmaker">
           {chartContent}
         </FullscreenChart>
       </CardHeader>
-      <CardContent className="flex-1">
+      <CardContent className="flex-1 px-2 sm:px-6">
         {chartContent}
       </CardContent>
     </Card>

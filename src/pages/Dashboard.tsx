@@ -362,15 +362,17 @@ export default function Dashboard() {
       </div>
 
       {/* Performance Analysis Section */}
-      <div className="grid gap-6 lg:grid-cols-3 mb-8">
-        <PerformanceMetricsCard
-          winRateRegular={winRateRegular}
-          winRateQuick={winRateQuick}
-          averageOdds={averageOdds}
-          currentStreak={currentStreak}
-          overallROI={overallROI}
-        />
-        <div className="lg:col-span-2">
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3 mb-8">
+        <div className="w-full">
+          <PerformanceMetricsCard
+            winRateRegular={winRateRegular}
+            winRateQuick={winRateQuick}
+            averageOdds={averageOdds}
+            currentStreak={currentStreak}
+            overallROI={overallROI}
+          />
+        </div>
+        <div className="w-full lg:col-span-2">
           <ROIByBookmakerChart data={bookmakerStats} />
         </div>
       </div>
