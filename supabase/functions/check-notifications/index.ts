@@ -17,9 +17,8 @@ function escapeHtml(text: string): string {
     .replace(/'/g, '&#039;');
 }
 
-// Rate limiting: track last execution time
-let lastExecutionTime = 0;
-const RATE_LIMIT_MS = 50000; // 50 seconds minimum between calls
+// Rate limiting configuration
+const RATE_LIMIT_SECONDS = 50; // 50 seconds minimum between calls
 
 // HMAC signature verification
 async function verifySignature(request: Request, body: string): Promise<boolean> {
@@ -71,15 +70,50 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     console.log('Notification check triggered');
     
-    // Rate limiting check (50 seconds minimum between calls)
-    const now = Date.now();
-    if (now - lastExecutionTime < RATE_LIMIT_MS) {
+    // Verify HMAC signature for security
+    const body = await req.text();
+    const isValidSignature = await verifySignature(req, body);
+    
+    if (!isValidSignature) {
+      console.error('Invalid HMAC signature');
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+    
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Distributed rate limiting check using database
+    const { data: canProceed, error: rateLimitError } = await supabase
+      .rpc('try_acquire_rate_limit', {
+        function_id: 'check-notifications',
+        rate_limit_seconds: RATE_LIMIT_SECONDS
+      });
+    
+    if (rateLimitError) {
+      console.error('Rate limit check error:', rateLimitError.message);
+      return new Response(
+        JSON.stringify({ success: false }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+    
+    if (!canProceed) {
       console.log('Rate limit exceeded, rejecting request');
       return new Response(
         JSON.stringify({ 
           success: false, 
           error: 'Rate limit exceeded',
-          retryAfter: Math.ceil((RATE_LIMIT_MS - (now - lastExecutionTime)) / 1000)
+          retryAfter: RATE_LIMIT_SECONDS
         }),
         {
           status: 429,
@@ -87,11 +121,6 @@ const handler = async (req: Request): Promise<Response> => {
         }
       );
     }
-    lastExecutionTime = now;
-    
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     console.log('Starting notification check...');
 
