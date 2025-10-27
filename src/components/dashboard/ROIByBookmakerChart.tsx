@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { FullscreenChart } from '@/components/admin/FullscreenChart';
+import { useState, useEffect } from 'react';
 interface BookmakerStat {
   bookmaker: string;
   stake: number;
@@ -17,29 +18,38 @@ export function ROIByBookmakerChart({
 }: ROIByBookmakerChartProps) {
   const sortedData = [...data].sort((a, b) => b.roi - a.roi);
   
-  // Calculate dynamic width based on number of bookmakers
-  const dynamicWidth = Math.max(800, sortedData.length * 80);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  // Calculate dynamic width based on number of bookmakers and screen size
+  const dynamicWidth = Math.max(isMobile ? 400 : 800, sortedData.length * (isMobile ? 60 : 80));
 
   const chartContent = (
     <ScrollArea className="w-full">
-      <div style={{ width: dynamicWidth, minHeight: 400 }}>
-        <ResponsiveContainer width="100%" height={400}>
+      <div style={{ width: dynamicWidth, minHeight: isMobile ? 300 : 400 }}>
+        <ResponsiveContainer width="100%" height={isMobile ? 300 : 400}>
           <BarChart data={sortedData}>
             <XAxis 
               dataKey="bookmaker" 
               angle={-45} 
               textAnchor="end" 
-              height={100}
-              tick={{ fill: 'hsl(var(--foreground))' }}
+              height={isMobile ? 80 : 100}
+              tick={{ fill: 'hsl(var(--foreground))', fontSize: isMobile ? 10 : 12 }}
             />
             <YAxis 
               label={{ 
                 value: 'ROI %', 
                 angle: -90, 
                 position: 'insideLeft',
-                style: { fill: 'hsl(var(--foreground))' }
+                style: { fill: 'hsl(var(--foreground))', fontSize: isMobile ? 10 : 12 }
               }}
-              tick={{ fill: 'hsl(var(--foreground))' }}
+              tick={{ fill: 'hsl(var(--foreground))', fontSize: isMobile ? 10 : 12 }}
             />
             <Bar dataKey="roi" radius={[4, 4, 0, 0]}>
               {sortedData.map((entry, index) => (
