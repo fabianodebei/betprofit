@@ -13,6 +13,16 @@ interface WelcomeEmailRequest {
   fullName: string;
 }
 
+// HTML escape function to prevent XSS and HTML injection
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -68,7 +78,7 @@ const handler = async (req: Request): Promise<Response> => {
               </h1>
               
               <p style="color: #f2f2f2; font-size: 16px; line-height: 26px; margin: 0 0 16px;">
-                Ciao <strong style="color: #d4a574;">${fullName}</strong>,
+                Ciao <strong style="color: #d4a574;">${escapeHtml(fullName)}</strong>,
               </p>
               
               <p style="color: #f2f2f2; font-size: 16px; line-height: 26px; margin: 0 0 16px;">
@@ -154,8 +164,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.error("Error in send-welcome-email function:", error);
     return new Response(
       JSON.stringify({ 
-        error: error.message,
-        details: error.toString() 
+        error: "Failed to send welcome email"
       }),
       {
         status: 500,

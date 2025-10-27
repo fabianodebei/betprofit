@@ -6,6 +6,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-notification-signature',
 };
 
+// HTML escape function for Telegram HTML messages to prevent injection attacks
+function escapeHtml(text: string): string {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 // Rate limiting: track last execution time
 let lastExecutionTime = 0;
 const RATE_LIMIT_MS = 50000; // 50 seconds minimum between calls
@@ -158,9 +169,9 @@ async function checkReminders(supabase: any, supabaseUrl: string, serviceKey: st
     // Send notification if time has arrived (with 1 minute tolerance)
     if (now >= new Date(notificationTime.getTime() - 60000)) {
       const message = `🔔 <b>PROMEMORIA IN SCADENZA</b>\n\n` +
-        `📋 Metodo: ${reminder.metodo}\n` +
-        `💳 Conto: ${reminder.conto}\n` +
-        `📝 Descrizione: ${reminder.descrizione}\n` +
+        `📋 Metodo: ${escapeHtml(reminder.metodo)}\n` +
+        `💳 Conto: ${escapeHtml(reminder.conto)}\n` +
+        `📝 Descrizione: ${escapeHtml(reminder.descrizione)}\n` +
         `⏰ Scadenza: ${formatDate(scadenza)}`;
 
       console.log('Sending notification');
@@ -236,16 +247,16 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
       const isMultiple = bet.tipo === 'Multipla';
       
       let message = `⚽ <b>PARTITA CONCLUSA${isMultiple ? ' - MULTIPLA' : ''}</b>\n\n` +
-        `🎯 Tipo: ${bet.tipo}\n`;
+        `🎯 Tipo: ${escapeHtml(bet.tipo)}\n`;
 
       if (bet.evento) {
-        message += `🎮 Evento: ${bet.evento}\n`;
+        message += `🎮 Evento: ${escapeHtml(bet.evento)}\n`;
       }
       if (bet.nome_gioco) {
-        message += `🎰 Gioco: ${bet.nome_gioco}\n`;
+        message += `🎰 Gioco: ${escapeHtml(bet.nome_gioco)}\n`;
       }
 
-      message += `💳 Conto: ${bet.conto}\n` +
+      message += `💳 Conto: ${escapeHtml(bet.conto)}\n` +
         `💰 Stake: €${formatCurrency(bet.stake)}\n`;
 
       if (bet.quota) {
@@ -255,11 +266,11 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
       message += `🕐 Iniziata: ${formatDate(eventDate)}\n`;
 
       if (bet.tag) {
-        message += `🏷️ Tag: ${bet.tag}\n`;
+        message += `🏷️ Tag: ${escapeHtml(bet.tag)}\n`;
       }
 
       if (bet.note) {
-        message += `📝 Note: ${bet.note}\n`;
+        message += `📝 Note: ${escapeHtml(bet.note)}\n`;
       }
 
       message += `\n✅ Archivia la scommessa`;
