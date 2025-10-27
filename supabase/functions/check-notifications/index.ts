@@ -58,9 +58,12 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Get service key for authentication check
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    
     // Check authentication: either valid HMAC signature OR service role key
     const authHeader = req.headers.get('Authorization') || '';
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const isServiceRole = authHeader === `Bearer ${supabaseServiceKey}`;
     
     if (!isServiceRole) {
@@ -99,8 +102,6 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
     lastExecutionTime = now;
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     console.log('Starting notification check...');
