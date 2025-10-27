@@ -57,7 +57,8 @@ export const TelegramConfigProvider = ({ children }: { children: ReactNode }) =>
           updated_at: new Date(data.updated_at),
         });
       } else {
-        // Create default config if none exists
+        // Config should be created by trigger, but create as fallback
+        console.warn('Telegram config not found, creating default config');
         const { data: newConfig, error: insertError } = await supabase
           .from('user_telegram_config')
           .insert({
@@ -67,7 +68,10 @@ export const TelegramConfigProvider = ({ children }: { children: ReactNode }) =>
           .select()
           .single();
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error('Error creating telegram config:', insertError);
+          return;
+        }
 
         setConfig({
           ...newConfig,
@@ -77,7 +81,7 @@ export const TelegramConfigProvider = ({ children }: { children: ReactNode }) =>
       }
     } catch (error: any) {
       console.error('Error fetching telegram config:', error);
-      toast.error('Errore nel caricamento della configurazione Telegram');
+      // Don't show error toast during registration, it confuses users
     } finally {
       setLoading(false);
     }
