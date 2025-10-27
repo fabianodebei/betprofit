@@ -58,19 +58,28 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Verify HMAC signature
-    const bodyText = await req.text();
-    const isValidSignature = await verifySignature(req, bodyText);
+    // Check authentication: either valid HMAC signature OR service role key
+    const authHeader = req.headers.get('Authorization') || '';
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const isServiceRole = authHeader === `Bearer ${supabaseServiceKey}`;
     
-    if (!isValidSignature) {
-      console.error('Invalid or missing HMAC signature');
-      return new Response(
-        JSON.stringify({ success: false, error: 'Unauthorized' }),
-        {
-          status: 401,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        }
-      );
+    if (!isServiceRole) {
+      // If not service role, verify HMAC signature
+      const bodyText = await req.text();
+      const isValidSignature = await verifySignature(req, bodyText);
+      
+      if (!isValidSignature) {
+        console.error('Invalid or missing HMAC signature');
+        return new Response(
+          JSON.stringify({ success: false, error: 'Unauthorized' }),
+          {
+            status: 401,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          }
+        );
+      }
+    } else {
+      console.log('Authenticated via service role key');
     }
 
     // Rate limiting check
