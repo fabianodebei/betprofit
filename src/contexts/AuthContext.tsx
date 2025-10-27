@@ -85,6 +85,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     });
 
+    if (!error) {
+      // Invia email di benvenuto (non blocca la registrazione se fallisce)
+      try {
+        await supabase.functions.invoke('send-welcome-email', {
+          body: { email, fullName }
+        });
+        console.log('Welcome email sent successfully');
+      } catch (emailError) {
+        console.error('Failed to send welcome email:', emailError);
+        // Non mostriamo l'errore all'utente, la registrazione è comunque andata a buon fine
+      }
+    }
+
     return { error };
   };
 
