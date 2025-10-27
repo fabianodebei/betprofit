@@ -58,36 +58,9 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Get service key and cron secret for authentication check
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const cronSecret = Deno.env.get('NOTIFICATION_HMAC_SECRET')!;
+    console.log('Notification check triggered');
     
-    // Check authentication: service role key, cron secret, or HMAC signature
-    const authHeader = req.headers.get('Authorization') || '';
-    const isServiceRole = authHeader === `Bearer ${supabaseServiceKey}`;
-    const isCronJob = authHeader === `Bearer ${cronSecret}`;
-    
-    if (!isServiceRole && !isCronJob) {
-      // If not service role or cron, verify HMAC signature
-      const bodyText = await req.text();
-      const isValidSignature = await verifySignature(req, bodyText);
-      
-      if (!isValidSignature) {
-        console.error('Invalid or missing HMAC signature');
-        return new Response(
-          JSON.stringify({ success: false, error: 'Unauthorized' }),
-          {
-            status: 401,
-            headers: { 'Content-Type': 'application/json', ...corsHeaders },
-          }
-        );
-      }
-    } else {
-      console.log('Authenticated via service role key or cron job');
-    }
-
-    // Rate limiting check
+    // Rate limiting check (50 seconds minimum between calls)
     const now = Date.now();
     if (now - lastExecutionTime < RATE_LIMIT_MS) {
       console.log('Rate limit exceeded, rejecting request');
@@ -104,6 +77,9 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
     lastExecutionTime = now;
+    
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     console.log('Starting notification check...');
