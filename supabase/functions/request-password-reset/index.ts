@@ -73,7 +73,7 @@ serve(async (req) => {
 
     const fullName = email.split("@")[0];
 
-    // Create simple HTML email
+    // Create professional HTML email with BetProfit branding
     console.log("[request-password-reset] Creating HTML email...");
     const html = `
       <!DOCTYPE html>
@@ -82,51 +82,67 @@ serve(async (req) => {
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
-        <body style="margin: 0; padding: 0; background-color: #0a0a0a; font-family: Arial, sans-serif;">
+        <body style="margin: 0; padding: 0; background-color: #2b3d4f; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
           <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-            <div style="background-color: #1a1a1a; padding: 40px; border-radius: 8px;">
-              <h1 style="color: #D4AF37; font-size: 28px; text-align: center; margin: 0 0 24px;">
-                Reset Password 🔐
+            <!-- Header with Logo -->
+            <div style="text-align: center; margin-bottom: 32px;">
+              <img src="https://betprofit.app/logo_centurion_email.webp" alt="BetProfit Logo" style="max-width: 200px; height: auto;" />
+            </div>
+            
+            <!-- Main Card -->
+            <div style="background-color: #283644; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);">
+              <h1 style="color: #d4a574; font-size: 28px; text-align: center; margin: 0 0 24px; font-weight: 600;">
+                Recupera la tua Password 🔐
               </h1>
-              <p style="color: #e5e5e5; font-size: 16px; line-height: 26px; margin: 0 0 16px;">
-                Ciao <strong>${fullName}</strong>,
+              
+              <p style="color: #f2f2f2; font-size: 16px; line-height: 26px; margin: 0 0 16px;">
+                Ciao <strong style="color: #d4a574;">${fullName}</strong>,
               </p>
-              <p style="color: #e5e5e5; font-size: 16px; line-height: 26px; margin: 0 0 16px;">
-                Abbiamo ricevuto una richiesta per reimpostare la password del tuo account BetProfit.
+              
+              <p style="color: #f2f2f2; font-size: 16px; line-height: 26px; margin: 0 0 16px;">
+                Hai richiesto di reimpostare la password del tuo account <strong style="color: #d4a574;">BetProfit</strong>.
               </p>
-              <div style="background-color: #2a2a2a; border-radius: 8px; padding: 16px; margin: 24px 0; border-left: 4px solid #ff9800;">
-                <p style="color: #ff9800; font-size: 15px; margin: 0; text-align: center;">
-                  ⏰ <strong>Questo link è valido per 1 ora</strong>
-                </p>
-              </div>
+              
+              <p style="color: #f2f2f2; font-size: 16px; line-height: 26px; margin: 0 0 24px;">
+                Clicca sul pulsante qui sotto per procedere:
+              </p>
+              
+              <!-- CTA Button -->
               <div style="text-align: center; margin: 32px 0;">
-                <a href="${actionLink}" style="display: inline-block; background-color: #D4AF37; color: #000000; font-size: 16px; font-weight: bold; text-decoration: none; padding: 14px 40px; border-radius: 6px;">
+                <a href="${actionLink}" style="display: inline-block; background-color: #d4a574; color: #1f2937; font-size: 16px; font-weight: 600; text-decoration: none; padding: 16px 48px; border-radius: 8px; transition: opacity 0.2s;">
                   Reimposta Password
                 </a>
               </div>
-              <p style="color: #e5e5e5; font-size: 16px; line-height: 26px; margin: 0 0 16px;">
-                Se il pulsante non funziona, copia e incolla questo link nel tuo browser:
+              
+              <!-- Warning Box -->
+              <div style="margin: 24px 0; padding: 20px; background-color: #1f2937; border-radius: 8px; border-left: 4px solid #ef4444;">
+                <p style="color: #fca5a5; font-size: 14px; line-height: 22px; margin: 0;">
+                  <strong style="color: #ef4444;">⚠️ Importante:</strong> Questo link scadrà tra 1 ora per motivi di sicurezza.
+                </p>
+              </div>
+              
+              <p style="color: #f2f2f2; font-size: 14px; line-height: 24px; margin: 24px 0 0;">
+                Se il pulsante non funziona, copia e incolla questo link:
               </p>
-              <div style="background-color: #2a2a2a; border-radius: 6px; padding: 16px; margin: 16px 0 24px; word-break: break-all;">
-                <p style="color: #D4AF37; font-size: 13px; margin: 0;">${actionLink}</p>
+              
+              <div style="background-color: #1f2937; border-radius: 6px; padding: 14px; margin: 12px 0 24px; word-break: break-all;">
+                <p style="color: #d4a574; font-size: 12px; margin: 0; font-family: monospace;">${actionLink}</p>
               </div>
-              <div style="background-color: #1e3a1e; border-radius: 8px; padding: 16px; margin: 24px 0; border-left: 4px solid #4caf50;">
-                <p style="color: #a5d6a7; font-size: 14px; line-height: 22px; margin: 0;">
-                  🛡️ <strong>Nota di sicurezza:</strong> Se non hai richiesto questo reset, ignora questa email. La tua password rimarrà invariata e il tuo account è sicuro.
-                </p>
-              </div>
-              <p style="color: #e5e5e5; font-size: 16px; line-height: 26px; margin: 32px 0 16px;">
-                Cordiali saluti,<br>
-                Il Team di BetProfit
+              
+              <p style="color: #9ca3af; font-size: 14px; line-height: 24px; margin: 24px 0 0; text-align: center;">
+                Se non hai richiesto questa operazione, puoi ignorare questa email in tutta sicurezza.
               </p>
-              <div style="border-top: 1px solid #333333; margin-top: 32px; padding-top: 24px;">
-                <p style="color: #888888; font-size: 13px; text-align: center; margin: 8px 0;">
-                  Questa è un'email automatica, per favore non rispondere.
-                </p>
-                <p style="color: #888888; font-size: 13px; text-align: center; margin: 8px 0;">
-                  <a href="https://betprofit.app" style="color: #D4AF37; text-decoration: none;">BetProfit</a> - La tua piattaforma di betting analytics
-                </p>
-              </div>
+              
+              <p style="color: #f2f2f2; font-size: 16px; line-height: 26px; margin: 32px 0 0; text-align: center;">
+                <span style="color: #d4a574; font-weight: 500;">Il Team di BetProfit</span>
+              </p>
+            </div>
+            
+            <!-- Footer -->
+            <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(212, 165, 116, 0.2);">
+              <p style="color: #9ca3af; font-size: 13px; text-align: center; margin: 8px 0;">
+                <a href="https://betprofit.app" style="color: #d4a574; text-decoration: none; font-weight: 500;">BetProfit</a> · La tua piattaforma di betting analytics
+              </p>
             </div>
           </div>
         </body>

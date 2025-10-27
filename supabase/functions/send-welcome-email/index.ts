@@ -45,7 +45,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Create simple HTML email without React Email to avoid rendering issues
+    // Create professional HTML email with BetProfit branding
     console.log("[send-welcome-email] Creating HTML email...");
     const html = `
       <!DOCTYPE html>
@@ -54,45 +54,71 @@ const handler = async (req: Request): Promise<Response> => {
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
-        <body style="margin: 0; padding: 0; background-color: #0a0a0a; font-family: Arial, sans-serif;">
+        <body style="margin: 0; padding: 0; background-color: #2b3d4f; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
           <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-            <div style="background-color: #1a1a1a; padding: 40px; border-radius: 8px;">
-              <h1 style="color: #D4AF37; font-size: 28px; text-align: center; margin: 0 0 24px;">
+            <!-- Header with Logo -->
+            <div style="text-align: center; margin-bottom: 32px;">
+              <img src="https://betprofit.app/logo_centurion_email.webp" alt="BetProfit Logo" style="max-width: 200px; height: auto;" />
+            </div>
+            
+            <!-- Main Card -->
+            <div style="background-color: #283644; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);">
+              <h1 style="color: #d4a574; font-size: 28px; text-align: center; margin: 0 0 24px; font-weight: 600;">
                 Benvenuto in BetProfit! 🎉
               </h1>
-              <p style="color: #e5e5e5; font-size: 16px; line-height: 26px; margin: 0 0 16px;">
-                Ciao <strong>${fullName}</strong>,
+              
+              <p style="color: #f2f2f2; font-size: 16px; line-height: 26px; margin: 0 0 16px;">
+                Ciao <strong style="color: #d4a574;">${fullName}</strong>,
               </p>
-              <p style="color: #e5e5e5; font-size: 16px; line-height: 26px; margin: 0 0 16px;">
+              
+              <p style="color: #f2f2f2; font-size: 16px; line-height: 26px; margin: 0 0 16px;">
                 Grazie per esserti registrato su <strong>BetProfit</strong>, la piattaforma professionale per il tracciamento e l'analisi delle tue scommesse sportive.
               </p>
-              <p style="color: #e5e5e5; font-size: 16px; line-height: 26px; margin: 0 0 16px;">
+              
+              <p style="color: #f2f2f2; font-size: 16px; line-height: 26px; margin: 0 0 20px;">
                 Con BetProfit potrai:
               </p>
-              <div style="margin: 24px 0; padding: 20px; background-color: #2a2a2a; border-radius: 8px; border-left: 4px solid #D4AF37;">
-                <p style="color: #e5e5e5; font-size: 15px; line-height: 24px; margin: 8px 0;">✅ Tracciare tutte le tue scommesse in un unico posto</p>
-                <p style="color: #e5e5e5; font-size: 15px; line-height: 24px; margin: 8px 0;">📊 Analizzare le tue performance con grafici dettagliati</p>
-                <p style="color: #e5e5e5; font-size: 15px; line-height: 24px; margin: 8px 0;">💰 Monitorare profitti e ROI in tempo reale</p>
-                <p style="color: #e5e5e5; font-size: 15px; line-height: 24px; margin: 8px 0;">🎯 Gestire bankroll e conti bookmaker</p>
-                <p style="color: #e5e5e5; font-size: 15px; line-height: 24px; margin: 8px 0;">📈 Ricevere insights per migliorare le tue strategie</p>
+              
+              <!-- Benefits List -->
+              <div style="margin: 24px 0; padding: 24px; background-color: #1f2937; border-radius: 8px; border-left: 4px solid #22c55e;">
+                <p style="color: #f2f2f2; font-size: 15px; line-height: 28px; margin: 8px 0;">
+                  <span style="color: #22c55e; font-weight: bold;">✓</span> Tracciare tutte le tue scommesse in un unico posto
+                </p>
+                <p style="color: #f2f2f2; font-size: 15px; line-height: 28px; margin: 8px 0;">
+                  <span style="color: #22c55e; font-weight: bold;">✓</span> Analizzare le tue performance con grafici dettagliati
+                </p>
+                <p style="color: #f2f2f2; font-size: 15px; line-height: 28px; margin: 8px 0;">
+                  <span style="color: #22c55e; font-weight: bold;">✓</span> Monitorare profitti e ROI in tempo reale
+                </p>
+                <p style="color: #f2f2f2; font-size: 15px; line-height: 28px; margin: 8px 0;">
+                  <span style="color: #22c55e; font-weight: bold;">✓</span> Gestire bankroll e conti bookmaker
+                </p>
+                <p style="color: #f2f2f2; font-size: 15px; line-height: 28px; margin: 8px 0;">
+                  <span style="color: #22c55e; font-weight: bold;">✓</span> Ricevere insights per migliorare le tue strategie
+                </p>
               </div>
-              <div style="text-align: center; margin: 32px 0;">
-                <a href="https://betprofit.app" style="display: inline-block; background-color: #D4AF37; color: #000000; font-size: 16px; font-weight: bold; text-decoration: none; padding: 14px 40px; border-radius: 6px;">
+              
+              <!-- CTA Button -->
+              <div style="text-align: center; margin: 36px 0 24px;">
+                <a href="https://betprofit.app" style="display: inline-block; background-color: #d4a574; color: #1f2937; font-size: 16px; font-weight: 600; text-decoration: none; padding: 16px 48px; border-radius: 8px; transition: opacity 0.2s;">
                   Inizia Subito
                 </a>
               </div>
-              <p style="color: #e5e5e5; font-size: 16px; line-height: 26px; margin: 32px 0 16px;">
+              
+              <p style="color: #f2f2f2; font-size: 16px; line-height: 26px; margin: 32px 0 0; text-align: center;">
                 Buone scommesse! 🎲<br>
-                Il Team di BetProfit
+                <span style="color: #d4a574; font-weight: 500;">Il Team di BetProfit</span>
               </p>
-              <div style="border-top: 1px solid #333333; margin-top: 32px; padding-top: 24px;">
-                <p style="color: #888888; font-size: 13px; text-align: center; margin: 8px 0;">
-                  Hai ricevuto questa email perché ti sei registrato su BetProfit.
-                </p>
-                <p style="color: #888888; font-size: 13px; text-align: center; margin: 8px 0;">
-                  <a href="https://betprofit.app" style="color: #D4AF37; text-decoration: none;">BetProfit</a> - La tua piattaforma di betting analytics
-                </p>
-              </div>
+            </div>
+            
+            <!-- Footer -->
+            <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(212, 165, 116, 0.2);">
+              <p style="color: #9ca3af; font-size: 13px; text-align: center; margin: 8px 0; line-height: 20px;">
+                Hai ricevuto questa email perché ti sei registrato su BetProfit.
+              </p>
+              <p style="color: #9ca3af; font-size: 13px; text-align: center; margin: 8px 0;">
+                <a href="https://betprofit.app" style="color: #d4a574; text-decoration: none; font-weight: 500;">BetProfit</a> · La tua piattaforma di betting analytics
+              </p>
             </div>
           </div>
         </body>
