@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
-import { Plus, ArrowRightLeft } from 'lucide-react';
+import { Plus, ArrowRightLeft, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TransactionForm } from '@/components/forms/TransactionForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Badge } from '@/components/common/Badge';
 import { useTransactions } from '@/contexts/TransactionContext';
@@ -18,6 +19,7 @@ export default function Deposits() {
   const { accounts } = useAccounts();
   const { wallets } = useWallets();
   const [showTransactionForm, setShowTransactionForm] = useState(false);
+  const [openIntestatari, setOpenIntestatari] = useState<Set<string>>(new Set());
   
   // Filter states
   const [filterMetodo, setFilterMetodo] = useState('');
@@ -68,6 +70,28 @@ export default function Deposits() {
     
     return Object.values(statsByBook).sort((a, b) => b.disponibilePrelievo - a.disponibilePrelievo);
   }, [transactions, accounts]);
+
+  // Group bookmaker stats by intestatario
+  const statsByIntestatario = useMemo(() => {
+    const grouped = new Map<string, typeof bookmakerStats>();
+    bookmakerStats.forEach(stat => {
+      const existing = grouped.get(stat.intestatario) || [];
+      grouped.set(stat.intestatario, [...existing, stat]);
+    });
+    return grouped;
+  }, [bookmakerStats]);
+
+  const toggleIntestatario = (intestatario: string) => {
+    setOpenIntestatari(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(intestatario)) {
+        newSet.delete(intestatario);
+      } else {
+        newSet.add(intestatario);
+      }
+      return newSet;
+    });
+  };
 
   // Calculate overall balance
   const balanceStats = useMemo(() => {
@@ -120,31 +144,80 @@ export default function Deposits() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b">
-                        <th className="p-3 text-left text-sm font-semibold">Bookmaker</th>
-                        <th className="p-3 text-right text-sm font-semibold">Versato</th>
-                        <th className="p-3 text-right text-sm font-semibold">Prelevato</th>
-                        <th className="p-3 text-right text-sm font-semibold">Disponibile per Prelievo</th>
+                      <tr className="border-b bg-muted/50">
+                        <th className="p-3 text-left text-xs font-semibold uppercase w-8"></th>
+                        <th className="p-3 text-left text-xs font-semibold uppercase">Intestatario</th>
+                        <th className="p-3 text-right text-xs font-semibold uppercase">Versato</th>
+                        <th className="p-3 text-right text-xs font-semibold uppercase">Prelevato</th>
+                        <th className="p-3 text-right text-xs font-semibold uppercase">Disponibile per Prelievo</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {bookmakerStats.map((stat) => (
-                        <tr key={stat.conto} className="border-b hover:bg-muted/20">
-                          <td className="p-3">
-                            <div className="font-medium">{stat.conto}</div>
-                            {stat.intestatario && <div className="text-sm text-muted-foreground">{stat.intestatario}</div>}
-                          </td>
-                          <td className="p-3 text-right font-semibold text-destructive">
-                            {formatCurrency(stat.depositi)}
-                          </td>
-                          <td className="p-3 text-right font-semibold text-success">
-                            {formatCurrency(stat.prelievi)}
-                          </td>
-                          <td className={`p-3 text-right font-bold ${stat.disponibilePrelievo > 0 ? 'text-success' : 'text-destructive'}`}>
-                            {formatCurrency(stat.disponibilePrelievo)}
-                          </td>
-                        </tr>
-                      ))}
+                      {Array.from(statsByIntestatario.entries()).map(([intestatario, intestatarioStats], idx) => {
+                        const isOpen = openIntestatari.has(intestatario);
+                        const totalDepositi = intestatarioStats.reduce((sum, s) => sum + s.depositi, 0);
+                        const totalPrelievi = intestatarioStats.reduce((sum, s) => sum + s.prelievi, 0);
+                        const totalDisponibile = intestatarioStats.reduce((sum, s) => sum + s.disponibilePrelievo, 0);
+
+                        return (
+                          <Collapsible
+                            key={intestatario}
+                            open={isOpen}
+                            onOpenChange={() => toggleIntestatario(intestatario)}
+                            asChild
+                          >
+                            <>
+                              <CollapsibleTrigger asChild>
+                                <tr className={`cursor-pointer hover:bg-muted/30 ${idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}`}>
+                                  <td className="p-3">
+                                    {isOpen ? (
+                                      <ChevronDown className="h-4 w-4" />
+                                    ) : (
+                                      <ChevronRight className="h-4 w-4" />
+                                    )}
+                                  </td>
+                                  <td className="p-3">
+                                    <div className="font-semibold">{intestatario}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {intestatarioStats.length} {intestatarioStats.length === 1 ? 'conto' : 'conti'}
+                                    </div>
+                                  </td>
+                                  <td className="p-3 text-right font-semibold text-destructive">
+                                    {formatCurrency(totalDepositi)}
+                                  </td>
+                                  <td className="p-3 text-right font-semibold text-success">
+                                    {formatCurrency(totalPrelievi)}
+                                  </td>
+                                  <td className={`p-3 text-right font-bold ${totalDisponibile > 0 ? 'text-success' : 'text-destructive'}`}>
+                                    {formatCurrency(totalDisponibile)}
+                                  </td>
+                                </tr>
+                              </CollapsibleTrigger>
+                              <CollapsibleContent asChild>
+                                <>
+                                  {intestatarioStats.map((stat) => (
+                                    <tr key={stat.conto} className="bg-muted/10 border-l-4 border-primary/20">
+                                      <td className="p-3"></td>
+                                      <td className="p-3 pl-8">
+                                        <div className="font-medium text-sm">{stat.conto}</div>
+                                      </td>
+                                      <td className="p-3 text-right text-sm text-destructive">
+                                        {formatCurrency(stat.depositi)}
+                                      </td>
+                                      <td className="p-3 text-right text-sm text-success">
+                                        {formatCurrency(stat.prelievi)}
+                                      </td>
+                                      <td className={`p-3 text-right text-sm ${stat.disponibilePrelievo > 0 ? 'text-success' : 'text-destructive'}`}>
+                                        {formatCurrency(stat.disponibilePrelievo)}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </>
+                              </CollapsibleContent>
+                            </>
+                          </Collapsible>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
