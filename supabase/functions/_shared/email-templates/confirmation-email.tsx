@@ -4,7 +4,6 @@ import {
   Head,
   Heading,
   Html,
-  Img,
   Link,
   Preview,
   Section,
@@ -23,16 +22,6 @@ export const ConfirmationEmail = ({ fullName, confirmationLink }: ConfirmationEm
     <Preview>Conferma il tuo account BetProfit</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Section style={logoSection}>
-          <Img
-            src="https://kykcanyioyzqctagrhud.supabase.co/storage/v1/object/public/assets/logo_centurion.png"
-            width="120"
-            height="120"
-            alt="BetProfit Logo"
-            style={logo}
-          />
-        </Section>
-        
         <Heading style={h1}>Conferma la tua Email ✉️</Heading>
         
         <Text style={text}>
@@ -118,15 +107,6 @@ const container = {
   padding: '40px 20px',
   maxWidth: '600px',
   backgroundColor: '#1a1a1a',
-};
-
-const logoSection = {
-  textAlign: 'center' as const,
-  marginBottom: '32px',
-};
-
-const logo = {
-  margin: '0 auto',
 };
 
 const h1 = {

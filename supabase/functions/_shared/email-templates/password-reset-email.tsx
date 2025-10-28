@@ -4,7 +4,6 @@ import {
   Head,
   Heading,
   Html,
-  Img,
   Link,
   Preview,
   Section,
@@ -98,15 +97,6 @@ const container = {
   padding: '40px 20px',
   maxWidth: '600px',
   backgroundColor: '#1a1a1a',
-};
-
-const logoSection = {
-  textAlign: 'center' as const,
-  marginBottom: '32px',
-};
-
-const logo = {
-  margin: '0 auto',
 };
 
 const h1 = {
