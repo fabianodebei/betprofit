@@ -66,10 +66,6 @@ const handler = async (req: Request): Promise<Response> => {
         </head>
         <body style="margin: 0; padding: 0; background-color: #2b3d4f; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
           <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-            <!-- Header with Logo -->
-            <div style="text-align: center; margin-bottom: 32px;">
-              <img src="https://betprofit.app/logo_centurion_email.webp" alt="BetProfit Logo" style="max-width: 200px; height: auto;" />
-            </div>
             
             <!-- Main Card -->
             <div style="background-color: #283644; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);">
