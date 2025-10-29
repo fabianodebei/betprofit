@@ -119,22 +119,6 @@ const TelegramSettings = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-center">Canale Telegram</CardTitle>
-            <CardDescription className="text-center">
-              Inquadra il qrcode per accedere al canale telegram
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex justify-center">
-            <img 
-              src={telegramQR} 
-              alt="QR Code Telegram" 
-              className="max-w-xs w-full h-auto rounded-lg"
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
             <CardTitle>Credenziali BOT</CardTitle>
             <CardDescription>
               Inserisci le credenziali del tuo BOT Telegram personale
@@ -252,6 +236,22 @@ const TelegramSettings = () => {
             </AlertDescription>
           </Alert>
         )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-center">Canale Telegram</CardTitle>
+            <CardDescription className="text-center">
+              Inquadra il qrcode per accedere al canale telegram
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <img 
+              src={telegramQR} 
+              alt="QR Code Telegram" 
+              className="max-w-xs w-full h-auto rounded-lg"
+            />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
