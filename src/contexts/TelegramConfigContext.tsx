@@ -6,17 +6,21 @@ import { toast } from 'sonner';
 interface TelegramConfig {
   id: string;
   user_id: string;
-  telegram_bot_token?: string;
-  telegram_chat_id?: string;
   notifications_enabled: boolean;
   created_at: Date;
   updated_at: Date;
 }
 
+interface TelegramConfigUpdate {
+  telegram_bot_token?: string;
+  telegram_chat_id?: string;
+  notifications_enabled?: boolean;
+}
+
 interface TelegramConfigContextType {
   config: TelegramConfig | null;
   loading: boolean;
-  updateConfig: (updates: Partial<Omit<TelegramConfig, 'id' | 'user_id' | 'created_at' | 'updated_at'>>) => Promise<void>;
+  updateConfig: (updates: TelegramConfigUpdate) => Promise<void>;
 }
 
 const TelegramConfigContext = createContext<TelegramConfigContextType | undefined>(undefined);
@@ -87,27 +91,27 @@ export const TelegramConfigProvider = ({ children }: { children: ReactNode }) =>
     }
   };
 
-  const updateConfig = async (updates: Partial<Omit<TelegramConfig, 'id' | 'user_id' | 'created_at' | 'updated_at'>>) => {
+  const updateConfig = async (updates: TelegramConfigUpdate) => {
     if (!user || !config) return;
 
     try {
-      const { data, error } = await supabase
+      // Filter out empty strings to avoid overwriting with empty values
+      const filteredUpdates = Object.fromEntries(
+        Object.entries(updates).filter(([_, value]) => value !== '')
+      );
+
+      const { error } = await supabase
         .from('user_telegram_config')
         .update({
-          ...updates,
+          ...filteredUpdates,
           updated_at: new Date().toISOString(),
         })
-        .eq('user_id', user.id)
-        .select()
-        .single();
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
-      setConfig({
-        ...data,
-        created_at: new Date(data.created_at),
-        updated_at: new Date(data.updated_at),
-      });
+      // Refresh config (only non-sensitive fields)
+      await fetchConfig();
 
       toast.success('Configurazione Telegram aggiornata');
     } catch (error: any) {

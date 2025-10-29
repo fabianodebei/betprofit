@@ -38,6 +38,7 @@ const TelegramSettings = () => {
   const { config, loading, updateConfig } = useTelegramConfig();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
+  const [hasCredentials, setHasCredentials] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -48,20 +49,40 @@ const TelegramSettings = () => {
     },
   });
 
+  // Fetch user's credentials to check if they exist and populate form
   useEffect(() => {
-    if (config) {
-      form.reset({
-        telegram_bot_token: config.telegram_bot_token || '',
-        telegram_chat_id: config.telegram_chat_id || '',
-        notifications_enabled: config.notifications_enabled ?? true,
-      });
-    }
-  }, [config, form]);
+    const fetchCredentials = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('user_telegram_config')
+        .select('telegram_bot_token, telegram_chat_id, notifications_enabled')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (data) {
+        // Only show if credentials exist (don't pre-fill sensitive data)
+        setHasCredentials(!!(data.telegram_bot_token && data.telegram_chat_id));
+        form.reset({
+          telegram_bot_token: '',
+          telegram_chat_id: '',
+          notifications_enabled: data.notifications_enabled ?? true,
+        });
+      }
+    };
+
+    fetchCredentials();
+  }, [form]);
 
   const handleSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
       await updateConfig(data);
+      setHasCredentials(!!(data.telegram_bot_token && data.telegram_chat_id));
+      // Clear sensitive fields after save
+      form.setValue('telegram_bot_token', '');
+      form.setValue('telegram_chat_id', '');
     } catch (error) {
       // Error is handled in context
     } finally {
@@ -136,12 +157,12 @@ const TelegramSettings = () => {
                       <FormControl>
                         <Input
                           type="password"
-                          placeholder="1234567890:ABCdefGHIjklMNOpqrsTUVwxyz"
+                          placeholder={hasCredentials ? "••••••••••••••••••••" : "1234567890:ABCdefGHIjklMNOpqrsTUVwxyz"}
                           {...field}
                         />
                       </FormControl>
                       <FormDescription>
-                        Il token fornito da @BotFather
+                        {hasCredentials ? 'Token già configurato. Inserisci un nuovo valore per aggiornarlo.' : 'Il token fornito da @BotFather'}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -156,12 +177,12 @@ const TelegramSettings = () => {
                       <FormLabel>Chat ID</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="123456789"
+                          placeholder={hasCredentials ? "••••••••••" : "123456789"}
                           {...field}
                         />
                       </FormControl>
                       <FormDescription>
-                        Il tuo Chat ID personale (ottienilo da @userinfobot)
+                        {hasCredentials ? 'Chat ID già configurato. Inserisci un nuovo valore per aggiornarlo.' : 'Il tuo Chat ID personale (ottienilo da @userinfobot)'}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -228,7 +249,7 @@ const TelegramSettings = () => {
           </CardContent>
         </Card>
 
-        {config?.telegram_bot_token && config?.telegram_chat_id && (
+        {hasCredentials && (
           <Alert className="bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800">
             <Info className="h-4 w-4 text-green-600 dark:text-green-400" />
             <AlertDescription className="text-green-800 dark:text-green-200">
