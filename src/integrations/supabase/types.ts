@@ -718,6 +718,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      trigger_notification_check: { Args: never; Returns: undefined }
       try_acquire_rate_limit: {
         Args: { function_id: string; rate_limit_seconds: number }
         Returns: boolean
