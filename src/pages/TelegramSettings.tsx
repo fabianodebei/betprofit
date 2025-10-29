@@ -13,6 +13,7 @@ import { useTelegramConfig } from '@/contexts/TelegramConfigContext';
 import { Info, MessageSquare, ArrowLeft, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import telegramQR from '@/assets/telegram-qr.jpeg';
 
 const formSchema = z.object({
   telegram_bot_token: z.string()
@@ -115,6 +116,22 @@ const TelegramSettings = () => {
             </ol>
           </AlertDescription>
         </Alert>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-center">Canale Telegram</CardTitle>
+            <CardDescription className="text-center">
+              Inquadra il qrcode per accedere al canale telegram
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <img 
+              src={telegramQR} 
+              alt="QR Code Telegram" 
+              className="max-w-xs w-full h-auto rounded-lg"
+            />
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
