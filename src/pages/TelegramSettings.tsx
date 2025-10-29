@@ -129,11 +129,16 @@ const TelegramSettings = () => {
           <AlertDescription>
             <strong>Come configurare il tuo BOT Telegram:</strong>
             <ol className="list-decimal ml-4 mt-2 space-y-1">
-              <li>Apri Telegram e cerca <code className="bg-muted px-1 rounded">@BotFather</code></li>
+              <li>Apri Telegram e cerca <strong>BotFather</strong> con il bollino blu</li>
+              <li>Clicca sul tasto <strong>Avvia</strong></li>
               <li>Invia il comando <code className="bg-muted px-1 rounded">/newbot</code> e segui le istruzioni</li>
+              <li>Scegli il nome del bot (metti qualcosa che ricordi il betprofit) e premi <strong>INVIA</strong></li>
+              <li>Ora devi inserire il nome del bot (mi raccomando deve finire con <strong>bot</strong> es: betprofitbot) e premi <strong>INVIA</strong></li>
               <li>Copia il token che ricevi e incollalo qui sotto</li>
-              <li>Avvia una conversazione con il tuo nuovo BOT</li>
-              <li>Per ottenere il Chat ID, cerca <code className="bg-muted px-1 rounded">@userinfobot</code> su Telegram e invia <code className="bg-muted px-1 rounded">/start</code></li>
+              <li>Clicca sul link del tuo nuovo bot subito dopo "Done! Congratulations on your new bot. You will find it at" e poi clicca su <strong>AVVIA</strong></li>
+              <li>Torna nella pagina principale di Telegram e cerca il canale <code className="bg-muted px-1 rounded">@userinfobot</code> quello con 400.000 utenti</li>
+              <li>Clicca <strong>AVVIA</strong></li>
+              <li>Copia l'ID che esce e incollalo qui sotto nel campo Chat ID, poi clicca <strong>Salva Configurazione</strong></li>
             </ol>
           </AlertDescription>
         </Alert>
