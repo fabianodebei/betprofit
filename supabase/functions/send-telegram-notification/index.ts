@@ -104,9 +104,9 @@ const handler = async (req: Request): Promise<Response> => {
       console.log('Using user_id from JWT:', user_id);
     }
 
-    // Get user's Telegram configuration
+    // Get user's Telegram configuration (decrypted via secure view)
     const { data: config, error: configError } = await supabase
-      .from('user_telegram_config')
+      .from('user_telegram_config_decrypted')
       .select('*')
       .eq('user_id', user_id)
       .single();

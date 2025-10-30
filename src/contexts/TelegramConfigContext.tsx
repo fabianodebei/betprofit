@@ -100,12 +100,34 @@ export const TelegramConfigProvider = ({ children }: { children: ReactNode }) =>
         Object.entries(updates).filter(([_, value]) => value !== '')
       );
 
+      // Encrypt sensitive fields if present
+      const updateData: any = { updated_at: new Date().toISOString() };
+      
+      if (filteredUpdates.telegram_bot_token) {
+        // Call encryption function for bot token
+        const { data: encryptedToken, error: encryptError } = await supabase
+          .rpc('encrypt_telegram_credential', { credential: filteredUpdates.telegram_bot_token });
+        
+        if (encryptError) throw encryptError;
+        updateData.telegram_bot_token_encrypted = encryptedToken;
+      }
+      
+      if (filteredUpdates.telegram_chat_id) {
+        // Call encryption function for chat ID
+        const { data: encryptedChatId, error: encryptError } = await supabase
+          .rpc('encrypt_telegram_credential', { credential: filteredUpdates.telegram_chat_id });
+        
+        if (encryptError) throw encryptError;
+        updateData.telegram_chat_id_encrypted = encryptedChatId;
+      }
+      
+      if (filteredUpdates.notifications_enabled !== undefined) {
+        updateData.notifications_enabled = filteredUpdates.notifications_enabled;
+      }
+
       const { error } = await supabase
         .from('user_telegram_config')
-        .update({
-          ...filteredUpdates,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('user_id', user.id);
 
       if (error) throw error;

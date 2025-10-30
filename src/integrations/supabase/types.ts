@@ -593,7 +593,9 @@ export type Database = {
           id: string
           notifications_enabled: boolean
           telegram_bot_token: string | null
+          telegram_bot_token_encrypted: string | null
           telegram_chat_id: string | null
+          telegram_chat_id_encrypted: string | null
           updated_at: string
           user_id: string
         }
@@ -602,7 +604,9 @@ export type Database = {
           id?: string
           notifications_enabled?: boolean
           telegram_bot_token?: string | null
+          telegram_bot_token_encrypted?: string | null
           telegram_chat_id?: string | null
+          telegram_chat_id_encrypted?: string | null
           updated_at?: string
           user_id: string
         }
@@ -611,7 +615,9 @@ export type Database = {
           id?: string
           notifications_enabled?: boolean
           telegram_bot_token?: string | null
+          telegram_bot_token_encrypted?: string | null
           telegram_chat_id?: string | null
+          telegram_chat_id_encrypted?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -652,7 +658,36 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      user_telegram_config_decrypted: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          notifications_enabled: boolean | null
+          telegram_bot_token: string | null
+          telegram_chat_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          notifications_enabled?: boolean | null
+          telegram_bot_token?: never
+          telegram_chat_id?: never
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          notifications_enabled?: boolean | null
+          telegram_bot_token?: never
+          telegram_chat_id?: never
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_public_book_to_user: {
@@ -709,6 +744,14 @@ export type Database = {
           target_user_id: string
         }
         Returns: undefined
+      }
+      decrypt_telegram_credential: {
+        Args: { encrypted_credential: string }
+        Returns: string
+      }
+      encrypt_telegram_credential: {
+        Args: { credential: string }
+        Returns: string
       }
       get_admin_stats: { Args: never; Returns: Json }
       has_role: {
