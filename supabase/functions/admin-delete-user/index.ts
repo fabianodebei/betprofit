@@ -66,7 +66,8 @@ serve(async (req: Request): Promise<Response> => {
     const body = await req.json().catch(() => ({}));
     const parsed = requestSchema.safeParse(body);
     if (!parsed.success) {
-      return new Response(JSON.stringify({ error: "Invalid payload", details: parsed.error.flatten() }), {
+      console.error("Validation failed:", parsed.error.flatten());
+      return new Response(JSON.stringify({ error: "Invalid request" }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
@@ -119,7 +120,8 @@ serve(async (req: Request): Promise<Response> => {
     // Delete auth user
     const { error: delErr } = await supabaseAdmin.auth.admin.deleteUser(targetUserId);
     if (delErr) {
-      return new Response(JSON.stringify({ error: delErr.message || "Failed to delete user" }), {
+      console.error("Failed to delete user:", delErr.message);
+      return new Response(JSON.stringify({ error: "Failed to delete user" }), {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
@@ -130,7 +132,8 @@ serve(async (req: Request): Promise<Response> => {
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   } catch (e) {
-    return new Response(JSON.stringify({ error: "Internal error", details: String(e) }), {
+    console.error("Internal error:", String(e));
+    return new Response(JSON.stringify({ error: "Internal error" }), {
       status: 500,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
