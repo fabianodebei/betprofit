@@ -45,9 +45,8 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     console.log('Notification check triggered');
-    // Public endpoint: protected by internal rate limiting and server-side service role calls only
-    // Proceed without header verification to ensure cron works reliably
-
+    // Authenticated endpoint: JWT verification enabled in config.toml
+    // Cron job calls with service role key for authentication
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;

@@ -4,7 +4,7 @@ project_id = "kykcanyioyzqctagrhud"
 verify_jwt = false
  
 [functions.check-notifications]
-verify_jwt = false
+verify_jwt = true
 
 [functions.check-notifications.env]
 NOTIFICATION_HMAC_SECRET = "env:NOTIFICATION_HMAC_SECRET"
