@@ -52,31 +52,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    let mounted = true;
+
+    // Check for existing session first
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error getting session:', error);
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    initializeAuth();
+
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-        
-        // Redirect to reset password page on PASSWORD_RECOVERY event
-        if (event === 'PASSWORD_RECOVERY') {
-          setTimeout(() => {
-            navigate('/reset-password');
-          }, 0);
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          // Redirect to reset password page on PASSWORD_RECOVERY event
+          if (event === 'PASSWORD_RECOVERY') {
+            setTimeout(() => {
+              navigate('/reset-password');
+            }, 0);
+          }
         }
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   const signUp = async (email: string, password: string, fullName: string) => {
     const redirectUrl = `${window.location.origin}/`;
