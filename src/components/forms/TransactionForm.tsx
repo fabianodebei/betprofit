@@ -146,12 +146,19 @@ export function TransactionForm({ open, onOpenChange, preselectedAccount }: Tran
       await updateWallet(wallet.id, { saldoAttuale: newWalletBalance });
     }
 
-    // Per Riconciliazione non usiamo addebito/accredito per non influenzare le statistiche
     const amountAbs = Math.abs(data.movimento);
-    const addebito = metodo === 'Riconciliazione' ? undefined :
-      (metodo === 'Prelievo' || metodo === 'Spesa' ? amountAbs : undefined);
-    const accredito = metodo === 'Riconciliazione' ? undefined :
-      (metodo === 'Deposito' ? amountAbs : undefined);
+    const addebito =
+      metodo === 'Prelievo' || metodo === 'Spesa'
+        ? amountAbs
+        : metodo === 'Riconciliazione' && data.movimento < 0
+          ? amountAbs
+          : undefined;
+    const accredito =
+      metodo === 'Deposito'
+        ? amountAbs
+        : metodo === 'Riconciliazione' && data.movimento > 0
+          ? amountAbs
+          : undefined;
 
     await addTransaction({
       metodo: data.metodo,
@@ -160,7 +167,7 @@ export function TransactionForm({ open, onOpenChange, preselectedAccount }: Tran
       addebito,
       accredito,
       descrizione: metodo === 'Riconciliazione' 
-        ? `${data.movimento > 0 ? '+' : ''}${data.movimento.toFixed(2)}€${data.descrizione ? ' - ' + data.descrizione : ''}`
+        ? `Riconciliazione: ${data.movimento > 0 ? '+' : ''}${data.movimento.toFixed(2)}€${data.descrizione ? ' - ' + data.descrizione : ''}`
         : data.descrizione,
       registrato: data.registrato,
     });

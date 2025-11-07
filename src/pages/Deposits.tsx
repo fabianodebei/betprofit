@@ -51,13 +51,12 @@ export default function Deposits() {
         };
       }
       
-      // Somma tutto ciò che è stato accreditato sul conto (soldi versati)
-      if (t.accredito && t.accredito > 0) {
+      if (t.accredito && t.accredito > 0 && t.metodo !== 'Riconciliazione') {
         statsByBook[t.conto].depositi += t.accredito;
       }
       
-      // Somma tutto ciò che è stato addebitato dal conto (soldi prelevati)
-      if (t.addebito && t.addebito > 0) {
+      // Escludi le riconciliazioni dai prelievi
+      if (t.addebito && t.addebito > 0 && t.metodo !== 'Riconciliazione') {
         statsByBook[t.conto].prelievi += t.addebito;
       }
     });

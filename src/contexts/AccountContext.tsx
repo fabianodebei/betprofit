@@ -242,10 +242,12 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         const conto = t.conto as string;
         if (!saldoDisponibileMap[conto]) saldoDisponibileMap[conto] = 0;
         
-        if (t.metodo === 'Deposito' || t.metodo === 'Riconciliazione') {
+        if (t.metodo === 'Deposito') {
           saldoDisponibileMap[conto] += Number(t.accredito || 0);
         } else if (t.metodo === 'Prelievo' || t.metodo === 'Spesa') {
           saldoDisponibileMap[conto] -= Number(t.addebito || 0);
+        } else if (t.metodo === 'Riconciliazione') {
+          saldoDisponibileMap[conto] += Number(t.accredito || 0) - Number(t.addebito || 0);
         }
       });
 
