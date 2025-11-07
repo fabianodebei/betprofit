@@ -231,7 +231,7 @@ export function TransactionForm({ open, onOpenChange, preselectedAccount }: Tran
                 </FormItem>
               )}
             />
-            {selectedIntestatario && filteredWallets.length > 0 && (
+            {selectedIntestatario && filteredWallets.length > 0 && form.watch('metodo') !== 'Riconciliazione' && (
               <FormField
                 control={form.control}
                 name="wallet"
