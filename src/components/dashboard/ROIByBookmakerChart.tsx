@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip, Legend, CartesianGrid } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip, Legend, CartesianGrid, ReferenceLine } from 'recharts';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { FullscreenChart } from '@/components/admin/FullscreenChart';
 import { useState, useEffect } from 'react';
@@ -75,7 +75,8 @@ export function ROIByBookmakerChart({
                 tick={{ fill: 'hsl(var(--foreground))', fontSize: isMobile ? 10 : 12 }}
               />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-              <Bar dataKey="roi" radius={[4, 4, 0, 0]}>
+              <ReferenceLine y={0} stroke="hsl(var(--border))" strokeWidth={2} />
+              <Bar dataKey="roi" radius={[4, 4, 4, 4]}>
                 {sortedData.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
