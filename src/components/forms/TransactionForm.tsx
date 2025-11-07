@@ -24,7 +24,7 @@ const transactionSchema = z.object({
   metodo: z.enum(['Deposito', 'Spesa', 'Prelievo', 'Riconciliazione']),
   conto: z.string().min(1, 'Conto è obbligatorio'),
   wallet: z.string().optional(),
-  movimento: z.number().positive('Il movimento deve essere positivo'),
+  movimento: z.number().min(0.01, 'Il movimento deve essere maggiore di 0'),
   registrato: z.date(),
   descrizione: z.string().optional(),
 });
@@ -51,7 +51,7 @@ export function TransactionForm({ open, onOpenChange, preselectedAccount }: Tran
       metodo: 'Deposito',
       conto: '',
       wallet: '',
-      movimento: 0,
+      movimento: undefined as any,
       registrato: new Date(),
       descrizione: '',
     },
