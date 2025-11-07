@@ -505,45 +505,6 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                           <p className="text-sm text-destructive mt-1">La quota deve essere maggiore di 1</p>
                         )}
                       </div>
-
-                      <div>
-                        <label className="text-sm font-medium">Data Evento</label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                'w-full justify-start text-left font-normal',
-                                !selection.dataEvento && 'text-muted-foreground'
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {selection.dataEvento ? format(selection.dataEvento, 'PPP HH:mm') : 'Seleziona data'}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <div className="space-y-3 p-3">
-                              <Calendar
-                                mode="single"
-                                selected={selection.dataEvento}
-                                onSelect={(date) => {
-                                  if (date) {
-                                    const newDate = new Date(date);
-                                    newDate.setHours(selection.dataEvento.getHours());
-                                    newDate.setMinutes(selection.dataEvento.getMinutes());
-                                    handleSelectionChange(index, 'dataEvento', newDate);
-                                  }
-                                }}
-                                className="pointer-events-auto"
-                              />
-                              <TimePicker
-                                value={selection.dataEvento}
-                                onChange={(date) => handleSelectionChange(index, 'dataEvento', date)}
-                              />
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-                      </div>
                     </div>
                   </CardContent>
                 </Card>
