@@ -169,7 +169,12 @@ export default function ArchivedBets() {
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedItems.map((bet, idx) => (
+                  {paginatedItems.map((bet, idx) => {
+                    const betResult = bet.risultato || 0;
+                    const layResult = calculateLayBetResults(bet.id, bet.esito || 'refund', bet.esitoDettaglio);
+                    const totalGM = betResult + layResult;
+                    
+                    return (
                       <tr key={bet.id} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
                         <td className="p-3 text-sm font-medium">{bet.id.slice(0, 8)}</td>
                         <td className="p-3">
@@ -186,8 +191,8 @@ export default function ArchivedBets() {
                         </td>
                         <td className="p-3 text-sm">{bet.note || '-'}</td>
                         <td className="p-3">
-                          <span className={`font-semibold ${bet.risultato && bet.risultato > 0 ? 'text-success' : bet.risultato && bet.risultato < 0 ? 'text-destructive' : ''}`}>
-                            {formatCurrency(bet.risultato || 0)}
+                          <span className={`font-semibold ${totalGM > 0 ? 'text-success' : totalGM < 0 ? 'text-destructive' : ''}`}>
+                            {formatCurrency(totalGM)}
                           </span>
                         </td>
                         <td className="p-3">
@@ -197,7 +202,8 @@ export default function ArchivedBets() {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                    );
+                  })}
                   </tbody>
                 </table>
               </div>
