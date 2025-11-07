@@ -252,8 +252,31 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
       continue;
     }
 
-    const eventDate = new Date(bet.data_evento);
-    // Add 1 hour and 40 minutes (100 minutes)
+    let eventDate: Date;
+    const isMultiple = bet.tipo === 'Multipla';
+    
+    // For multiple bets, find the first match date from bet_legs
+    if (isMultiple) {
+      const { data: legs, error: legsError } = await supabase
+        .from('bet_legs')
+        .select('data_evento')
+        .eq('bet_id', bet.id)
+        .order('data_evento', { ascending: true })
+        .limit(1);
+      
+      if (legsError || !legs || legs.length === 0) {
+        console.warn(`No bet_legs found for multiple bet ${bet.id}, skipping`);
+        continue;
+      }
+      
+      eventDate = new Date(legs[0].data_evento);
+      console.log(`Multiple bet ${bet.id}: using first match date ${eventDate.toISOString()}`);
+    } else {
+      // For single bets, use the bet's event date
+      eventDate = new Date(bet.data_evento);
+    }
+    
+    // Add 1 hour and 40 minutes (100 minutes) after the first match starts
     const reportTime = new Date(eventDate.getTime() + 100 * 60 * 1000);
 
     // Send notification if time has arrived
