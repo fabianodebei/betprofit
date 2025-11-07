@@ -170,6 +170,7 @@ export type Database = {
           conto: string
           created_at: string
           data_evento: string
+          esito: string | null
           evento: string | null
           id: string
           mercato: string | null
@@ -200,6 +201,7 @@ export type Database = {
           conto: string
           created_at?: string
           data_evento: string
+          esito?: string | null
           evento?: string | null
           id?: string
           mercato?: string | null
@@ -230,6 +232,7 @@ export type Database = {
           conto?: string
           created_at?: string
           data_evento?: string
+          esito?: string | null
           evento?: string | null
           id?: string
           mercato?: string | null
