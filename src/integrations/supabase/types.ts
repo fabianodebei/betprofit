@@ -171,6 +171,7 @@ export type Database = {
           created_at: string
           data_evento: string
           esito: string | null
+          esito_dettaglio: string | null
           evento: string | null
           id: string
           mercato: string | null
@@ -202,6 +203,7 @@ export type Database = {
           created_at?: string
           data_evento: string
           esito?: string | null
+          esito_dettaglio?: string | null
           evento?: string | null
           id?: string
           mercato?: string | null
@@ -233,6 +235,7 @@ export type Database = {
           created_at?: string
           data_evento?: string
           esito?: string | null
+          esito_dettaglio?: string | null
           evento?: string | null
           id?: string
           mercato?: string | null

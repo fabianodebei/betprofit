@@ -126,10 +126,15 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       }));
 
       // Recalcolo bilanci dalle puntate per correggere eventuali inconsistenze
-      const { data: betsData } = await supabase
+      const { data: betsData, error: betsError } = await supabase
         .from('bets')
-        .select('id, tipo, conto, stato, stake, risultato, tipo_bonus, esito, quota')
+        .select('id, tipo, conto, stato, stake, risultato, tipo_bonus, esito, esito_dettaglio')
         .eq('user_id', user.id);
+
+      if (betsError) {
+        console.error('Error fetching bets for account calculation:', betsError);
+        throw betsError;
+      }
 
       const giocateMap: Record<string, number> = {};
       const rapideMap: Record<string, number> = {};
@@ -157,37 +162,69 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         .filter((b: any) => b.stato === 'In Corso')
         .map((b: any) => b.id));
 
-      const esitiArchiviati = new Map<string, { esito: string; tipo: string }>();
+      // Map: betId -> { esito, tipo, conto, esitoDettaglio }
+      const esitiArchiviati = new Map<string, { esito: string; tipo: string; conto: string; esitoDettaglio?: string }>();
       (betsData || []).forEach((b: any) => {
-        if (b.stato === 'Archiviata' && b.esito && b.tipo !== 'Multipla') {
-          // Solo singole/casino: per le multiple il risultato è già comprensivo delle bancate
-          esitiArchiviati.set(b.id, { esito: b.esito as string, tipo: b.tipo });
+        if (b.stato === 'Archiviata' && b.esito) {
+          esitiArchiviati.set(b.id, { 
+            esito: b.esito as string, 
+            tipo: b.tipo, 
+            conto: b.conto,
+            esitoDettaglio: b.esito_dettaglio || undefined
+          });
         }
       });
 
-      const { data: layData } = await supabase
+      const { data: layData, error: layError } = await supabase
         .from('lay_bets')
-        .select('parent_bet_id, metodo, conto, stake, quota_banca, tasse_percentuale')
+        .select('id, parent_bet_id, metodo, conto, stake, quota_banca, tasse_percentuale')
         .eq('user_id', user.id);
+
+      if (layError) {
+        console.error('Error fetching lay bets for account calculation:', layError);
+        throw layError;
+      }
 
       (layData || []).forEach((lb: any) => {
         if (lb.metodo === 'Banca' && activeBetIds.has(lb.parent_bet_id)) {
+          // Puntata in corso: sottrai liability dal bilancio
           const liability = Number(lb.stake) * (Number(lb.quota_banca) - 1);
           const conto = lb.conto as string;
           giocateMap[conto] = (giocateMap[conto] || 0) - liability;
         } else if (lb.metodo === 'Banca' && esitiArchiviati.has(lb.parent_bet_id)) {
+          const parentInfo = esitiArchiviati.get(lb.parent_bet_id)!;
+          const { esito, tipo, conto: contoPunta, esitoDettaglio } = parentInfo;
           const conto = lb.conto as string;
-          const { esito } = esitiArchiviati.get(lb.parent_bet_id)!;
-          if (esito === 'win') {
-            // la punta ha vinto -> la bancata perde (liability)
+
+          // Per le multiple: se esitoDettaglio è presente, verifichiamo il lay vincente
+          if (tipo === 'Multipla' && esito === 'loss' && esitoDettaglio) {
+            // Multipla persa su un lay specifico
+            if (lb.id === esitoDettaglio) {
+              // Questo lay ha vinto
+              const profittoLordo = Number(lb.stake);
+              const tasse = profittoLordo * (Number(lb.tasse_percentuale || 0) / 100);
+              giocateMap[conto] = (giocateMap[conto] || 0) + (profittoLordo - tasse);
+            } else {
+              // Lay precedenti perdono (liability)
+              const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
+              giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
+            }
+          } else if (tipo === 'Multipla' && esito === 'win') {
+            // Multipla vinta: tutti i lay perdono
             const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
             giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
-          } else if (esito === 'loss') {
-            // la punta ha perso -> la bancata vince (stake meno tasse)
-            const profittoLordo = Number(lb.stake);
-            const tasse = profittoLordo * (Number(lb.tasse_percentuale || 0) / 100);
-            giocateMap[conto] = (giocateMap[conto] || 0) + (profittoLordo - tasse);
-          } else {
+          } else if (tipo !== 'Multipla') {
+            // Singole/casino: applica esito normale
+            if (esito === 'win') {
+              // la punta ha vinto -> la bancata perde (liability)
+              const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
+              giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
+            } else if (esito === 'loss') {
+              // la punta ha perso -> la bancata vince (stake meno tasse)
+              const profittoLordo = Number(lb.stake);
+              const tasse = profittoLordo * (Number(lb.tasse_percentuale || 0) / 100);
+              giocateMap[conto] = (giocateMap[conto] || 0) + (profittoLordo - tasse);
+            }
             // refund -> 0
           }
         }

@@ -86,9 +86,9 @@ export default function OngoingBets() {
     }
   };
 
-  const handleConfirmArchive = (risultato: number, outcome?: 'win' | 'loss' | 'refund') => {
+  const handleConfirmArchive = (risultato: number, outcome?: 'win' | 'loss' | 'refund', esitoDettaglio?: string) => {
     if (selectedBet) {
-      archiveBet(selectedBet.id, risultato, outcome ?? 'win');
+      archiveBet(selectedBet.id, risultato, outcome ?? 'win', esitoDettaglio);
     }
   };
 

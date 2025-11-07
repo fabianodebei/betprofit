@@ -10,7 +10,7 @@ interface BetContextType {
   addBet: (bet: Omit<Bet, 'id' | 'createdAt'>) => Promise<string>;
   updateBet: (id: string, bet: Partial<Bet>) => Promise<void>;
   deleteBet: (id: string) => Promise<void>;
-  archiveBet: (id: string, risultato: number, outcome: 'win' | 'loss' | 'refund') => Promise<void>;
+  archiveBet: (id: string, risultato: number, outcome: 'win' | 'loss' | 'refund', esitoDettaglio?: string) => Promise<void>;
   reopenBet: (id: string) => Promise<void>;
   getOngoingBets: () => Bet[];
   getArchivedBets: () => Bet[];
@@ -279,7 +279,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const archiveBet = async (id: string, risultatoTotale: number, outcome: 'win' | 'loss' | 'refund') => {
+  const archiveBet = async (id: string, risultatoTotale: number, outcome: 'win' | 'loss' | 'refund', esitoDettaglio?: string) => {
     const bet = bets.find(b => b.id === id);
     if (!bet) return;
 
@@ -307,13 +307,19 @@ export function BetProvider({ children }: { children: ReactNode }) {
         risultatoToSave = 0; // refund
       }
     }
-    // Per le multiple, risultatoTotale è già calcolato da multiplaCalculations (include bancate)
+    // Per le multiple, risultatoTotale è GIÀ calcolato correttamente ma rappresenta il totale netto
+    // Dobbiamo scomporre per conto: bet.conto prende risultato punta, lay.conto prende risultato lay
 
     try {
-      // Aggiorna la puntata con esito e risultato
+      // Aggiorna la puntata con esito, risultato e dettaglio esito
       const { error: updateError } = await supabase
         .from('bets')
-        .update({ stato: 'Archiviata', risultato: risultatoToSave, esito: outcome })
+        .update({ 
+          stato: 'Archiviata', 
+          risultato: risultatoToSave, 
+          esito: outcome,
+          esito_dettaglio: esitoDettaglio || null
+        })
         .eq('id', id);
 
       if (updateError) throw updateError;
@@ -325,6 +331,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
       window.dispatchEvent(new Event('refresh-accounts'));
     } catch (error) {
       console.error('Error archiving bet:', error);
+      toast.error('Errore durante l\'archiviazione della puntata');
     }
   };
 
