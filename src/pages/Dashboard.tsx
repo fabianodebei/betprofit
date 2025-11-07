@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAccounts } from '@/contexts/AccountContext';
 import { useWallets } from '@/contexts/WalletContext';
 import { useBets } from '@/contexts/BetContext';
+import { useLayBets } from '@/contexts/LayBetContext';
 import { useReminders } from '@/contexts/ReminderContext';
 import { useYear } from '@/contexts/YearContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,6 +23,7 @@ export default function Dashboard() {
   const { accounts, loading: accountsLoading } = useAccounts();
   const { wallets, loading: walletsLoading } = useWallets();
   const { bets, getArchivedBets, loading: betsLoading } = useBets();
+  const { layBets } = useLayBets();
   const { reminders, updateReminder, loading: remindersLoading } = useReminders();
   const { selectedYear } = useYear();
 
@@ -55,6 +57,37 @@ export default function Dashboard() {
     };
   }, []);
 
+  // Calculate lay bets results for archived bets
+  const calculateLayBetResults = (betId: string, outcome: string, esitoDettaglio?: string) => {
+    const associatedLayBets = layBets.filter(lb => lb.parentBetId === betId && lb.metodo === 'Banca');
+    let total = 0;
+    
+    associatedLayBets.forEach(lb => {
+      if (outcome === 'win') {
+        // Punta vinta -> bancata perde (liability)
+        total -= lb.stake * (lb.quotaBanca - 1);
+      } else if (outcome === 'loss') {
+        if (esitoDettaglio && lb.id === esitoDettaglio) {
+          // Questo lay ha vinto
+          const profittoLordo = lb.stake;
+          const tasse = profittoLordo * (lb.tassePercentuale / 100);
+          total += profittoLordo - tasse;
+        } else if (esitoDettaglio) {
+          // Lay precedenti perdono
+          total -= lb.stake * (lb.quotaBanca - 1);
+        } else {
+          // Nessun dettaglio: bancata ha vinto (punta persa generica)
+          const profittoLordo = lb.stake;
+          const tasse = profittoLordo * (lb.tassePercentuale / 100);
+          total += profittoLordo - tasse;
+        }
+      }
+      // refund -> 0
+    });
+    
+    return total;
+  };
+
   // Calculate stats from archived bets AND quick bets
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -67,7 +100,12 @@ export default function Dashboard() {
            bet.createdAt.getFullYear() === selectedYear
   );
   
-  const currentMonthArchivedEarnings = currentMonthArchivedBets.reduce((sum, bet) => sum + (bet.risultato || 0), 0);
+  // Include lay bets results
+  const currentMonthArchivedEarnings = currentMonthArchivedBets.reduce((sum, bet) => {
+    const betResult = bet.risultato || 0;
+    const layResult = calculateLayBetResults(bet.id, bet.esito || 'refund', bet.esitoDettaglio);
+    return sum + betResult + layResult;
+  }, 0);
   
   // Quick bets for current month
   const currentMonthQuickBets = quickBets.filter(
@@ -84,7 +122,11 @@ export default function Dashboard() {
   const yearArchivedBets = archivedBets.filter(bet => bet.tipo !== 'Rapida' && bet.createdAt.getFullYear() === selectedYear);
   const yearQuickBets = quickBets.filter(bet => bet.createdAt.getFullYear() === selectedYear);
   
-  const totalYearArchived = yearArchivedBets.reduce((sum, bet) => sum + (bet.risultato || 0), 0);
+  const totalYearArchived = yearArchivedBets.reduce((sum, bet) => {
+    const betResult = bet.risultato || 0;
+    const layResult = calculateLayBetResults(bet.id, bet.esito || 'refund', bet.esitoDettaglio);
+    return sum + betResult + layResult;
+  }, 0);
   const totalYearQuick = yearQuickBets.reduce((sum, bet) => sum + bet.stake, 0);
   const totalYear = totalYearArchived + totalYearQuick;
   
@@ -93,7 +135,9 @@ export default function Dashboard() {
   const monthlyEarnings = new Array(12).fill(0);
   yearArchivedBets.forEach(bet => {
     const month = bet.createdAt.getMonth();
-    monthlyEarnings[month] += (bet.risultato || 0);
+    const betResult = bet.risultato || 0;
+    const layResult = calculateLayBetResults(bet.id, bet.esito || 'refund', bet.esitoDettaglio);
+    monthlyEarnings[month] += betResult + layResult;
   });
   yearQuickBets.forEach(bet => {
     const month = bet.createdAt.getMonth();
@@ -106,7 +150,7 @@ export default function Dashboard() {
   const monthNames = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
   const bestMonthName = monthNames[bestMonthIndex];
 
-  // Analytics calculations - include archived bets AND quick bets
+  // Analytics calculations - include archived bets AND quick bets AND lay bets
   const bookmakerStats = useMemo(() => {
     const stats = new Map();
     
@@ -127,13 +171,36 @@ export default function Dashboard() {
       }
       s.count += 1;
     });
+
+    // Add lay bets results for archived bets
+    bets.filter(b => b.stato === 'Archiviata' && b.esito).forEach(bet => {
+      const layResult = calculateLayBetResults(bet.id, bet.esito!, bet.esitoDettaglio);
+      const layBetsForBet = layBets.filter(lb => lb.parentBetId === bet.id);
+      
+      layBetsForBet.forEach(lb => {
+        if (!stats.has(lb.conto)) {
+          stats.set(lb.conto, { stake: 0, profitto: 0, count: 0 });
+        }
+        const s = stats.get(lb.conto);
+        // Calcola la quota parte di questo lay
+        if (bet.esito === 'win') {
+          s.profitto -= lb.stake * (lb.quotaBanca - 1);
+        } else if (bet.esito === 'loss' && bet.esitoDettaglio === lb.id) {
+          const profittoLordo = lb.stake;
+          const tasse = profittoLordo * (lb.tassePercentuale / 100);
+          s.profitto += profittoLordo - tasse;
+        } else if (bet.esito === 'loss' && bet.esitoDettaglio) {
+          s.profitto -= lb.stake * (lb.quotaBanca - 1);
+        }
+      });
+    });
     
     return Array.from(stats.entries()).map(([bookmaker, data]) => ({
       bookmaker,
       ...data,
       roi: data.stake > 0 ? (data.profitto / data.stake) * 100 : 0
     }));
-  }, [bets]);
+  }, [bets, layBets]);
 
   const winRateRegular = useMemo(() => {
     const regularBets = archivedBets.filter(b => b.tipo !== 'Rapida');

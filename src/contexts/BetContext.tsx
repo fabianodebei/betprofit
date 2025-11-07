@@ -81,6 +81,8 @@ export function BetProvider({ children }: { children: ReactNode }) {
         rimborso: b.rimborso ? Number(b.rimborso) : undefined,
         stato: b.stato as 'In Corso' | 'Archiviata',
         risultato: b.risultato ? Number(b.risultato) : undefined,
+        esito: b.esito as 'win' | 'loss' | 'refund' | undefined,
+        esitoDettaglio: b.esito_dettaglio || undefined,
         tag: b.tag || undefined,
         walletId: b.wallet_id || undefined,
         note: b.note || undefined,
@@ -157,6 +159,8 @@ export function BetProvider({ children }: { children: ReactNode }) {
         rimborso: data.rimborso ? Number(data.rimborso) : undefined,
         stato: data.stato as 'In Corso' | 'Archiviata',
         risultato: data.risultato ? Number(data.risultato) : undefined,
+        esito: data.esito as 'win' | 'loss' | 'refund' | undefined,
+        esitoDettaglio: data.esito_dettaglio || undefined,
         tag: data.tag || undefined,
         walletId: data.wallet_id || undefined,
         note: data.note || undefined,
@@ -209,6 +213,8 @@ export function BetProvider({ children }: { children: ReactNode }) {
       if (updates.numeroMinimoSelezioni !== undefined) dbUpdates.numero_minimo_selezioni = updates.numeroMinimoSelezioni;
       if (updates.quotaCombinata !== undefined) dbUpdates.quota_combinata = updates.quotaCombinata;
       if (updates.vincitaPotenziale !== undefined) dbUpdates.vincita_potenziale = updates.vincitaPotenziale;
+      if (updates.esito !== undefined) dbUpdates.esito = updates.esito;
+      if (updates.esitoDettaglio !== undefined) dbUpdates.esito_dettaglio = updates.esitoDettaglio;
 
       const { error } = await supabase
         .from('bets')
