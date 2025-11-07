@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Plus, ArrowLeft } from 'lucide-react';
+import { Users, Plus, ArrowLeft, Wallet, CreditCard, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -163,37 +163,38 @@ export default function Intestatari() {
                       )}
                     </td>
                     <td className="p-3 text-sm">
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         <Button
-                          variant="link"
+                          variant="outline"
                           size="sm"
-                          className="h-auto p-0 text-primary"
                           onClick={() => handleNewWallet(int)}
                         >
-                          Nuovo Wallet
+                          <Wallet className="h-4 w-4 mr-1" />
+                          Wallet
                         </Button>
                         <Button
-                          variant="link"
+                          variant="outline"
                           size="sm"
-                          className="h-auto p-0 text-primary"
                           onClick={() => handleNewAccount(int)}
                         >
-                          Nuovo Conto
+                          <CreditCard className="h-4 w-4 mr-1" />
+                          Conto
                         </Button>
                         <Button
-                          variant="link"
+                          variant="ghost"
                           size="sm"
-                          className="h-auto p-0 text-primary"
                           onClick={() => handleEdit(int)}
                         >
+                          <Pencil className="h-4 w-4 mr-1" />
                           Modifica
                         </Button>
                         <Button
-                          variant="link"
+                          variant="ghost"
                           size="sm"
-                          className="h-auto p-0 text-destructive"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
                           onClick={() => setDeleteId(int.id)}
                         >
+                          <Trash2 className="h-4 w-4 mr-1" />
                           Elimina
                         </Button>
                       </div>
