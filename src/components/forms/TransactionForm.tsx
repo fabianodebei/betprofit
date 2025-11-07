@@ -24,9 +24,27 @@ const transactionSchema = z.object({
   metodo: z.enum(['Deposito', 'Spesa', 'Prelievo', 'Riconciliazione']),
   conto: z.string().min(1, 'Conto è obbligatorio'),
   wallet: z.string().optional(),
-  movimento: z.number().min(0.01, 'Il movimento deve essere maggiore di 0'),
+  movimento: z.number(),
   registrato: z.date(),
   descrizione: z.string().optional(),
+}).superRefine((val, ctx) => {
+  if (val.metodo === 'Riconciliazione') {
+    if (!val.movimento || val.movimento === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['movimento'],
+        message: 'Per la riconciliazione inserisci un importo diverso da 0 (può essere negativo)'
+      });
+    }
+  } else {
+    if (!val.movimento || val.movimento <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['movimento'],
+        message: 'Il movimento deve essere maggiore di 0'
+      });
+    }
+  }
 });
 
 type TransactionFormData = z.infer<typeof transactionSchema>;
@@ -124,12 +142,26 @@ export function TransactionForm({ open, onOpenChange, preselectedAccount }: Tran
       await updateWallet(wallet.id, { saldoAttuale: newWalletBalance });
     }
 
+    const amountAbs = Math.abs(data.movimento);
+    const addebito =
+      metodo === 'Prelievo' || metodo === 'Spesa'
+        ? amountAbs
+        : metodo === 'Riconciliazione' && data.movimento < 0
+          ? amountAbs
+          : undefined;
+    const accredito =
+      metodo === 'Deposito'
+        ? amountAbs
+        : metodo === 'Riconciliazione' && data.movimento > 0
+          ? amountAbs
+          : undefined;
+
     await addTransaction({
       metodo: data.metodo,
       conto: data.conto,
-      wallet: data.wallet,
-      addebito: metodo === 'Prelievo' || metodo === 'Spesa' ? data.movimento : undefined,
-      accredito: metodo === 'Deposito' || metodo === 'Riconciliazione' ? data.movimento : undefined,
+      wallet: metodo === 'Riconciliazione' ? undefined : data.wallet,
+      addebito,
+      accredito,
       descrizione: data.descrizione,
       registrato: data.registrato,
     });
