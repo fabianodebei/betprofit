@@ -188,6 +188,14 @@ export default function Intestatari() {
                         >
                           Modifica
                         </Button>
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="h-auto p-0 text-destructive"
+                          onClick={() => setDeleteId(int.id)}
+                        >
+                          Elimina
+                        </Button>
                       </div>
                     </td>
                   </tr>
