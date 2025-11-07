@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Bet } from '@/types';
 import { formatCurrency } from '@/utils/currency';
+import { useLayBets } from '@/contexts/LayBetContext';
 
 interface ArchiveBetDialogProps {
   bet: Bet | null;
@@ -15,33 +16,66 @@ interface ArchiveBetDialogProps {
 
 export function ArchiveBetDialog({ bet, open, onOpenChange, onConfirm }: ArchiveBetDialogProps) {
   const [outcome, setOutcome] = useState<'win' | 'loss' | 'refund'>('win');
+  const { getLayBetsByParentId } = useLayBets();
 
   if (!bet) return null;
+
+  const layBets = getLayBetsByParentId(bet.id);
 
   const calculateRisultato = () => {
     const quota = bet.quota || 1;
     
+    // Calcolo vincita/perdita puntata principale
+    let puntaRisultato: number;
+    
     if (outcome === 'win') {
       if (bet.tipoBonus === 'Free Bet') {
-        // Free Bet: vincita = stake * (quota - 1) (guadagno netto senza puntata iniziale)
-        return bet.stake * (quota - 1);
+        // Free Bet: vincita = stake * (quota - 1)
+        puntaRisultato = bet.stake * (quota - 1);
       } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
         // Bonus: vincita = (stake + bonus) * quota - stake
-        return (bet.stake + bet.bonus) * quota - bet.stake;
+        puntaRisultato = (bet.stake + bet.bonus) * quota - bet.stake;
       } else {
-        // Normale: solo profitto netto (stake torna al conto ma non è vincita)
-        return bet.stake * quota - bet.stake;
+        // Normale: solo profitto netto
+        puntaRisultato = bet.stake * quota - bet.stake;
       }
-    }
-    if (outcome === 'loss') {
+    } else if (outcome === 'loss') {
       // Con Free Bet, la perdita è 0 (non si perde denaro reale)
       if (bet.tipoBonus === 'Free Bet') {
-        return 0;
+        puntaRisultato = 0;
+      } else {
+        // Con Bonus o Normale, si perde lo stake
+        puntaRisultato = -bet.stake;
       }
-      // Con Bonus o Normale, si perde lo stake
-      return -bet.stake;
+    } else {
+      // Refund
+      puntaRisultato = 0;
     }
-    return 0; // refund
+
+    // Se non ci sono lay bets, ritorna solo il risultato della puntata
+    if (layBets.length === 0) {
+      return puntaRisultato;
+    }
+
+    // Calcolo risultato delle lay bets
+    if (outcome === 'win') {
+      // Puntata vince → bancate perdono
+      const layLosses = layBets.reduce((sum, lb) => {
+        return sum + lb.stake * (lb.quotaBanca - 1);
+      }, 0);
+      return puntaRisultato - layLosses;
+    } else if (outcome === 'loss') {
+      // Puntata perde → bancate vincono
+      const layWins = layBets.reduce((sum, lb) => {
+        const profitLordo = lb.stake;
+        const tasse = profitLordo * ((lb.tassePercentuale || 0) / 100);
+        return sum + (profitLordo - tasse);
+      }, 0);
+      return puntaRisultato + layWins;
+    } else {
+      // Refund: le bancate vengono rimborsate, risultato = 0
+      return 0;
+    }
   };
 
   const risultato = calculateRisultato();
@@ -78,6 +112,11 @@ export function ArchiveBetDialog({ bet, open, onOpenChange, onConfirm }: Archive
             <p className="text-sm font-medium">
               Quota: <span className="text-muted-foreground">{bet.quota || 'N/A'}</span>
             </p>
+            {layBets.length > 0 && (
+              <p className="text-sm font-medium text-accent">
+                Bancate: <span className="text-muted-foreground">{layBets.length} bancata{layBets.length > 1 ? 'e' : ''}</span>
+              </p>
+            )}
           </div>
 
           <RadioGroup value={outcome} onValueChange={(value) => setOutcome(value as 'win' | 'loss' | 'refund')}>
