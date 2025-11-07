@@ -247,10 +247,26 @@ export default function Dashboard() {
   }, [archivedBets]);
 
   const overallROI = useMemo(() => {
-    const totalStake = archivedBets.reduce((sum, b) => sum + b.stake, 0);
-    const totalProfitto = archivedBets.reduce((sum, b) => sum + (b.risultato || 0), 0);
+    // Calculate total stake from all archived bets and lay bets
+    const totalStakeBets = archivedBets.reduce((sum, b) => sum + b.stake, 0);
+    const totalStakeLay = layBets.reduce((sum, lb) => sum + lb.stake, 0);
+    const totalStake = totalStakeBets + totalStakeLay;
+    
+    // Calculate total profit from archived bets
+    const totalProfittoBets = archivedBets.reduce((sum, b) => sum + (b.risultato || 0), 0);
+    
+    // Calculate total profit from lay bets
+    const totalProfittoLay = archivedBets.reduce((sum, bet) => {
+      if (bet.esito) {
+        const layResult = calculateLayBetResults(bet.id, bet.esito, bet.esitoDettaglio);
+        return sum + layResult;
+      }
+      return sum;
+    }, 0);
+    
+    const totalProfitto = totalProfittoBets + totalProfittoLay;
     return totalStake > 0 ? (totalProfitto / totalStake) * 100 : 0;
-  }, [archivedBets]);
+  }, [archivedBets, layBets]);
 
   const betTypeDistribution = useMemo(() => {
     const types = new Map();
