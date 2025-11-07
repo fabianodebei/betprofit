@@ -191,16 +191,18 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       // Aggiorna DB se diverso e prepara stato corretto
       const correctedAccounts: Account[] = [];
       for (const acc of mappedAccounts) {
-        const newBG = giocateMap[acc.conto] ?? 0;
-        const newBR = rapideMap[acc.conto] ?? 0;
+        const newBG = Number((giocateMap[acc.conto] ?? 0).toFixed(4));
+        const newBR = Number((rapideMap[acc.conto] ?? 0).toFixed(4));
         const saldoBase = saldoDisponibileMap[acc.conto] ?? 0;
         // Il saldo attuale è: saldo base (depositi - prelievi) + bilancio giocate + bilancio rapide
-        const newSaldo = saldoBase + newBG + newBR;
+        const newSaldo = Number((saldoBase + newBG + newBR).toFixed(4));
         
-        const needsUpdate = 
-          newBG !== acc.bilancioGiocate || 
-          newBR !== acc.bilancioGiocateRapide ||
-          newSaldo !== acc.saldoAttuale;
+        // Confronta con tolleranza per evitare loop infiniti dovuti ad arrotondamenti
+        const bgDiff = Math.abs(newBG - acc.bilancioGiocate);
+        const brDiff = Math.abs(newBR - acc.bilancioGiocateRapide);
+        const saldoDiff = Math.abs(newSaldo - acc.saldoAttuale);
+        
+        const needsUpdate = bgDiff > 0.01 || brDiff > 0.01 || saldoDiff > 0.01;
           
         if (needsUpdate) {
           await supabase
