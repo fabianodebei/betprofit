@@ -126,9 +126,13 @@ export function TransactionForm({ open, onOpenChange, preselectedAccount }: Tran
     // Update account balance
     if (account) {
       let newBalance = account.saldoAttuale;
-      if (metodo === 'Deposito' || metodo === 'Riconciliazione') {
+      if (metodo === 'Riconciliazione') {
+        // For riconciliazione, directly add the movement value (can be negative)
+        newBalance = account.saldoAttuale + data.movimento;
+      } else if (metodo === 'Deposito') {
         newBalance = account.saldoAttuale + data.movimento;
       } else {
+        // Prelievo or Spesa
         newBalance = account.saldoAttuale - data.movimento;
       }
       await updateAccount(account.id, { saldoAttuale: newBalance });
@@ -166,10 +170,18 @@ export function TransactionForm({ open, onOpenChange, preselectedAccount }: Tran
       registrato: data.registrato,
     });
 
+    toast.success(metodo === 'Riconciliazione' 
+      ? 'Riconciliazione completata. Saldo aggiornato.' 
+      : 'Transazione aggiunta con successo'
+    );
+
     form.reset();
     setSelectedIntestatario('');
     setSelectedAccountId(null);
     onOpenChange(false);
+    
+    // Reload to refresh account balances
+    window.location.reload();
   };
 
   return (
