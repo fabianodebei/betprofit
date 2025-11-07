@@ -11,7 +11,7 @@ interface ArchiveBetDialogProps {
   bet: Bet | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (risultato: number) => void;
+  onConfirm: (risultato: number, outcome: 'win' | 'loss' | 'refund') => void;
 }
 
 export function ArchiveBetDialog({ bet, open, onOpenChange, onConfirm }: ArchiveBetDialogProps) {
@@ -81,7 +81,7 @@ export function ArchiveBetDialog({ bet, open, onOpenChange, onConfirm }: Archive
   const risultato = calculateRisultato();
 
   const handleConfirm = () => {
-    onConfirm(risultato);
+    onConfirm(risultato, outcome);
     onOpenChange(false);
     setOutcome('win');
   };

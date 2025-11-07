@@ -128,7 +128,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       // Recalcolo bilanci dalle puntate per correggere eventuali inconsistenze
       const { data: betsData } = await supabase
         .from('bets')
-        .select('id, tipo, conto, stato, stake, risultato, tipo_bonus')
+        .select('id, tipo, conto, stato, stake, risultato, tipo_bonus, esito')
         .eq('user_id', user.id);
 
       const giocateMap: Record<string, number> = {};
@@ -152,14 +152,21 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         }
       });
 
-      // Exposure delle bancate per le scommesse ancora in corso
+      // Exposure delle bancate per le scommesse ancora in corso + risultati per scommesse archiviate
       const activeBetIds = new Set((betsData || [])
         .filter((b: any) => b.stato === 'In Corso')
         .map((b: any) => b.id));
 
+      const esitiArchiviati = new Map<string, string>();
+      (betsData || []).forEach((b: any) => {
+        if (b.stato === 'Archiviata' && b.esito) {
+          esitiArchiviati.set(b.id, b.esito as string);
+        }
+      });
+
       const { data: layData } = await supabase
         .from('lay_bets')
-        .select('parent_bet_id, metodo, conto, stake, quota_banca')
+        .select('parent_bet_id, metodo, conto, stake, quota_banca, tasse_percentuale')
         .eq('user_id', user.id);
 
       (layData || []).forEach((lb: any) => {
@@ -167,6 +174,21 @@ export function AccountProvider({ children }: { children: ReactNode }) {
           const liability = Number(lb.stake) * (Number(lb.quota_banca) - 1);
           const conto = lb.conto as string;
           giocateMap[conto] = (giocateMap[conto] || 0) - liability;
+        } else if (lb.metodo === 'Banca' && esitiArchiviati.has(lb.parent_bet_id)) {
+          const conto = lb.conto as string;
+          const esito = esitiArchiviati.get(lb.parent_bet_id);
+          if (esito === 'win') {
+            // la punta ha vinto -> la bancata perde (liability)
+            const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
+            giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
+          } else if (esito === 'loss') {
+            // la punta ha perso -> la bancata vince (stake meno tasse)
+            const profittoLordo = Number(lb.stake);
+            const tasse = profittoLordo * (Number(lb.tasse_percentuale || 0) / 100);
+            giocateMap[conto] = (giocateMap[conto] || 0) + (profittoLordo - tasse);
+          } else {
+            // refund -> 0
+          }
         }
       });
 

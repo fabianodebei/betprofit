@@ -10,7 +10,7 @@ interface BetContextType {
   addBet: (bet: Omit<Bet, 'id' | 'createdAt'>) => Promise<string>;
   updateBet: (id: string, bet: Partial<Bet>) => Promise<void>;
   deleteBet: (id: string) => Promise<void>;
-  archiveBet: (id: string, risultato: number) => Promise<void>;
+  archiveBet: (id: string, risultato: number, outcome: 'win' | 'loss' | 'refund') => Promise<void>;
   reopenBet: (id: string) => Promise<void>;
   getOngoingBets: () => Bet[];
   getArchivedBets: () => Bet[];
@@ -279,56 +279,47 @@ export function BetProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const archiveBet = async (id: string, risultato: number) => {
+  const archiveBet = async (id: string, risultatoTotale: number, outcome: 'win' | 'loss' | 'refund') => {
     const bet = bets.find(b => b.id === id);
-    
-    // Update bet status and result
-    await updateBet(id, { stato: 'Archiviata', risultato });
-    
-    // Update account balance for all bet types
-    if (bet) {
-      let accountQuery = supabase
-        .from('accounts')
-        .select('*')
-        .eq('user_id', user?.id)
-        .eq('conto', bet.conto);
+    if (!bet) return;
 
-      if (bet.walletId) {
-        accountQuery = accountQuery.eq('wallet_id', bet.walletId);
-      }
-
-      const { data: account, error: accountError } = await accountQuery.limit(1).maybeSingle();
-      
-      if (accountError) {
-        console.error('Error fetching account:', accountError);
-        return;
-      }
-      
-      if (!account) {
-        return;
-      }
-      
-      // Update bilancio based on bet type (NON modificare saldoAttuale)
-      let updateData: any = {};
-      if (bet.tipo === 'Rapida') {
-        updateData.bilancio_giocate_rapide = Number(account.bilancio_giocate_rapide) + risultato;
+    // Calcola il risultato della sola puntata (senza bancate)
+    const quota = bet.quota || 1;
+    let puntaRisultato = 0;
+    if (outcome === 'win') {
+      if (bet.tipoBonus === 'Free Bet') {
+        puntaRisultato = bet.stake * (quota - 1);
+      } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
+        puntaRisultato = (bet.stake + bet.bonus) * quota - bet.stake;
       } else {
-        // Bilancio giocate riflette solo il profitto netto della giocata archiviata
-        updateData.bilancio_giocate = Number(account.bilancio_giocate) + risultato;
+        puntaRisultato = bet.stake * quota - bet.stake;
       }
-      
+    } else if (outcome === 'loss') {
+      if (bet.tipoBonus === 'Free Bet') {
+        puntaRisultato = 0;
+      } else {
+        puntaRisultato = -bet.stake;
+      }
+    } else {
+      puntaRisultato = 0; // refund
+    }
+
+    try {
+      // Aggiorna la puntata con esito e risultato (solo parte punta)
       const { error: updateError } = await supabase
-        .from('accounts')
-        .update(updateData)
-        .eq('id', account.id);
-      
-      if (!updateError) {
-        window.dispatchEvent(new Event('refresh-accounts'));
-      }
-      
-      if (updateError) {
-        console.error('Error updating account:', updateError);
-      }
+        .from('bets')
+        .update({ stato: 'Archiviata', risultato: puntaRisultato, esito: outcome })
+        .eq('id', id);
+
+      if (updateError) throw updateError;
+
+      // Aggiorna stato locale immediatamente
+      setBets((prev) => prev.map((b) => (b.id === id ? { ...b, stato: 'Archiviata', risultato: puntaRisultato } : b)));
+
+      // Aggiorna i conti tramite ricalcolo centralizzato
+      window.dispatchEvent(new Event('refresh-accounts'));
+    } catch (error) {
+      console.error('Error archiving bet:', error);
     }
   };
 
