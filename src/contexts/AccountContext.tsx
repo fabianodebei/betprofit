@@ -128,7 +128,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       // Recalcolo bilanci dalle puntate per correggere eventuali inconsistenze
       const { data: betsData } = await supabase
         .from('bets')
-        .select('id, tipo, conto, stato, stake, risultato, tipo_bonus, esito')
+        .select('id, tipo, conto, stato, stake, risultato, tipo_bonus, esito, quota')
         .eq('user_id', user.id);
 
       const giocateMap: Record<string, number> = {};
@@ -157,10 +157,11 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         .filter((b: any) => b.stato === 'In Corso')
         .map((b: any) => b.id));
 
-      const esitiArchiviati = new Map<string, string>();
+      const esitiArchiviati = new Map<string, { esito: string; tipo: string }>();
       (betsData || []).forEach((b: any) => {
-        if (b.stato === 'Archiviata' && b.esito) {
-          esitiArchiviati.set(b.id, b.esito as string);
+        if (b.stato === 'Archiviata' && b.esito && b.tipo !== 'Multipla') {
+          // Solo singole/casino: per le multiple il risultato è già comprensivo delle bancate
+          esitiArchiviati.set(b.id, { esito: b.esito as string, tipo: b.tipo });
         }
       });
 
@@ -176,7 +177,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
           giocateMap[conto] = (giocateMap[conto] || 0) - liability;
         } else if (lb.metodo === 'Banca' && esitiArchiviati.has(lb.parent_bet_id)) {
           const conto = lb.conto as string;
-          const esito = esitiArchiviati.get(lb.parent_bet_id);
+          const { esito } = esitiArchiviati.get(lb.parent_bet_id)!;
           if (esito === 'win') {
             // la punta ha vinto -> la bancata perde (liability)
             const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);

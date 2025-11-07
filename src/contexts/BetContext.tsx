@@ -283,38 +283,43 @@ export function BetProvider({ children }: { children: ReactNode }) {
     const bet = bets.find(b => b.id === id);
     if (!bet) return;
 
-    // Calcola il risultato della sola puntata (senza bancate)
-    const quota = bet.quota || 1;
-    let puntaRisultato = 0;
-    if (outcome === 'win') {
-      if (bet.tipoBonus === 'Free Bet') {
-        puntaRisultato = bet.stake * (quota - 1);
-      } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
-        puntaRisultato = (bet.stake + bet.bonus) * quota - bet.stake;
+    let risultatoToSave = risultatoTotale;
+
+    // Per le singole/casino, calcola solo il risultato della punta (escluso bancate)
+    // AccountContext ricalcolerà le bancate basandosi sull'esito
+    if (bet.tipo !== 'Multipla') {
+      const quota = bet.quota || 1;
+      if (outcome === 'win') {
+        if (bet.tipoBonus === 'Free Bet') {
+          risultatoToSave = bet.stake * (quota - 1);
+        } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
+          risultatoToSave = (bet.stake + bet.bonus) * quota - bet.stake;
+        } else {
+          risultatoToSave = bet.stake * quota - bet.stake;
+        }
+      } else if (outcome === 'loss') {
+        if (bet.tipoBonus === 'Free Bet') {
+          risultatoToSave = 0;
+        } else {
+          risultatoToSave = -bet.stake;
+        }
       } else {
-        puntaRisultato = bet.stake * quota - bet.stake;
+        risultatoToSave = 0; // refund
       }
-    } else if (outcome === 'loss') {
-      if (bet.tipoBonus === 'Free Bet') {
-        puntaRisultato = 0;
-      } else {
-        puntaRisultato = -bet.stake;
-      }
-    } else {
-      puntaRisultato = 0; // refund
     }
+    // Per le multiple, risultatoTotale è già calcolato da multiplaCalculations (include bancate)
 
     try {
-      // Aggiorna la puntata con esito e risultato (solo parte punta)
+      // Aggiorna la puntata con esito e risultato
       const { error: updateError } = await supabase
         .from('bets')
-        .update({ stato: 'Archiviata', risultato: puntaRisultato, esito: outcome })
+        .update({ stato: 'Archiviata', risultato: risultatoToSave, esito: outcome })
         .eq('id', id);
 
       if (updateError) throw updateError;
 
       // Aggiorna stato locale immediatamente
-      setBets((prev) => prev.map((b) => (b.id === id ? { ...b, stato: 'Archiviata', risultato: puntaRisultato } : b)));
+      setBets((prev) => prev.map((b) => (b.id === id ? { ...b, stato: 'Archiviata', risultato: risultatoToSave } : b)));
 
       // Aggiorna i conti tramite ricalcolo centralizzato
       window.dispatchEvent(new Event('refresh-accounts'));

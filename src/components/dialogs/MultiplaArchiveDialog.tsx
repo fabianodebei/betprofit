@@ -15,7 +15,7 @@ interface MultiplaArchiveDialogProps {
   bet: Bet | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (risultato: number) => void;
+  onConfirm: (risultato: number, outcome: 'win' | 'loss' | 'refund') => void;
 }
 
 export function MultiplaArchiveDialog({
@@ -38,19 +38,23 @@ export function MultiplaArchiveDialog({
 
   const handleConfirm = () => {
     let risultatoCalcolato: number;
+    let outcome: 'win' | 'loss' | 'refund';
 
     if (selectedOption === 'win') {
       risultatoCalcolato = calculations.scenarioVincita;
+      outcome = 'win';
     } else if (selectedOption === 'lost') {
       // Multipla persa senza bancate
       risultatoCalcolato = -bet.stake;
+      outcome = 'loss';
     } else {
       // Trova il risultato per la partita selezionata
       const partitaResult = calculations.perGamba.find((g) => g.id === selectedOption);
       risultatoCalcolato = partitaResult?.risultato || 0;
+      outcome = 'loss';
     }
 
-    onConfirm(risultatoCalcolato);
+    onConfirm(risultatoCalcolato, outcome);
     onOpenChange(false);
     setSelectedOption('win'); // Reset per la prossima volta
   };
