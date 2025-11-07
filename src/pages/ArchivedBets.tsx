@@ -10,6 +10,7 @@ import { SkeletonTable } from '@/components/common/SkeletonTable';
 import { AdvancedFilterBar } from '@/components/filters/AdvancedFilterBar';
 import { useAdvancedFilters } from '@/hooks/useAdvancedFilters';
 import { useBets } from '@/contexts/BetContext';
+import { useLayBets } from '@/contexts/LayBetContext';
 import { useYear } from '@/contexts/YearContext';
 import { useTags } from '@/contexts/TagContext';
 import { formatCurrency } from '@/utils/currency';
@@ -17,10 +18,37 @@ import { formatDate } from '@/utils/dates';
 
 export default function ArchivedBets() {
   const { getArchivedBets, reopenBet, deleteBet, loading } = useBets();
+  const { layBets } = useLayBets();
   const { selectedYear } = useYear();
   const { tags } = useTags();
   const allArchivedBets = getArchivedBets();
   const archivedBets = allArchivedBets.filter(bet => bet.dataEvento.getFullYear() === selectedYear);
+
+  // Calculate lay bets results
+  const calculateLayBetResults = (betId: string, outcome: string, esitoDettaglio?: string) => {
+    const associatedLayBets = layBets.filter(lb => lb.parentBetId === betId && lb.metodo === 'Banca');
+    let total = 0;
+    
+    associatedLayBets.forEach(lb => {
+      if (outcome === 'win') {
+        total -= lb.stake * (lb.quotaBanca - 1);
+      } else if (outcome === 'loss') {
+        if (esitoDettaglio && lb.id === esitoDettaglio) {
+          const profittoLordo = lb.stake;
+          const tasse = profittoLordo * (lb.tassePercentuale / 100);
+          total += profittoLordo - tasse;
+        } else if (esitoDettaglio) {
+          total -= lb.stake * (lb.quotaBanca - 1);
+        } else {
+          const profittoLordo = lb.stake;
+          const tasse = profittoLordo * (lb.tassePercentuale / 100);
+          total += profittoLordo - tasse;
+        }
+      }
+    });
+    
+    return total;
+  };
 
   const {
     filteredItems,
@@ -55,7 +83,11 @@ export default function ArchivedBets() {
 
   const totalPages = Math.ceil(filteredItems.length / pageSize);
 
-  const totalArchived = filteredItems.reduce((sum, bet) => sum + (bet.risultato || 0), 0);
+  const totalArchived = filteredItems.reduce((sum, bet) => {
+    const betResult = bet.risultato || 0;
+    const layResult = calculateLayBetResults(bet.id, bet.esito || 'refund', bet.esitoDettaglio);
+    return sum + betResult + layResult;
+  }, 0);
 
   return (
     <div className="container mx-auto px-4 py-8">
