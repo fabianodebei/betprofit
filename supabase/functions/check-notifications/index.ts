@@ -17,6 +17,23 @@ function escapeHtml(text: string): string {
     .replace(/'/g, '&#039;');
 }
 
+// Sanitize and validate individual fields before message construction
+function sanitizeField(field: string | null | undefined, maxLength: number, fieldName?: string): string {
+  if (!field) return '';
+  
+  const sanitized = String(field).trim();
+  
+  // Validate length and truncate if necessary
+  if (sanitized.length > maxLength) {
+    if (fieldName) {
+      console.warn(`Field '${fieldName}' exceeded max length (${sanitized.length}/${maxLength}), truncating`);
+    }
+    return sanitized.substring(0, maxLength - 3) + '...';
+  }
+  
+  return sanitized;
+}
+
 // Rate limiting configuration
 const RATE_LIMIT_SECONDS = 50; // 50 seconds minimum between calls
 
@@ -160,10 +177,15 @@ async function checkReminders(supabase: any, supabaseUrl: string, serviceKey: st
 
     // Send notification if time has arrived (with 1 minute tolerance)
     if (now >= new Date(notificationTime.getTime() - 60000)) {
+      // Sanitize all user-provided fields with appropriate length limits
+      const metodo = sanitizeField(reminder.metodo, 100, 'reminder.metodo');
+      const conto = sanitizeField(reminder.conto, 100, 'reminder.conto');
+      const descrizione = sanitizeField(reminder.descrizione, 500, 'reminder.descrizione');
+      
       const message = `🔔 <b>PROMEMORIA IN SCADENZA</b>\n\n` +
-        `📋 Metodo: ${escapeHtml(reminder.metodo)}\n` +
-        `💳 Conto: ${escapeHtml(reminder.conto)}\n` +
-        `📝 Descrizione: ${escapeHtml(reminder.descrizione)}\n` +
+        `📋 Metodo: ${escapeHtml(metodo)}\n` +
+        `💳 Conto: ${escapeHtml(conto)}\n` +
+        `📝 Descrizione: ${escapeHtml(descrizione)}\n` +
         `⏰ Scadenza: ${formatDate(scadenza)}`;
 
       console.log('Sending notification');
@@ -238,17 +260,25 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
     if (now >= reportTime) {
       const isMultiple = bet.tipo === 'Multipla';
       
+      // Sanitize all user-provided fields with appropriate length limits
+      const tipo = sanitizeField(bet.tipo, 50, 'bet.tipo');
+      const evento = sanitizeField(bet.evento, 200, 'bet.evento');
+      const nomeGioco = sanitizeField(bet.nome_gioco, 200, 'bet.nome_gioco');
+      const conto = sanitizeField(bet.conto, 100, 'bet.conto');
+      const tag = sanitizeField(bet.tag, 100, 'bet.tag');
+      const note = sanitizeField(bet.note, 500, 'bet.note');
+      
       let message = `⚽ <b>PARTITA CONCLUSA${isMultiple ? ' - MULTIPLA' : ''}</b>\n\n` +
-        `🎯 Tipo: ${escapeHtml(bet.tipo)}\n`;
+        `🎯 Tipo: ${escapeHtml(tipo)}\n`;
 
-      if (bet.evento) {
-        message += `🎮 Evento: ${escapeHtml(bet.evento)}\n`;
+      if (evento) {
+        message += `🎮 Evento: ${escapeHtml(evento)}\n`;
       }
-      if (bet.nome_gioco) {
-        message += `🎰 Gioco: ${escapeHtml(bet.nome_gioco)}\n`;
+      if (nomeGioco) {
+        message += `🎰 Gioco: ${escapeHtml(nomeGioco)}\n`;
       }
 
-      message += `💳 Conto: ${escapeHtml(bet.conto)}\n` +
+      message += `💳 Conto: ${escapeHtml(conto)}\n` +
         `💰 Stake: €${formatCurrency(bet.stake)}\n`;
 
       if (bet.quota) {
@@ -257,12 +287,12 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
 
       message += `🕐 Iniziata: ${formatDate(eventDate)}\n`;
 
-      if (bet.tag) {
-        message += `🏷️ Tag: ${escapeHtml(bet.tag)}\n`;
+      if (tag) {
+        message += `🏷️ Tag: ${escapeHtml(tag)}\n`;
       }
 
-      if (bet.note) {
-        message += `📝 Note: ${escapeHtml(bet.note)}\n`;
+      if (note) {
+        message += `📝 Note: ${escapeHtml(note)}\n`;
       }
 
       message += `\n✅ Archivia la scommessa`;
