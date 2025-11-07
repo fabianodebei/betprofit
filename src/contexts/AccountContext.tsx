@@ -172,6 +172,15 @@ export function AccountProvider({ children }: { children: ReactNode }) {
             conto: b.conto,
             esitoDettaglio: b.esito_dettaglio || undefined
           });
+          // Debug log per verificare i dati
+          if (b.tipo === 'Multipla' && b.esito_dettaglio) {
+            console.log('Multipla archiviata con esito_dettaglio:', {
+              betId: b.id,
+              esito: b.esito,
+              esitoDettaglio: b.esito_dettaglio,
+              conto: b.conto
+            });
+          }
         }
       });
 
@@ -199,14 +208,25 @@ export function AccountProvider({ children }: { children: ReactNode }) {
           // Per le multiple: se esitoDettaglio è presente, verifichiamo il lay vincente
           if (tipo === 'Multipla' && esito === 'loss' && esitoDettaglio) {
             // Multipla persa su un lay specifico
+            console.log('Processing lay bet for multipla:', {
+              layId: lb.id,
+              esitoDettaglio,
+              isWinningLay: lb.id === esitoDettaglio,
+              evento: lb.evento,
+              conto
+            });
+            
             if (lb.id === esitoDettaglio) {
               // Questo lay ha vinto
               const profittoLordo = Number(lb.stake);
               const tasse = profittoLordo * (Number(lb.tasse_percentuale || 0) / 100);
-              giocateMap[conto] = (giocateMap[conto] || 0) + (profittoLordo - tasse);
+              const guadagno = profittoLordo - tasse;
+              console.log('Lay vinto:', { profittoLordo, tasse, guadagno, conto });
+              giocateMap[conto] = (giocateMap[conto] || 0) + guadagno;
             } else {
               // Lay precedenti perdono (liability)
               const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
+              console.log('Lay perso (liability):', { stake: lb.stake, quotaBanca: lb.quota_banca, perdita, conto });
               giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
             }
           } else if (tipo === 'Multipla' && esito === 'win') {
