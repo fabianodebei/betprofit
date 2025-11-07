@@ -172,28 +172,32 @@ export default function Dashboard() {
       s.count += 1;
     });
 
-    // Add lay bets results for archived bets
-    bets.filter(b => b.stato === 'Archiviata' && b.esito).forEach(bet => {
-      const layResult = calculateLayBetResults(bet.id, bet.esito!, bet.esitoDettaglio);
-      const layBetsForBet = layBets.filter(lb => lb.parentBetId === bet.id);
+  // Add lay bets results for archived bets
+  bets.filter(b => b.stato === 'Archiviata' && b.esito).forEach(bet => {
+    const layResult = calculateLayBetResults(bet.id, bet.esito!, bet.esitoDettaglio);
+    const layBetsForBet = layBets.filter(lb => lb.parentBetId === bet.id);
+    
+    layBetsForBet.forEach(lb => {
+      if (!stats.has(lb.conto)) {
+        stats.set(lb.conto, { stake: 0, profitto: 0, count: 0 });
+      }
+      const s = stats.get(lb.conto);
+      // Add lay bet stake to total stake
+      s.stake += lb.stake;
+      s.count += 1;
       
-      layBetsForBet.forEach(lb => {
-        if (!stats.has(lb.conto)) {
-          stats.set(lb.conto, { stake: 0, profitto: 0, count: 0 });
-        }
-        const s = stats.get(lb.conto);
-        // Calcola la quota parte di questo lay
-        if (bet.esito === 'win') {
-          s.profitto -= lb.stake * (lb.quotaBanca - 1);
-        } else if (bet.esito === 'loss' && bet.esitoDettaglio === lb.id) {
-          const profittoLordo = lb.stake;
-          const tasse = profittoLordo * (lb.tassePercentuale / 100);
-          s.profitto += profittoLordo - tasse;
-        } else if (bet.esito === 'loss' && bet.esitoDettaglio) {
-          s.profitto -= lb.stake * (lb.quotaBanca - 1);
-        }
-      });
+      // Calcola la quota parte di questo lay
+      if (bet.esito === 'win') {
+        s.profitto -= lb.stake * (lb.quotaBanca - 1);
+      } else if (bet.esito === 'loss' && bet.esitoDettaglio === lb.id) {
+        const profittoLordo = lb.stake;
+        const tasse = profittoLordo * (lb.tassePercentuale / 100);
+        s.profitto += profittoLordo - tasse;
+      } else if (bet.esito === 'loss' && bet.esitoDettaglio) {
+        s.profitto -= lb.stake * (lb.quotaBanca - 1);
+      }
     });
+  });
     
     return Array.from(stats.entries()).map(([bookmaker, data]) => ({
       bookmaker,
