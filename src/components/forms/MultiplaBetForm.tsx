@@ -38,7 +38,6 @@ interface BetSelection {
 
 const createMultiplaBetSchema = (tagRequired: boolean) => z.object({
   intestatario: z.string().min(1, 'Intestatario è obbligatorio'),
-  dataEvento: z.date(),
   conto: z.string().min(1, 'Conto è obbligatorio'),
   stake: z.number(),
   tipoBonus: z.enum(['Nessuno', 'Bonus', 'Rimborso', 'Free Bet']),
@@ -110,7 +109,6 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
     resolver: zodResolver(multiplaBetSchema),
     defaultValues: {
       intestatario: '',
-      dataEvento: new Date(),
       conto: '',
       stake: 0,
       tipoBonus: 'Nessuno',
@@ -158,7 +156,6 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
       
       form.reset({
         intestatario: intestatario,
-        dataEvento: new Date(editingBet.dataEvento),
         conto: editingBet.conto,
         stake: editingBet.stake,
         tipoBonus: validBonus as any,
@@ -279,11 +276,14 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
       }
 
       if (mode === 'edit' && editingBet) {
+        // Per le multiple usiamo la data della prima partita
+        const firstMatchDate = selections.length > 0 ? selections[0].dataEvento : new Date();
+        
         await updateBet(editingBet.id, {
           ...editingBet,
           conto: data.conto,
           stake: data.stake,
-          dataEvento: data.dataEvento,
+          dataEvento: firstMatchDate,
           tipoBonus: data.tipoBonus,
           percentualeBonus: data.percentualeBonus,
           numeroMinimoSelezioni: data.numeroMinimoSelezioni,
@@ -298,12 +298,15 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
 
         toast.success('Multipla aggiornata');
       } else {
+        // Per le multiple usiamo la data della prima partita
+        const firstMatchDate = selections.length > 0 ? selections[0].dataEvento : new Date();
+        
         const betId = await addBet({
           tipo: 'Multipla',
           conto: data.conto,
           stake: data.stake,
           evento: selections.map(s => s.selezione).join(', '),
-          dataEvento: data.dataEvento,
+          dataEvento: firstMatchDate,
           stato: 'In Corso',
           tipoBonus: data.tipoBonus,
           percentualeBonus: data.percentualeBonus,
@@ -558,7 +561,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
             </div>
 
             {/* Form fields */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="intestatario"
@@ -647,40 +650,6 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                         Non richiesto con bonus/free bet
                       </p>
                     )}
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="dataEvento"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Data Multipla *</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              'w-full justify-start text-left font-normal',
-                              !field.value && 'text-muted-foreground'
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {field.value ? format(field.value, 'PPP HH:mm') : 'Seleziona data'}
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
