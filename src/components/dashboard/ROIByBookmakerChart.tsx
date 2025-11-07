@@ -1,9 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip, Legend, CartesianGrid, ReferenceLine } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip, CartesianGrid, ReferenceLine } from 'recharts';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { FullscreenChart } from '@/components/admin/FullscreenChart';
 import { useState, useEffect } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 interface BookmakerStat {
   bookmaker: string;
   stake: number;
@@ -52,76 +51,41 @@ export function ROIByBookmakerChart({
   };
 
   const chartContent = (
-    <div className="space-y-4">
-      <ScrollArea className="w-full">
-        <div style={{ width: dynamicWidth, minHeight: isMobile ? 300 : 400 }}>
-          <ResponsiveContainer width="100%" height={isMobile ? 300 : 400}>
-            <BarChart data={sortedData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-              <XAxis 
-                dataKey="bookmaker" 
-                angle={-45} 
-                textAnchor="end" 
-                height={isMobile ? 80 : 100}
-                tick={{ fill: 'hsl(var(--foreground))', fontSize: isMobile ? 10 : 12 }}
-              />
-              <YAxis 
-                label={{ 
-                  value: 'ROI %', 
-                  angle: -90, 
-                  position: 'insideLeft',
-                  style: { fill: 'hsl(var(--foreground))', fontSize: isMobile ? 10 : 12 }
-                }}
-                tick={{ fill: 'hsl(var(--foreground))', fontSize: isMobile ? 10 : 12 }}
-              />
-              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-              <ReferenceLine y={0} stroke="hsl(var(--border))" strokeWidth={2} />
-              <Bar dataKey="roi" radius={[4, 4, 4, 4]}>
-                {sortedData.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={entry.roi >= 0 ? 'hsl(var(--success))' : 'hsl(var(--destructive))'} 
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </ScrollArea>
-      
-      {/* Tabella dettagliata */}
-      <div className="mt-4">
-        <h4 className="text-sm font-semibold mb-2">Dettaglio per Bookmaker</h4>
-        <ScrollArea className="h-[300px] rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Bookmaker</TableHead>
-                <TableHead className="text-right">ROI %</TableHead>
-                <TableHead className="text-right">Profitto</TableHead>
-                <TableHead className="text-right">Stake</TableHead>
-                <TableHead className="text-right">N° Op.</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedData.map((row, index) => (
-                <TableRow key={index}>
-                  <TableCell className="font-medium">{row.bookmaker}</TableCell>
-                  <TableCell className={`text-right font-semibold ${row.roi >= 0 ? 'text-success' : 'text-destructive'}`}>
-                    {row.roi.toFixed(2)}%
-                  </TableCell>
-                  <TableCell className={`text-right ${row.profitto >= 0 ? 'text-success' : 'text-destructive'}`}>
-                    €{row.profitto.toFixed(2)}
-                  </TableCell>
-                  <TableCell className="text-right">€{row.stake.toFixed(2)}</TableCell>
-                  <TableCell className="text-right">{row.count}</TableCell>
-                </TableRow>
+    <ScrollArea className="w-full">
+      <div style={{ width: dynamicWidth, minHeight: isMobile ? 300 : 400 }}>
+        <ResponsiveContainer width="100%" height={isMobile ? 300 : 400}>
+          <BarChart data={sortedData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+            <XAxis 
+              dataKey="bookmaker" 
+              angle={-45} 
+              textAnchor="end" 
+              height={isMobile ? 80 : 100}
+              tick={{ fill: 'hsl(var(--foreground))', fontSize: isMobile ? 10 : 12 }}
+            />
+            <YAxis 
+              label={{ 
+                value: 'ROI %', 
+                angle: -90, 
+                position: 'insideLeft',
+                style: { fill: 'hsl(var(--foreground))', fontSize: isMobile ? 10 : 12 }
+              }}
+              tick={{ fill: 'hsl(var(--foreground))', fontSize: isMobile ? 10 : 12 }}
+            />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
+            <ReferenceLine y={0} stroke="hsl(var(--border))" strokeWidth={2} />
+            <Bar dataKey="roi" radius={[4, 4, 4, 4]}>
+              {sortedData.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={entry.roi >= 0 ? 'hsl(var(--success))' : 'hsl(var(--destructive))'} 
+                />
               ))}
-            </TableBody>
-          </Table>
-        </ScrollArea>
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
-    </div>
+    </ScrollArea>
   );
 
   if (sortedData.length === 0) {
