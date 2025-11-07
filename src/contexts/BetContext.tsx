@@ -283,35 +283,30 @@ export function BetProvider({ children }: { children: ReactNode }) {
     const bet = bets.find(b => b.id === id);
     if (!bet) return;
 
-    let risultatoToSave = risultatoTotale;
+    let risultatoToSave = 0;
 
-    // Per le singole/casino, calcola solo il risultato della punta (escluso bancate)
-    // AccountContext ricalcolerà le bancate basandosi sull'esito
-    if (bet.tipo !== 'Multipla') {
-      const quota = bet.quota || 1;
-      if (outcome === 'win') {
-        if (bet.tipoBonus === 'Free Bet') {
-          risultatoToSave = bet.stake * (quota - 1);
-        } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
-          risultatoToSave = (bet.stake + bet.bonus) * quota - bet.stake;
-        } else {
-          risultatoToSave = bet.stake * quota - bet.stake;
-        }
-      } else if (outcome === 'loss') {
-        if (bet.tipoBonus === 'Free Bet') {
-          risultatoToSave = 0;
-        } else {
-          risultatoToSave = -bet.stake;
-        }
+    // Calcola SEMPRE solo il risultato della punta principale (no bancate)
+    const quota = bet.quota || bet.quotaCombinata || 1;
+    if (outcome === 'win') {
+      if (bet.tipoBonus === 'Free Bet') {
+        risultatoToSave = bet.stake * (quota - 1);
+      } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
+        risultatoToSave = (bet.stake + bet.bonus) * quota - bet.stake;
       } else {
-        risultatoToSave = 0; // refund
+        risultatoToSave = bet.stake * quota - bet.stake;
       }
+    } else if (outcome === 'loss') {
+      if (bet.tipoBonus === 'Free Bet') {
+        risultatoToSave = 0;
+      } else {
+        risultatoToSave = -bet.stake;
+      }
+    } else {
+      risultatoToSave = 0; // refund
     }
-    // Per le multiple, risultatoTotale è GIÀ calcolato correttamente ma rappresenta il totale netto
-    // Dobbiamo scomporre per conto: bet.conto prende risultato punta, lay.conto prende risultato lay
 
     try {
-      // Aggiorna la puntata con esito, risultato e dettaglio esito
+      // Aggiorna la puntata con esito, risultato (solo punta) e dettaglio esito
       const { error: updateError } = await supabase
         .from('bets')
         .update({ 
