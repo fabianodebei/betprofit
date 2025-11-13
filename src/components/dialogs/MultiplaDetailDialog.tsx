@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Copy } from 'lucide-react';
+import { Plus, Copy, Archive } from 'lucide-react';
 import { Bet, LayBet } from '@/types';
 import { useLayBets } from '@/contexts/LayBetContext';
 import { useBetLegs } from '@/contexts/BetLegContext';
@@ -57,33 +57,8 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
     }
   };
 
-  const validateLayBetStates = (newStato: LayBet['stato'], currentLayBetId: string): boolean => {
-    // Crea un array di stati aggiornato con il nuovo stato
-    const updatedStates = layBets.map(lb => 
-      lb.id === currentLayBetId ? { ...lb, stato: newStato } : lb
-    );
-    
-    const hasVinto = updatedStates.some(lb => lb.stato === 'Vinto');
-    const hasPerso = updatedStates.some(lb => lb.stato === 'Perso');
-    
-    // Se c'è almeno una bancata vinta, deve esserci almeno una persa
-    if (hasVinto && !hasPerso) {
-      return false;
-    }
-    
-    return true;
-  };
-
   const handleArchiviaFromLayBet = async (layBet: LayBet) => {
     if (!bet) return;
-    
-    // Valida gli stati prima di archiviare
-    const hasVinto = layBets.some(lb => lb.stato === 'Vinto');
-    const hasPerso = layBets.some(lb => lb.stato === 'Perso');
-    
-    if (hasVinto && !hasPerso) {
-      return;
-    }
     
     // Calcola automaticamente il risultato in base allo stato della bancata
     let risultato = 0;
@@ -177,7 +152,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
 
           <div className="space-y-4">
             {/* Actions */}
-            <div className="flex gap-2">
+            <div className="flex justify-between items-center gap-2">
               <Button
                 size="sm"
                 variant="outline"
@@ -188,6 +163,19 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Nuova Bancata
+              </Button>
+              
+              <Button
+                size="sm"
+                variant="default"
+                onClick={() => {
+                  if (confirm('Sei sicuro di voler archiviare questa multipla?')) {
+                    handleArchiviaFromMultipla();
+                  }
+                }}
+              >
+                <Archive className="h-4 w-4 mr-2" />
+                Archivia Multipla
               </Button>
             </div>
 
@@ -213,7 +201,6 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                       <TableHead>Mov.</TableHead>
                       <TableHead>Tag</TableHead>
                       <TableHead>Stato</TableHead>
-                      <TableHead>Archivia</TableHead>
                       <TableHead>Opzioni</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -268,21 +255,6 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                         </Select>
                       </TableCell>
                       <TableCell>
-                        {bet.statoEvento && ['Vinto', 'Perso', 'Annullato'].includes(bet.statoEvento) && (
-                          <Button
-                            size="sm"
-                            variant="default"
-                            onClick={() => {
-                              if (confirm(`Sei sicuro di voler archiviare la multipla? Lo stato è "${bet.statoEvento}".`)) {
-                                handleArchiviaFromMultipla();
-                              }
-                            }}
-                          >
-                            Archivia
-                          </Button>
-                        )}
-                      </TableCell>
-                      <TableCell>
                         <Button size="sm" variant="ghost">
                           Clona
                         </Button>
@@ -324,11 +296,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                            <Select
                              value={layBet.stato}
                              onValueChange={(value) => {
-                               const newStato = value as LayBet['stato'];
-                               // Valida prima di aggiornare
-                               if (validateLayBetStates(newStato, layBet.id)) {
-                                 updateLayBet(layBet.id, { stato: newStato });
-                               }
+                               updateLayBet(layBet.id, { stato: value as LayBet['stato'] });
                              }}
                            >
                              <SelectTrigger className="w-[130px]">
@@ -342,21 +310,6 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                                <SelectItem value="Annullato">Annullato</SelectItem>
                              </SelectContent>
                            </Select>
-                         </TableCell>
-                         <TableCell>
-                           {['Vinto', 'Perso', 'Annullato'].includes(layBet.stato) && (
-                             <Button
-                               size="sm"
-                               variant="default"
-                               onClick={() => {
-                                 if (confirm(`Sei sicuro di voler archiviare la multipla? Lo stato della bancata è "${layBet.stato}".`)) {
-                                   handleArchiviaFromLayBet(layBet);
-                                 }
-                               }}
-                             >
-                               Archivia
-                             </Button>
-                           )}
                          </TableCell>
                          <TableCell>
                           <div className="flex gap-1">
