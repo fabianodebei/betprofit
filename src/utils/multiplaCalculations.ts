@@ -7,6 +7,7 @@ export interface LayBet {
   quotaPunta: number;
   tassePercentuale: number;
   attiva: boolean;
+  stato: 'Bozza' | 'In Corso' | 'Vinto' | 'Perso' | 'Annullato';
   evento: string;
 }
 
@@ -40,7 +41,7 @@ export function getMultiplaCalculations(
   }
 
   // Filtra solo le bancate attive
-  const activeBets = layBets.filter(lb => lb.attiva);
+  const activeBets = layBets.filter(lb => lb.stato === 'In Corso');
 
   // Calcola la liability per ogni lay bet (responsabilità se la bancata perde)
   const liability = (lb: LayBet) => lb.stake * (lb.quotaBanca - 1);

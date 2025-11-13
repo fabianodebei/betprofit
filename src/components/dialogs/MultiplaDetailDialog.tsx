@@ -5,15 +5,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Copy } from 'lucide-react';
-import { Bet } from '@/types';
+import { Bet, LayBet } from '@/types';
 import { useLayBets } from '@/contexts/LayBetContext';
 import { useBetLegs } from '@/contexts/BetLegContext';
+import { useBets } from '@/contexts/BetContext';
 import { LayBetForm } from '@/components/forms/LayBetForm';
 import { formatCurrency } from '@/utils/currency';
 import { format } from 'date-fns';
 import { getMultiplaCalculations } from '@/utils/multiplaCalculations';
+import { toast } from 'sonner';
 
 interface MultiplaDetailDialogProps {
   open: boolean;
@@ -24,6 +26,7 @@ interface MultiplaDetailDialogProps {
 export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetailDialogProps) {
   const { getLayBetsByParentId, deleteLayBet, updateLayBet } = useLayBets();
   const { getBetLegsByBetId } = useBetLegs();
+  const { archiveBet } = useBets();
   const [showLayBetForm, setShowLayBetForm] = useState(false);
   const [editingLayBet, setEditingLayBet] = useState<any>(null);
 
@@ -47,6 +50,34 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
     if (confirm('Sei sicuro di voler eliminare questa bancata?')) {
       await deleteLayBet(id);
     }
+  };
+
+  const handleArchiviaFromLayBet = async (layBet: LayBet) => {
+    if (!bet) return;
+    
+    // Calcola automaticamente il risultato in base allo stato della bancata
+    let risultato = 0;
+    let esito: 'win' | 'loss' | 'refund' = 'loss';
+    const esitoDettaglio = layBet.id;
+    
+    if (layBet.stato === 'Vinto') {
+      // La bancata è vinta → la puntata è persa su questa gamba
+      risultato = layBet.stake - (layBet.stake * (layBet.quotaBanca - 1));
+      esito = 'loss';
+    } else if (layBet.stato === 'Perso') {
+      // La bancata è persa → la puntata potrebbe essere vinta
+      risultato = -layBet.stake * (layBet.quotaBanca - 1);
+      esito = 'win';
+    } else if (layBet.stato === 'Annullato') {
+      risultato = 0;
+      esito = 'refund';
+    }
+    
+    // Chiama la funzione di archiviazione del BetContext
+    await archiveBet(bet.id, risultato, esito, esitoDettaglio);
+    
+    toast.success('Scommessa archiviata automaticamente');
+    onOpenChange(false);
   };
 
 
@@ -97,7 +128,8 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                       <TableHead>Tasse</TableHead>
                       <TableHead>Mov.</TableHead>
                       <TableHead>Tag</TableHead>
-                      <TableHead>Attiva</TableHead>
+                      <TableHead>Stato</TableHead>
+                      <TableHead>Archivia</TableHead>
                       <TableHead>Opzioni</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -171,14 +203,40 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                          <TableCell>{formatCurrency(0)}</TableCell>
                          <TableCell className="text-sm">-</TableCell>
                          <TableCell>
-                           <Switch
-                             checked={layBet.attiva}
-                             onCheckedChange={(checked) => {
-                               updateLayBet(layBet.id, { attiva: checked });
+                           <Select
+                             value={layBet.stato}
+                             onValueChange={(value) => {
+                               updateLayBet(layBet.id, { stato: value as LayBet['stato'] });
                              }}
-                           />
+                           >
+                             <SelectTrigger className="w-[130px]">
+                               <SelectValue />
+                             </SelectTrigger>
+                             <SelectContent>
+                               <SelectItem value="Bozza">Bozza</SelectItem>
+                               <SelectItem value="In Corso">In Corso</SelectItem>
+                               <SelectItem value="Vinto">Vinto</SelectItem>
+                               <SelectItem value="Perso">Perso</SelectItem>
+                               <SelectItem value="Annullato">Annullato</SelectItem>
+                             </SelectContent>
+                           </Select>
                          </TableCell>
-                        <TableCell>
+                         <TableCell>
+                           {['Vinto', 'Perso', 'Annullato'].includes(layBet.stato) && (
+                             <Button
+                               size="sm"
+                               variant="default"
+                               onClick={() => {
+                                 if (confirm(`Sei sicuro di voler archiviare la multipla? Lo stato della bancata è "${layBet.stato}".`)) {
+                                   handleArchiviaFromLayBet(layBet);
+                                 }
+                               }}
+                             >
+                               Archivia
+                             </Button>
+                           )}
+                         </TableCell>
+                         <TableCell>
                           <div className="flex gap-1">
                             <Button
                               size="sm"
