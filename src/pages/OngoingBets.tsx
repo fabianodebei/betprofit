@@ -17,7 +17,7 @@ import { useBets } from '@/contexts/BetContext';
 import { useYear } from '@/contexts/YearContext';
 import { useTags } from '@/contexts/TagContext';
 import { useLayBets } from '@/contexts/LayBetContext';
-import { formatDate } from '@/utils/dates';
+import { formatDate, formatDateTime } from '@/utils/dates';
 import { formatCurrency } from '@/utils/currency';
 import { ArchiveBetDialog } from '@/components/dialogs/ArchiveBetDialog';
 import { MultiplaDetailDialog } from '@/components/dialogs/MultiplaDetailDialog';
@@ -242,7 +242,7 @@ export default function OngoingBets() {
                                     )}
                                   </Button>
                                 )}
-                                <span className="whitespace-nowrap">{formatDate(bet.dataEvento)}</span>
+                                <span className="whitespace-nowrap">{formatDateTime(bet.dataEvento)}</span>
                               </div>
                             </td>
                             <td className="p-2 md:p-3">
@@ -301,7 +301,7 @@ export default function OngoingBets() {
                                 <td className="p-3 text-sm pl-12">
                                   <div className="flex items-center gap-2">
                                     <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                                    {formatDate(layBet.dataEvento)}
+                                    {formatDateTime(layBet.dataEvento)}
                                   </div>
                                 </td>
                                 <td className="p-3">

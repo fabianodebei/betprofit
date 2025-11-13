@@ -383,11 +383,10 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
         return;
       }
       
-      // Controllo fondi disponibili reali (saldo + bilanci)
+      // Controllo fondi disponibili (saldoAttuale include già i bilanci)
       if (data.stake > 0 && data.tipoBonus !== 'Free Bet' && data.tipoBonus !== 'Bonus') {
-        const disponibile = account.saldoAttuale + account.bilancioGiocate + account.bilancioGiocateRapide;
-        if (data.stake > disponibile) {
-          toast.error(`Saldo insufficiente! Disponibile: ${formatCurrency(disponibile)}, Richiesto: ${formatCurrency(data.stake)}`);
+        if (data.stake > account.saldoAttuale) {
+          toast.error(`Saldo insufficiente! Disponibile: ${formatCurrency(account.saldoAttuale)}, Richiesto: ${formatCurrency(data.stake)}`);
           return;
         }
       }
@@ -696,14 +695,11 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {filteredAccounts.map((account) => {
-                          const disponibile = account.saldoAttuale + account.bilancioGiocate + account.bilancioGiocateRapide;
-                          return (
-                            <SelectItem key={account.id} value={account.conto}>
-                              {account.conto} (Disponibile: {formatCurrency(disponibile)})
-                            </SelectItem>
-                          );
-                        })}
+                        {filteredAccounts.map((account) => (
+                          <SelectItem key={account.id} value={account.conto}>
+                            {account.conto} (Disponibile: {formatCurrency(account.saldoAttuale)})
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
