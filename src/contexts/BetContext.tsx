@@ -80,6 +80,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
         bonus: b.bonus ? Number(b.bonus) : undefined,
         rimborso: b.rimborso ? Number(b.rimborso) : undefined,
         stato: b.stato as 'In Corso' | 'Archiviata',
+        statoEvento: b.stato_evento as 'Bozza' | 'In Corso' | 'Vinto' | 'Perso' | 'Annullato' | undefined,
         risultato: b.risultato ? Number(b.risultato) : undefined,
         esito: b.esito as 'win' | 'loss' | 'refund' | undefined,
         esitoDettaglio: b.esito_dettaglio || undefined,
@@ -158,6 +159,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
         bonus: data.bonus ? Number(data.bonus) : undefined,
         rimborso: data.rimborso ? Number(data.rimborso) : undefined,
         stato: data.stato as 'In Corso' | 'Archiviata',
+        statoEvento: (data as any).stato_evento as 'Bozza' | 'In Corso' | 'Vinto' | 'Perso' | 'Annullato' | undefined,
         risultato: data.risultato ? Number(data.risultato) : undefined,
         esito: data.esito as 'win' | 'loss' | 'refund' | undefined,
         esitoDettaglio: data.esito_dettaglio || undefined,
@@ -200,6 +202,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
       if (updates.bonus !== undefined) dbUpdates.bonus = updates.bonus;
       if (updates.rimborso !== undefined) dbUpdates.rimborso = updates.rimborso;
       if (updates.stato !== undefined) dbUpdates.stato = updates.stato;
+      if (updates.statoEvento !== undefined) dbUpdates.stato_evento = updates.statoEvento;
       if (updates.risultato !== undefined) dbUpdates.risultato = updates.risultato;
       if (updates.tag !== undefined) dbUpdates.tag = updates.tag;
       if (updates.walletId !== undefined) dbUpdates.wallet_id = updates.walletId;
