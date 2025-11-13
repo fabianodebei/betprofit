@@ -188,19 +188,24 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         throw layError;
       }
 
-      // Filtra solo le lay bets attive (In Corso)
-      const activeLayData = (layData || []).filter((lb: any) => lb.stato === 'In Corso');
+      // Elabora TUTTE le lay bets: calcola exposure solo per quelle in corso e gli esiti per quelle con bet archiviate
+      (layData || []).forEach((lb: any) => {
+        if (lb.metodo !== 'Banca') return;
 
-      activeLayData.forEach((lb: any) => {
-        if (lb.metodo === 'Banca' && activeBetIds.has(lb.parent_bet_id)) {
-          // Puntata in corso: sottrai liability dal bilancio
+        const conto = lb.conto as string;
+        const parentId = lb.parent_bet_id as string;
+
+        // 1) Exposure: solo se la puntata principale è in corso e la lay è in corso
+        if (activeBetIds.has(parentId) && lb.stato === 'In Corso') {
           const liability = Number(lb.stake) * (Number(lb.quota_banca) - 1);
-          const conto = lb.conto as string;
           giocateMap[conto] = (giocateMap[conto] || 0) - liability;
-        } else if (lb.metodo === 'Banca' && esitiArchiviati.has(lb.parent_bet_id)) {
-          const parentInfo = esitiArchiviati.get(lb.parent_bet_id)!;
-          const { esito, tipo, conto: contoPunta, esitoDettaglio } = parentInfo;
-          const conto = lb.conto as string;
+          return;
+        }
+
+        // 2) Esiti: se la puntata principale è archiviata, applica il risultato della lay (indipendentemente dallo stato della lay)
+        if (esitiArchiviati.has(parentId)) {
+          const parentInfo = esitiArchiviati.get(parentId)!;
+          const { esito, tipo, esitoDettaglio } = parentInfo;
 
           // Per le multiple: se esitoDettaglio è presente, verifichiamo il lay vincente
           if (tipo === 'Multipla' && esito === 'loss' && esitoDettaglio) {
