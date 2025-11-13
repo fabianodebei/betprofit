@@ -52,8 +52,35 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
     }
   };
 
+  const validateLayBetStates = (newStato: LayBet['stato'], currentLayBetId: string): boolean => {
+    // Crea un array di stati aggiornato con il nuovo stato
+    const updatedStates = layBets.map(lb => 
+      lb.id === currentLayBetId ? { ...lb, stato: newStato } : lb
+    );
+    
+    const hasVinto = updatedStates.some(lb => lb.stato === 'Vinto');
+    const hasPerso = updatedStates.some(lb => lb.stato === 'Perso');
+    
+    // Se c'è almeno una bancata vinta, deve esserci almeno una persa
+    if (hasVinto && !hasPerso) {
+      toast.error('Se una bancata è vinta, almeno un\'altra deve essere persa');
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleArchiviaFromLayBet = async (layBet: LayBet) => {
     if (!bet) return;
+    
+    // Valida gli stati prima di archiviare
+    const hasVinto = layBets.some(lb => lb.stato === 'Vinto');
+    const hasPerso = layBets.some(lb => lb.stato === 'Perso');
+    
+    if (hasVinto && !hasPerso) {
+      toast.error('Se una bancata è vinta, almeno un\'altra deve essere persa');
+      return;
+    }
     
     // Calcola automaticamente il risultato in base allo stato della bancata
     let risultato = 0;
@@ -293,7 +320,11 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                            <Select
                              value={layBet.stato}
                              onValueChange={(value) => {
-                               updateLayBet(layBet.id, { stato: value as LayBet['stato'] });
+                               const newStato = value as LayBet['stato'];
+                               // Valida prima di aggiornare
+                               if (validateLayBetStates(newStato, layBet.id)) {
+                                 updateLayBet(layBet.id, { stato: newStato });
+                               }
                              }}
                            >
                              <SelectTrigger className="w-[130px]">
