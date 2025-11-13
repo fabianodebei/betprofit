@@ -26,7 +26,7 @@ export default function ArchivedBets() {
 
   // Calculate lay bets results
   const calculateLayBetResults = (betId: string, outcome: string, esitoDettaglio?: string) => {
-    const associatedLayBets = layBets.filter(lb => lb.parentBetId === betId && lb.metodo === 'Banca');
+    const associatedLayBets = layBets.filter(lb => lb.parentBetId === betId && lb.metodo === 'Banca' && lb.attiva);
     let total = 0;
     
     associatedLayBets.forEach(lb => {
