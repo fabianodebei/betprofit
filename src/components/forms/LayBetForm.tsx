@@ -239,6 +239,7 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
         quotaBanca: data.quotaBanca,
         quotaPunta: data.quotaPunta,
         tassePercentuale: data.tassePercentuale,
+        attiva: true,
         urlEvento: data.urlEvento,
       });
     }

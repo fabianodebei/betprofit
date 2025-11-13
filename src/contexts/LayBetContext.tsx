@@ -73,6 +73,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
         quotaBanca: Number(lb.quota_banca),
         quotaPunta: Number(lb.quota_punta),
         tassePercentuale: Number(lb.tasse_percentuale),
+        attiva: lb.attiva ?? true,
         urlEvento: lb.url_evento || undefined,
         createdAt: new Date(lb.created_at),
       }));
@@ -103,6 +104,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
           quota_banca: layBet.quotaBanca,
           quota_punta: layBet.quotaPunta,
           tasse_percentuale: layBet.tassePercentuale,
+          attiva: layBet.attiva ?? true,
           url_evento: layBet.urlEvento || null,
           user_id: user.id,
         })
@@ -123,6 +125,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
         quotaBanca: Number(data.quota_banca),
         quotaPunta: Number(data.quota_punta),
         tassePercentuale: Number(data.tasse_percentuale),
+        attiva: data.attiva ?? true,
         urlEvento: data.url_evento || undefined,
         createdAt: new Date(data.created_at),
       };
@@ -147,6 +150,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
       if (updates.quotaBanca !== undefined) dbUpdates.quota_banca = updates.quotaBanca;
       if (updates.quotaPunta !== undefined) dbUpdates.quota_punta = updates.quotaPunta;
       if (updates.tassePercentuale !== undefined) dbUpdates.tasse_percentuale = updates.tassePercentuale;
+      if (updates.attiva !== undefined) dbUpdates.attiva = updates.attiva;
       if (updates.urlEvento !== undefined) dbUpdates.url_evento = updates.urlEvento;
 
       const { error } = await supabase
