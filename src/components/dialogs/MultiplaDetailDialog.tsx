@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -29,9 +29,14 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
   const { archiveBet, updateBet } = useBets();
   const [showLayBetForm, setShowLayBetForm] = useState(false);
   const [editingLayBet, setEditingLayBet] = useState<any>(null);
+  const [localStatoEvento, setLocalStatoEvento] = useState<Bet['statoEvento']>(bet?.statoEvento ?? 'Bozza');
 
   const layBets = bet ? getLayBetsByParentId(bet.id) : [];
   const betLegs = bet ? getBetLegsByBetId(bet.id) : [];
+
+  useEffect(() => {
+    setLocalStatoEvento(bet?.statoEvento ?? 'Bozza');
+  }, [bet?.id, bet?.statoEvento]);
 
   // Usa la funzione centralizzata per i calcoli
   const calculations = useMemo(
@@ -63,7 +68,6 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
     
     // Se c'è almeno una bancata vinta, deve esserci almeno una persa
     if (hasVinto && !hasPerso) {
-      toast.error('Se una bancata è vinta, almeno un\'altra deve essere persa');
       return false;
     }
     
@@ -78,7 +82,6 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
     const hasPerso = layBets.some(lb => lb.stato === 'Perso');
     
     if (hasVinto && !hasPerso) {
-      toast.error('Se una bancata è vinta, almeno un\'altra deve essere persa');
       return;
     }
     
@@ -246,8 +249,9 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                       <TableCell className="text-primary text-sm">{bet.tag || '(non impostato)'}</TableCell>
                       <TableCell>
                         <Select
-                          value={bet.statoEvento || 'Bozza'}
+                          value={localStatoEvento || 'Bozza'}
                           onValueChange={(value) => {
+                            setLocalStatoEvento(value as Bet['statoEvento']);
                             updateBet(bet.id, { statoEvento: value as Bet['statoEvento'] });
                           }}
                         >
