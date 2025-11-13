@@ -85,12 +85,7 @@ export default function ArchivedBets() {
 
   const totalArchived = filteredItems.reduce((sum, bet) => {
     const betResult = bet.risultato || 0;
-    // Per le multiple, controlla se ci sono bancate attive
-    const hasActiveLays = bet.tipo === 'Multipla' && layBets.some(lb => lb.parentBetId === bet.id && lb.attiva);
-    // Se è una multipla con bancate attive, il risultato include già tutto
-    const layResult = hasActiveLays 
-      ? 0 
-      : calculateLayBetResults(bet.id, bet.esito || 'refund', bet.esitoDettaglio);
+    const layResult = calculateLayBetResults(bet.id, bet.esito || 'refund', bet.esitoDettaglio);
     return sum + betResult + layResult;
   }, 0);
 
@@ -176,12 +171,7 @@ export default function ArchivedBets() {
                   <tbody>
                   {paginatedItems.map((bet, idx) => {
                     const betResult = bet.risultato || 0;
-                    // Per le multiple, controlla se ci sono bancate attive
-                    const hasActiveLays = bet.tipo === 'Multipla' && layBets.some(lb => lb.parentBetId === bet.id && lb.attiva);
-                    // Se è una multipla con bancate attive, il risultato include già tutto
-                    const layResult = hasActiveLays 
-                      ? 0 
-                      : calculateLayBetResults(bet.id, bet.esito || 'refund', bet.esitoDettaglio);
+                    const layResult = calculateLayBetResults(bet.id, bet.esito || 'refund', bet.esitoDettaglio);
                     const totalGM = betResult + layResult;
                     
                     return (
