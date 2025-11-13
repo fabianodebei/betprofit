@@ -11,43 +11,65 @@ import { AdvancedFilterBar } from '@/components/filters/AdvancedFilterBar';
 import { useAdvancedFilters } from '@/hooks/useAdvancedFilters';
 import { useBets } from '@/contexts/BetContext';
 import { useLayBets } from '@/contexts/LayBetContext';
+import { useBetLegs } from '@/contexts/BetLegContext';
 import { useYear } from '@/contexts/YearContext';
 import { useTags } from '@/contexts/TagContext';
 import { formatCurrency } from '@/utils/currency';
 import { formatDate, formatDateTime } from '@/utils/dates';
+import { getMultiplaCalculations } from '@/utils/multiplaCalculations';
 
 export default function ArchivedBets() {
   const { getArchivedBets, reopenBet, deleteBet, loading } = useBets();
   const { layBets } = useLayBets();
+  const { getBetLegsByBetId } = useBetLegs();
   const { selectedYear } = useYear();
   const { tags } = useTags();
   const allArchivedBets = getArchivedBets();
   const archivedBets = allArchivedBets.filter(bet => bet.dataEvento.getFullYear() === selectedYear);
 
-  // Calculate lay bets results
-  const calculateLayBetResults = (betId: string, outcome: string, esitoDettaglio?: string) => {
-    const associatedLayBets = layBets.filter(lb => lb.parentBetId === betId && lb.metodo === 'Banca' && lb.attiva);
-    let total = 0;
+  // Calculate total GM for archived bet (including lay bets)
+  const calculateTotalGM = (bet: any) => {
+    const betResult = bet.risultato || 0;
     
-    associatedLayBets.forEach(lb => {
-      if (outcome === 'win') {
-        total -= lb.stake * (lb.quotaBanca - 1);
-      } else if (outcome === 'loss') {
-        if (esitoDettaglio && lb.id === esitoDettaglio) {
-          const profittoLordo = lb.stake;
-          const tasse = profittoLordo * (lb.tassePercentuale / 100);
-          total += profittoLordo - tasse;
-        } else if (esitoDettaglio) {
-          total -= lb.stake * (lb.quotaBanca - 1);
-        } else {
-          const profittoLordo = lb.stake;
-          const tasse = profittoLordo * (lb.tassePercentuale / 100);
-          total += profittoLordo - tasse;
+    // Get associated lay bets
+    const associatedLayBets = layBets
+      .filter(lb => lb.parentBetId === bet.id && lb.metodo === 'Banca' && lb.attiva)
+      .map(lb => ({
+        id: lb.id,
+        stake: lb.stake,
+        quotaBanca: lb.quotaBanca,
+        quotaPunta: lb.quotaPunta,
+        tassePercentuale: lb.tassePercentuale,
+        attiva: lb.attiva,
+        evento: lb.evento,
+      }));
+    
+    // If no lay bets, return just the bet result
+    if (associatedLayBets.length === 0) {
+      return betResult;
+    }
+    
+    // For multipla bets with lay bets, use the calculation logic
+    if (bet.tipo === 'Multipla') {
+      const betLegs = getBetLegsByBetId(bet.id);
+      const calculations = getMultiplaCalculations(bet, associatedLayBets, betLegs);
+      
+      // Based on outcome, return the correct scenario
+      if (bet.esito === 'win') {
+        return calculations.scenarioVincita;
+      } else if (bet.esito === 'loss') {
+        // If esitoDettaglio is specified, find the specific leg result
+        if (bet.esitoDettaglio) {
+          const legResult = calculations.perGamba.find(g => g.id === bet.esitoDettaglio);
+          return legResult ? legResult.risultato : calculations.scenarioPerditaWorst;
         }
+        // Otherwise use worst case scenario
+        return calculations.scenarioPerditaWorst;
       }
-    });
+    }
     
-    return total;
+    // Fallback for other bet types with lay bets (shouldn't happen normally)
+    return betResult;
   };
 
   const {
@@ -84,9 +106,7 @@ export default function ArchivedBets() {
   const totalPages = Math.ceil(filteredItems.length / pageSize);
 
   const totalArchived = filteredItems.reduce((sum, bet) => {
-    const betResult = bet.risultato || 0;
-    const layResult = calculateLayBetResults(bet.id, bet.esito || 'refund', bet.esitoDettaglio);
-    return sum + betResult + layResult;
+    return sum + calculateTotalGM(bet);
   }, 0);
 
   return (
@@ -170,9 +190,7 @@ export default function ArchivedBets() {
                   </thead>
                   <tbody>
                   {paginatedItems.map((bet, idx) => {
-                    const betResult = bet.risultato || 0;
-                    const layResult = calculateLayBetResults(bet.id, bet.esito || 'refund', bet.esitoDettaglio);
-                    const totalGM = betResult + layResult;
+                    const totalGM = calculateTotalGM(bet);
                     
                     return (
                       <tr key={bet.id} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
