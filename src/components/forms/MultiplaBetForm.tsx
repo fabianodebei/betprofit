@@ -375,17 +375,35 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
         toast.warning('Attenzione: quota combinata molto alta (@' + quotaCombinata.toFixed(2) + ')');
       }
 
-      const account = accounts.find(a => a.conto === data.conto);
-      if (!account) {
+      const currentAccount = accounts.find(a => a.conto === data.conto);
+      if (!currentAccount) {
         toast.error('Conto non trovato');
         return;
       }
       
-      // Controllo fondi disponibili (saldoAttuale include già i bilanci)
+      // Controllo fondi disponibili
       if (data.stake > 0 && data.tipoBonus !== 'Free Bet' && data.tipoBonus !== 'Bonus') {
-        if (data.stake > account.saldoAttuale) {
-          toast.error(`Saldo insufficiente! Disponibile: ${formatCurrency(account.saldoAttuale)}, Richiesto: ${formatCurrency(data.stake)}`);
-          return;
+        if (mode === 'edit' && editingBet) {
+          const sameAccount = editingBet.conto === data.conto;
+          if (sameAccount) {
+            const requiredAdditional = Math.max(0, data.stake - editingBet.stake);
+            if (requiredAdditional > currentAccount.saldoAttuale) {
+              toast.error(`Saldo insufficiente! Disponibile: ${formatCurrency(currentAccount.saldoAttuale)}, Necessario extra: ${formatCurrency(requiredAdditional)}`);
+              return;
+            }
+          } else {
+            // Se si cambia conto, il nuovo conto deve coprire l'intero nuovo stake
+            if (data.stake > currentAccount.saldoAttuale) {
+              toast.error(`Saldo insufficiente sul nuovo conto! Disponibile: ${formatCurrency(currentAccount.saldoAttuale)}, Richiesto: ${formatCurrency(data.stake)}`);
+              return;
+            }
+          }
+        } else {
+          // Creazione nuova bet
+          if (data.stake > currentAccount.saldoAttuale) {
+            toast.error(`Saldo insufficiente! Disponibile: ${formatCurrency(currentAccount.saldoAttuale)}, Richiesto: ${formatCurrency(data.stake)}`);
+            return;
+          }
         }
       }
 
@@ -429,10 +447,11 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
         if (stakeChanged || contoChanged) {
           // Restituire stake originale al conto originale (solo per bet tipo Multipla/Singola)
           if (editingBet.tipo === 'Multipla' || editingBet.tipo === 'Singola') {
+            const newOriginalBilancio = Number(originalAccountData.bilancio_giocate) + editingBet.stake;
             const { error: updateOriginalError } = await supabase
               .from('accounts')
               .update({
-                bilancio_giocate: originalAccountData.bilancio_giocate + editingBet.stake
+                bilancio_giocate: newOriginalBilancio
               })
               .eq('id', originalAccountData.id);
               
@@ -440,14 +459,17 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
               console.error('Error updating original account:', updateOriginalError);
               throw updateOriginalError;
             }
+            // Aggiorna lo stato locale
+            updateAccount(originalAccountData.id, { bilancioGiocate: newOriginalBilancio });
           }
 
           // Se il conto è cambiato, detrarre il nuovo stake dal nuovo conto
           if (contoChanged) {
+            const newNewBilancio = Number(newAccountData.bilancio_giocate) - data.stake;
             const { error: updateNewError } = await supabase
               .from('accounts')
               .update({
-                bilancio_giocate: newAccountData.bilancio_giocate - data.stake
+                bilancio_giocate: newNewBilancio
               })
               .eq('id', newAccountData.id);
               
@@ -455,13 +477,16 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
               console.error('Error updating new account:', updateNewError);
               throw updateNewError;
             }
+            // Aggiorna lo stato locale
+            updateAccount(newAccountData.id, { bilancioGiocate: newNewBilancio });
           } else {
             // Se il conto è lo stesso, aggiusta il bilancio con la differenza
             const stakeDiff = data.stake - editingBet.stake;
+            const newSameBilancio = Number(newAccountData.bilancio_giocate) - stakeDiff;
             const { error: updateSameError } = await supabase
               .from('accounts')
               .update({
-                bilancio_giocate: newAccountData.bilancio_giocate - stakeDiff
+                bilancio_giocate: newSameBilancio
               })
               .eq('id', newAccountData.id);
               
@@ -469,6 +494,8 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
               console.error('Error updating account balance:', updateSameError);
               throw updateSameError;
             }
+            // Aggiorna lo stato locale
+            updateAccount(newAccountData.id, { bilancioGiocate: newSameBilancio });
           }
         }
         
