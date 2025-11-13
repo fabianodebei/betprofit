@@ -158,13 +158,13 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
   };
 
   const handleArchiviaFromMultipla = async () => {
-    if (!bet || !bet.statoEvento) return;
+    if (!bet || !localStatoEvento) return;
     
     // Calcola il risultato in base allo stato della multipla
     let risultato = 0;
     let esito: 'win' | 'loss' | 'refund' = 'loss';
     
-    if (bet.statoEvento === 'Vinto') {
+    if (localStatoEvento === 'Vinto') {
       // Multipla vinta: calcola la vincita
       const quotaEffettiva = bet.quotaCombinata || bet.quota || 1;
       if (bet.tipoBonus === 'Free Bet') {
@@ -183,7 +183,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
       });
       
       esito = 'win';
-    } else if (bet.statoEvento === 'Perso') {
+    } else if (localStatoEvento === 'Perso') {
       // Multipla persa
       if (bet.tipoBonus === 'Free Bet') {
         risultato = 0;
@@ -201,13 +201,12 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
       });
       
       esito = 'loss';
-    } else if (bet.statoEvento === 'Annullato') {
+    } else if (localStatoEvento === 'Annullato') {
       risultato = 0;
       esito = 'refund';
     }
     
     await archiveBet(bet.id, risultato, esito);
-    toast.success('Multipla archiviata automaticamente');
     onOpenChange(false);
   };
 
