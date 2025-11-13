@@ -20,6 +20,7 @@ import { CASINO_MARKETS } from '@/constants/markets';
 import { Bet } from '@/types';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/utils/currency';
+import { handleInputClick } from '@/utils/inputFormatting';
 const casinoBetSchema = z.object({
   nomeGioco: z.string().min(1, 'Nome gioco è obbligatorio'),
   dataEvento: z.date(),
@@ -264,7 +265,7 @@ export function CasinoBetForm({
                     <FormLabel>Stake *</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input type="number" step="0.01" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
+                        <Input type="number" step="0.01" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} onClick={handleInputClick} />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                       </div>
                     </FormControl>
@@ -290,7 +291,7 @@ export function CasinoBetForm({
                     <FormLabel>Bonus</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input type="number" step="0.01" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
+                        <Input type="number" step="0.01" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} onClick={handleInputClick} />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                       </div>
                     </FormControl>
@@ -302,7 +303,7 @@ export function CasinoBetForm({
                     <FormLabel>Rimborso</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input type="number" step="0.01" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
+                        <Input type="number" step="0.01" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} onClick={handleInputClick} />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                       </div>
                     </FormControl>

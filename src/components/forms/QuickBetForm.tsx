@@ -23,6 +23,7 @@ import { useIntestatari } from '@/contexts/IntestatariContext';
 import { QUICK_BET_METHODS } from '@/constants/markets';
 import { PREDEFINED_TAGS } from '@/constants/predefinedTags';
 import { toast } from 'sonner';
+import { handleInputClick } from '@/utils/inputFormatting';
 const quickBetSchema = z.object({
   intestatario: z.string().trim().min(1, 'Intestatario è obbligatorio').max(100),
   conto: z.string().trim().min(1, 'Conto è obbligatorio').max(100),
@@ -253,7 +254,7 @@ export function QuickBetForm({
                   <FormLabel>Movimento *</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <Input type="number" step="0.01" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
+                      <Input type="number" step="0.01" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} onClick={handleInputClick} />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                     </div>
                   </FormControl>

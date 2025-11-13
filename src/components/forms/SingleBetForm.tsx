@@ -26,6 +26,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { formatCurrency } from '@/utils/currency';
+import { formatOddsInput, parseOddsInput, handleInputClick } from '@/utils/inputFormatting';
 import { toast } from 'sonner';
 
 const createSingleBetSchema = (tagRequired: boolean) => z.object({
@@ -612,20 +613,12 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                           placeholder="1,30"
                           value={quotaInput}
                           onChange={(e) => {
-                            let value = e.target.value.replace(/[^\d]/g, ''); // Solo numeri
-                            if (value.length === 0) {
-                              setQuotaInput('');
-                            } else if (value.length <= 2) {
-                              setQuotaInput(value);
-                            } else {
-                              const intPart = value.slice(0, -2);
-                              const decPart = value.slice(-2);
-                              setQuotaInput(intPart + ',' + decPart);
-                            }
+                            const formatted = formatOddsInput(e.target.value);
+                            setQuotaInput(formatted);
                           }}
                           onFocus={(e) => e.target.select()}
                           onBlur={() => {
-                            const num = parseDecimal(quotaInput);
+                            const num = parseOddsInput(quotaInput);
                             form.setValue('quota', Number.isFinite(num) && num > 0 ? num : 1.30, { shouldValidate: true });
                           }}
                           className={cn(isLowOdds && "border-orange-500")}
@@ -711,6 +704,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                                 const val = e.target.value;
                                 onChange(val === '' ? 0 : parseFloat(val));
                               }}
+                              onClick={handleInputClick}
                             />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                           </div>
@@ -739,6 +733,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                                 const val = e.target.value;
                                 onChange(val === '' ? 0 : parseFloat(val));
                               }}
+                              onClick={handleInputClick}
                             />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                           </div>
