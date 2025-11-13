@@ -93,17 +93,17 @@ export function getMultiplaCalculations(
   const scenarioVincita = puntaWin - sumLiability;
 
   // Scenario per ogni gamba attiva (multipla perde su quella specifica lay)
-  // TUTTE LE BANCATE SONO PIAZZATE CONTEMPORANEAMENTE
-  const perGamba = activeBets.map((lb) => {
+  // STRATEGIA SEQUENZIALE: le bancate successive vengono piazzate solo se le precedenti vincono
+  const perGamba = activeBets.map((lb, index) => {
     // Se questa gamba fa vincere il lay (multipla perde su questa gamba):
     // 1. Perdi la puntata della multipla: puntaLoss
     // 2. Vinci il lay specifico: +layWinNet(lb)
-    // 3. Perdi TUTTE le altre bancate (non solo quelle precedenti)
-    const altreLiability = activeBets
-      .filter((other) => other.id !== lb.id) // Escludi solo la bancata corrente
-      .reduce((sum, other) => sum + liability(other), 0);
+    // 3. Perdi solo le liability PRECEDENTI (non quelle successive, perché non le hai ancora piazzate)
+    const liabilityPrecedenti = activeBets
+      .slice(0, index) // Solo le bancate PRIMA di questa
+      .reduce((sum, prev) => sum + liability(prev), 0);
     
-    const risultato = puntaLoss + layWinNet(lb) - altreLiability;
+    const risultato = puntaLoss + layWinNet(lb) - liabilityPrecedenti;
     return {
       id: lb.id,
       evento: lb.evento,
