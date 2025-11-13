@@ -47,23 +47,49 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
       return false;
     }
     
-    // Tutte le bancate devono essere Vinto o Perso
-    const allLayBetsValid = layBets.every(lb => ['Vinto', 'Perso'].includes(lb.stato));
-    if (!allLayBetsValid) {
-      return false;
+    // Se non ci sono bancate, può archiviare
+    if (layBets.length === 0) {
+      return true;
     }
     
-    // Se multipla è Vinto, tutte le bancate devono essere Perso
-    if (bet.statoEvento === 'Vinto') {
-      return layBets.every(lb => lb.stato === 'Perso');
+    // Ordina le bancate per data evento
+    const sortedLayBets = [...layBets].sort((a, b) => 
+      new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime()
+    );
+    
+    // Verifica gli stati delle bancate
+    for (let i = 0; i < sortedLayBets.length; i++) {
+      const currentLayBet = sortedLayBets[i];
+      const prevLayBet = i > 0 ? sortedLayBets[i - 1] : null;
+      
+      // Se è Bozza, controlla se la precedente è Vinto
+      if (currentLayBet.stato === 'Bozza') {
+        if (!prevLayBet || prevLayBet.stato !== 'Vinto') {
+          return false;
+        }
+      }
+      // Se non è Bozza, deve essere Vinto o Perso
+      else if (!['Vinto', 'Perso'].includes(currentLayBet.stato)) {
+        return false;
+      }
     }
     
-    // Se multipla è Perso, tutte le bancate devono essere Vinto
-    if (bet.statoEvento === 'Perso') {
-      return layBets.every(lb => lb.stato === 'Vinto');
+    // Verifica coerenza tra multipla e bancate non-Bozza
+    const nonBozzaLayBets = sortedLayBets.filter(lb => lb.stato !== 'Bozza');
+    
+    if (nonBozzaLayBets.length > 0) {
+      if (bet.statoEvento === 'Vinto') {
+        // Tutte le bancate non-Bozza devono essere Perso
+        return nonBozzaLayBets.every(lb => lb.stato === 'Perso');
+      }
+      
+      if (bet.statoEvento === 'Perso') {
+        // Tutte le bancate non-Bozza devono essere Vinto
+        return nonBozzaLayBets.every(lb => lb.stato === 'Vinto');
+      }
     }
     
-    return false;
+    return true;
   }, [bet, layBets]);
 
   // Usa la funzione centralizzata per i calcoli
@@ -204,7 +230,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                 }}
                 title={
                   !canArchive 
-                    ? 'Per archiviare: multipla deve essere Vinto/Perso, tutte le bancate Vinto/Perso, e stati opposti tra multipla e bancate' 
+                    ? 'Per archiviare: multipla Vinto/Perso, bancate Vinto/Perso/Bozza (Bozza solo se precedente Vinto), stati opposti' 
                     : 'Archivia questa multipla'
                 }
               >
