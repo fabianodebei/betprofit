@@ -52,6 +52,28 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
     }
   };
 
+  const canArchiveMultipla = useMemo(() => {
+    if (!bet || !bet.statoEvento) return false;
+    
+    // La multipla deve avere stato "Vinto" o "Perso"
+    if (bet.statoEvento !== 'Vinto' && bet.statoEvento !== 'Perso') return false;
+    
+    // Se non ci sono bancate, può archiviare
+    if (layBets.length === 0) return true;
+    
+    // La prima bancata NON deve essere in Bozza
+    const firstLayBet = layBets[0];
+    if (firstLayBet && firstLayBet.stato === 'Bozza') return false;
+    
+    // Validazione: se c'è una bancata vinta, deve esserci anche una persa
+    const hasVinto = layBets.some(lb => lb.stato === 'Vinto');
+    const hasPerso = layBets.some(lb => lb.stato === 'Perso');
+    
+    if (hasVinto && !hasPerso) return false;
+    
+    return true;
+  }, [bet, layBets]);
+
   const validateLayBetStates = (newStato: LayBet['stato'], currentLayBetId: string): boolean => {
     // Crea un array di stati aggiornato con il nuovo stato
     const updatedStates = layBets.map(lb => 
@@ -70,45 +92,30 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
     return true;
   };
 
-  const handleArchiviaFromLayBet = async (layBet: LayBet) => {
-    if (!bet) return;
+  const handleArchiviaMultipla = async () => {
+    if (!bet || !bet.statoEvento) return;
     
-    // Valida gli stati prima di archiviare
-    const hasVinto = layBets.some(lb => lb.stato === 'Vinto');
-    const hasPerso = layBets.some(lb => lb.stato === 'Perso');
-    
-    if (hasVinto && !hasPerso) {
-      toast.error('Se una bancata è vinta, almeno un\'altra deve essere persa');
+    // Validazioni finali prima di archiviare
+    if (bet.statoEvento === 'Bozza') {
+      toast.error('Non puoi archiviare una multipla in bozza');
       return;
     }
     
-    // Calcola automaticamente il risultato in base allo stato della bancata
-    let risultato = 0;
-    let esito: 'win' | 'loss' | 'refund' = 'loss';
-    const esitoDettaglio = layBet.id;
-    
-    if (layBet.stato === 'Vinto') {
-      // La bancata è vinta → la puntata è persa su questa gamba
-      risultato = layBet.stake - (layBet.stake * (layBet.quotaBanca - 1));
-      esito = 'loss';
-    } else if (layBet.stato === 'Perso') {
-      // La bancata è persa → la puntata potrebbe essere vinta
-      risultato = -layBet.stake * (layBet.quotaBanca - 1);
-      esito = 'win';
-    } else if (layBet.stato === 'Annullato') {
-      risultato = 0;
-      esito = 'refund';
+    if (layBets.length > 0) {
+      const firstLayBet = layBets[0];
+      if (firstLayBet && firstLayBet.stato === 'Bozza') {
+        toast.error('La prima bancata non può essere in bozza per archiviare');
+        return;
+      }
+      
+      const hasVinto = layBets.some(lb => lb.stato === 'Vinto');
+      const hasPerso = layBets.some(lb => lb.stato === 'Perso');
+      
+      if (hasVinto && !hasPerso) {
+        toast.error('Se una bancata è vinta, almeno un\'altra deve essere persa');
+        return;
+      }
     }
-    
-    // Chiama la funzione di archiviazione del BetContext
-    await archiveBet(bet.id, risultato, esito, esitoDettaglio);
-    
-    toast.success('Scommessa archiviata automaticamente');
-    onOpenChange(false);
-  };
-
-  const handleArchiviaFromMultipla = async () => {
-    if (!bet || !bet.statoEvento) return;
     
     // Calcola il risultato in base allo stato della multipla
     let risultato = 0;
@@ -157,7 +164,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
     }
     
     await archiveBet(bet.id, risultato, esito);
-    toast.success('Multipla archiviata automaticamente');
+    toast.success('Multipla archiviata con successo');
     onOpenChange(false);
   };
 
@@ -264,13 +271,13 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                         </Select>
                       </TableCell>
                       <TableCell>
-                        {bet.statoEvento && ['Vinto', 'Perso', 'Annullato'].includes(bet.statoEvento) && (
+                        {canArchiveMultipla && (
                           <Button
                             size="sm"
                             variant="default"
                             onClick={() => {
-                              if (confirm(`Sei sicuro di voler archiviare la multipla? Lo stato è "${bet.statoEvento}".`)) {
-                                handleArchiviaFromMultipla();
+                              if (confirm('Sei sicuro di voler archiviare la multipla?')) {
+                                handleArchiviaMultipla();
                               }
                             }}
                           >
@@ -340,19 +347,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                            </Select>
                          </TableCell>
                          <TableCell>
-                           {['Vinto', 'Perso', 'Annullato'].includes(layBet.stato) && (
-                             <Button
-                               size="sm"
-                               variant="default"
-                               onClick={() => {
-                                 if (confirm(`Sei sicuro di voler archiviare la multipla? Lo stato della bancata è "${layBet.stato}".`)) {
-                                   handleArchiviaFromLayBet(layBet);
-                                 }
-                               }}
-                             >
-                               Archivia
-                             </Button>
-                           )}
+                           {/* Nessun pulsante archivia sulle bancate */}
                          </TableCell>
                          <TableCell>
                           <div className="flex gap-1">
