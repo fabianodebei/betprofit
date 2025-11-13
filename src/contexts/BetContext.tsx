@@ -291,24 +291,60 @@ export function BetProvider({ children }: { children: ReactNode }) {
 
     let risultatoToSave = 0;
 
-    // Calcola SEMPRE solo il risultato della punta principale (no bancate)
-    const quota = bet.quota || bet.quotaCombinata || 1;
-    if (outcome === 'win') {
-      if (bet.tipoBonus === 'Free Bet') {
-        risultatoToSave = bet.stake * (quota - 1);
-      } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
-        risultatoToSave = (bet.stake + bet.bonus) * quota - bet.stake;
+    // Per le multiple, il risultato passato è già completo (include punta + bancate)
+    // Per le altre, calcola il risultato della punta
+    if (bet.tipo === 'Multipla') {
+      // Verifica se ci sono bancate associate controllando esitoDettaglio o outcome win con risultatoTotale diverso dal calcolo base
+      const quotaBase = bet.quota || bet.quotaCombinata || 1;
+      const risultatoBasePunta = bet.stake * quotaBase - bet.stake;
+      
+      // Se il risultatoTotale è diverso dal calcolo base, significa che include le bancate
+      const hasBancate = Math.abs(risultatoTotale - risultatoBasePunta) > 0.01 || esitoDettaglio;
+      
+      if (hasBancate) {
+        // Multipla con bancate: usa il risultato totale già calcolato
+        risultatoToSave = risultatoTotale;
       } else {
-        risultatoToSave = bet.stake * quota - bet.stake;
-      }
-    } else if (outcome === 'loss') {
-      if (bet.tipoBonus === 'Free Bet') {
-        risultatoToSave = 0;
-      } else {
-        risultatoToSave = -bet.stake;
+        // Multipla senza bancate: calcola solo punta
+        const quota = bet.quota || bet.quotaCombinata || 1;
+        if (outcome === 'win') {
+          if (bet.tipoBonus === 'Free Bet') {
+            risultatoToSave = bet.stake * (quota - 1);
+          } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
+            risultatoToSave = (bet.stake + bet.bonus) * quota - bet.stake;
+          } else {
+            risultatoToSave = bet.stake * quota - bet.stake;
+          }
+        } else if (outcome === 'loss') {
+          if (bet.tipoBonus === 'Free Bet') {
+            risultatoToSave = 0;
+          } else {
+            risultatoToSave = -bet.stake;
+          }
+        } else {
+          risultatoToSave = 0; // refund
+        }
       }
     } else {
-      risultatoToSave = 0; // refund
+      // Singola, Casino, Rapida: calcola solo punta
+      const quota = bet.quota || bet.quotaCombinata || 1;
+      if (outcome === 'win') {
+        if (bet.tipoBonus === 'Free Bet') {
+          risultatoToSave = bet.stake * (quota - 1);
+        } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
+          risultatoToSave = (bet.stake + bet.bonus) * quota - bet.stake;
+        } else {
+          risultatoToSave = bet.stake * quota - bet.stake;
+        }
+      } else if (outcome === 'loss') {
+        if (bet.tipoBonus === 'Free Bet') {
+          risultatoToSave = 0;
+        } else {
+          risultatoToSave = -bet.stake;
+        }
+      } else {
+        risultatoToSave = 0; // refund
+      }
     }
 
     try {
