@@ -290,7 +290,10 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           <Copy className="h-4 w-4" />
-                          {bet.evento || `MULTIPLA ${betLegs.length > 0 ? betLegs[0].competizione : ''}`}
+                          {betLegs.length > 0 
+                            ? betLegs.map(leg => leg.evento).join(' + ')
+                            : (bet.evento || `MULTIPLA ${betLegs.length > 0 ? betLegs[0].competizione : ''}`)
+                          }
                         </div>
                       </TableCell>
                       <TableCell>{betLegs.length > 0 ? betLegs[0].competizione : '-'}</TableCell>

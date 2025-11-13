@@ -11,6 +11,7 @@ import { AdvancedFilterBar } from '@/components/filters/AdvancedFilterBar';
 import { useAdvancedFilters } from '@/hooks/useAdvancedFilters';
 import { useBets } from '@/contexts/BetContext';
 import { useLayBets } from '@/contexts/LayBetContext';
+import { useBetLegs } from '@/contexts/BetLegContext';
 import { useYear } from '@/contexts/YearContext';
 import { useTags } from '@/contexts/TagContext';
 import { formatCurrency } from '@/utils/currency';
@@ -19,6 +20,7 @@ import { formatDate, formatDateTime } from '@/utils/dates';
 export default function ArchivedBets() {
   const { getArchivedBets, reopenBet, deleteBet, loading } = useBets();
   const { layBets } = useLayBets();
+  const { getBetLegsByBetId } = useBetLegs();
   const { selectedYear } = useYear();
   const { tags } = useTags();
   const allArchivedBets = getArchivedBets();
@@ -174,6 +176,12 @@ export default function ArchivedBets() {
                     const layResult = calculateLayBetResults(bet.id, bet.esito || 'refund', bet.esitoDettaglio);
                     const totalGM = betResult + layResult;
                     
+                    // Per le multiple, prendi i nomi degli eventi dalle bet_legs
+                    const betLegs = bet.tipo === 'Multipla' ? getBetLegsByBetId(bet.id) : [];
+                    const eventoDisplay = bet.tipo === 'Multipla' && betLegs.length > 0
+                      ? betLegs.map(leg => leg.evento).join(' + ')
+                      : (bet.evento || bet.nomeGioco || '-');
+                    
                     return (
                       <tr key={bet.id} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
                         <td className="p-3 text-sm font-medium">{bet.id.slice(0, 8)}</td>
@@ -181,7 +189,7 @@ export default function ArchivedBets() {
                           <Badge variant="info">{bet.tipo}</Badge>
                         </td>
                         <td className="p-3 text-sm">{formatDateTime(bet.dataEvento)}</td>
-                        <td className="p-3 text-sm">{bet.evento || bet.nomeGioco || '-'}</td>
+                        <td className="p-3 text-sm">{eventoDisplay}</td>
                         <td className="p-3">
                           <Badge variant="secondary">{bet.tipoBonus || 'Nessuno'}</Badge>
                         </td>
