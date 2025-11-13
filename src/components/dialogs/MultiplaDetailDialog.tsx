@@ -39,19 +39,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
     [bet, layBets, betLegs]
   );
 
-  if (!bet) return null;
-
-  const handleEditLayBet = (layBet: any) => {
-    setEditingLayBet(layBet);
-    setShowLayBetForm(true);
-  };
-
-  const handleDeleteLayBet = async (id: string) => {
-    if (confirm('Sei sicuro di voler eliminare questa bancata?')) {
-      await deleteLayBet(id);
-    }
-  };
-
+  // IMPORTANTE: Tutti gli hooks devono essere chiamati PRIMA di qualsiasi return condizionale
   const canArchiveMultipla = useMemo(() => {
     if (!bet || !bet.statoEvento) return false;
     
@@ -73,6 +61,20 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
     
     return true;
   }, [bet, layBets]);
+
+  if (!bet) return null;
+
+
+  const handleEditLayBet = (layBet: any) => {
+    setEditingLayBet(layBet);
+    setShowLayBetForm(true);
+  };
+
+  const handleDeleteLayBet = async (id: string) => {
+    if (confirm('Sei sicuro di voler eliminare questa bancata?')) {
+      await deleteLayBet(id);
+    }
+  };
 
   const validateLayBetStates = (newStato: LayBet['stato'], currentLayBetId: string): boolean => {
     // Crea un array di stati aggiornato con il nuovo stato
