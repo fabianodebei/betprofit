@@ -26,9 +26,9 @@ export default function Balance() {
     const ongoingBets = getOngoingBets();
     const ongoingBetIds = new Set(ongoingBets.map(b => b.id));
     
-    // Somma le liability delle bancate associate a puntate in corso
+    // Somma le liability delle bancate associate a puntate in corso (solo quelle con stato 'In Corso')
     const liabilityBancate = layBets
-      .filter(lb => lb.metodo === 'Banca' && ongoingBetIds.has(lb.parentBetId))
+      .filter(lb => lb.metodo === 'Banca' && lb.stato === 'In Corso' && ongoingBetIds.has(lb.parentBetId))
       .reduce((sum, lb) => sum + (lb.stake * (lb.quotaBanca - 1)), 0);
     
     return stakeInCorso + liabilityBancate;
