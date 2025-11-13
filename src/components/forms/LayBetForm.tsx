@@ -35,6 +35,7 @@ const layBetSchema = z.object({
   quotaBanca: z.number().min(1.01, 'La quota banca deve essere almeno 1.01'),
   quotaPunta: z.number().min(1.01, 'La quota punta deve essere almeno 1.01'),
   tassePercentuale: z.number().min(0).max(100),
+  stato: z.enum(['Bozza', 'In Corso', 'Vinto', 'Perso', 'Annullato']),
   urlEvento: z.string().optional(),
 });
 
@@ -96,6 +97,7 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
       quotaBanca: 1.01,
       quotaPunta: 1.01,
       tassePercentuale: 0,
+      stato: 'Bozza',
       urlEvento: '',
     },
   });
@@ -138,6 +140,7 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
         quotaBanca: editingLayBet.quotaBanca,
         quotaPunta: editingLayBet.quotaPunta,
         tassePercentuale: editingLayBet.tassePercentuale,
+        stato: editingLayBet.stato || 'Bozza',
         urlEvento: editingLayBet.urlEvento || '',
       });
       setQuotaBancaInput(editingLayBet.quotaBanca.toFixed(2).replace('.', ','));
@@ -234,6 +237,7 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
         quotaBanca: data.quotaBanca,
         quotaPunta: data.quotaPunta,
         tassePercentuale: data.tassePercentuale,
+        stato: data.stato,
         urlEvento: data.urlEvento,
       });
     } else {
@@ -257,6 +261,7 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
         quotaPunta: data.quotaPunta,
         tassePercentuale: data.tassePercentuale,
         attiva: true,
+        stato: data.stato,
         urlEvento: data.urlEvento,
       });
     }
@@ -593,6 +598,30 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">%</span>
                     </div>
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="stato"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Stato *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleziona stato" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Bozza">Bozza</SelectItem>
+                      <SelectItem value="In Corso">In Corso</SelectItem>
+                      <SelectItem value="Vinto">Vinto</SelectItem>
+                      <SelectItem value="Perso">Perso</SelectItem>
+                      <SelectItem value="Annullato">Annullato</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

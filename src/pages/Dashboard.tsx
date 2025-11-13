@@ -59,7 +59,7 @@ export default function Dashboard() {
 
   // Calculate lay bets results for archived bets
   const calculateLayBetResults = (betId: string, outcome: string, esitoDettaglio?: string) => {
-    const associatedLayBets = layBets.filter(lb => lb.parentBetId === betId && lb.metodo === 'Banca' && lb.attiva);
+    const associatedLayBets = layBets.filter(lb => lb.parentBetId === betId && lb.metodo === 'Banca' && ['In Corso', 'Vinto', 'Perso'].includes(lb.stato));
     let total = 0;
     
     associatedLayBets.forEach(lb => {
@@ -249,7 +249,7 @@ export default function Dashboard() {
   const overallROI = useMemo(() => {
     // Calculate total stake from all archived bets and lay bets
     const totalStakeBets = archivedBets.reduce((sum, b) => sum + b.stake, 0);
-    const totalStakeLay = layBets.filter(lb => lb.attiva).reduce((sum, lb) => sum + lb.stake, 0);
+    const totalStakeLay = layBets.filter(lb => ['In Corso', 'Vinto', 'Perso'].includes(lb.stato)).reduce((sum, lb) => sum + lb.stake, 0);
     const totalStake = totalStakeBets + totalStakeLay;
     
     // Calculate total profit from archived bets

@@ -74,6 +74,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
         quotaPunta: Number(lb.quota_punta),
         tassePercentuale: Number(lb.tasse_percentuale),
         attiva: lb.attiva ?? true,
+        stato: lb.stato || 'Bozza',
         urlEvento: lb.url_evento || undefined,
         createdAt: new Date(lb.created_at),
       }));
@@ -105,6 +106,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
           quota_punta: layBet.quotaPunta,
           tasse_percentuale: layBet.tassePercentuale,
           attiva: layBet.attiva ?? true,
+          stato: layBet.stato || 'Bozza',
           url_evento: layBet.urlEvento || null,
           user_id: user.id,
         })
@@ -125,7 +127,8 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
         quotaBanca: Number(data.quota_banca),
         quotaPunta: Number(data.quota_punta),
         tassePercentuale: Number(data.tasse_percentuale),
-        attiva: (data as any).attiva ?? true,
+        attiva: data.attiva ?? true,
+        stato: (data.stato || 'Bozza') as LayBet['stato'],
         urlEvento: data.url_evento || undefined,
         createdAt: new Date(data.created_at),
       };
