@@ -518,7 +518,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                     </div>
 
                     <div className="space-y-3">
-                      <div className="grid grid-cols-1 gap-3">
+                      <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="text-sm font-medium">Evento *</label>
                           <Input
@@ -552,7 +552,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 gap-3">
+                      <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="text-sm font-medium">Mercato</label>
                           <Select
@@ -590,7 +590,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 gap-3">
+                      <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="text-sm font-medium">Quota *</label>
                           <Input
