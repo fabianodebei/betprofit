@@ -160,25 +160,16 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase
         .from('lay_bets')
         .update(dbUpdates)
-        .eq('id', id)
-        .eq('user_id', user?.id as string);
+        .eq('id', id);
 
       if (error) throw error;
 
       setLayBets((prev) =>
         prev.map((layBet) => (layBet.id === id ? { ...layBet, ...updates } : layBet))
       );
-      
-      // Don't show toast for stato changes
-      if (updates.stato === undefined) {
-        toast.success('Bancata aggiornata con successo');
-      }
+      toast.success('Bancata aggiornata con successo');
     } catch (error: any) {
-      // Suppress error toast when only stato is being updated
-      const onlyStato = Object.keys(updates).length === 1 && 'stato' in updates;
-      if (!onlyStato) {
-        toast.error('Errore durante l\'aggiornamento della bancata');
-      }
+      toast.error('Errore durante l\'aggiornamento della bancata');
       console.error('Error updating lay bet:', error);
     }
   };

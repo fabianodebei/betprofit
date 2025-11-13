@@ -128,7 +128,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       // Recalcolo bilanci dalle puntate per correggere eventuali inconsistenze
       const { data: betsData, error: betsError } = await supabase
         .from('bets')
-        .select('id, tipo, conto, stato, stato_evento, stake, risultato, tipo_bonus, esito, esito_dettaglio')
+        .select('id, tipo, conto, stato, stake, risultato, tipo_bonus, esito, esito_dettaglio')
         .eq('user_id', user.id);
 
       if (betsError) {
@@ -147,12 +147,9 @@ export function AccountProvider({ children }: { children: ReactNode }) {
           return;
         }
         if (b.stato === 'In Corso') {
-          // Considera solo le scommesse con statoEvento 'In Corso' (effettivamente giocate)
-          if (b.stato_evento === 'In Corso') {
-            // Mentre sono in corso, lo stake reale va a decrementare temporaneamente il bilancio
-            if (b.tipo_bonus !== 'Free Bet' && b.tipo_bonus !== 'Bonus') {
-              giocateMap[conto] = (giocateMap[conto] || 0) - (Number(b.stake) || 0);
-            }
+          // Mentre sono in corso, lo stake reale va a decrementare temporaneamente il bilancio
+          if (b.tipo_bonus !== 'Free Bet' && b.tipo_bonus !== 'Bonus') {
+            giocateMap[conto] = (giocateMap[conto] || 0) - (Number(b.stake) || 0);
           }
         } else if (b.stato === 'Archiviata') {
           // A fine corsa contano solo i profitti netti (risultato)
@@ -162,7 +159,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
       // Exposure delle bancate per le scommesse ancora in corso + risultati per scommesse archiviate
       const activeBetIds = new Set((betsData || [])
-        .filter((b: any) => b.stato === 'In Corso' && b.stato_evento === 'In Corso')
+        .filter((b: any) => b.stato === 'In Corso')
         .map((b: any) => b.id));
 
       // Map: betId -> { esito, tipo, conto, esitoDettaglio }
@@ -188,24 +185,19 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         throw layError;
       }
 
-      // Elabora TUTTE le lay bets: calcola exposure solo per quelle in corso e gli esiti per quelle con bet archiviate
-      (layData || []).forEach((lb: any) => {
-        if (lb.metodo !== 'Banca') return;
+      // Filtra solo le lay bets attive (In Corso)
+      const activeLayData = (layData || []).filter((lb: any) => lb.stato === 'In Corso');
 
-        const conto = lb.conto as string;
-        const parentId = lb.parent_bet_id as string;
-
-        // 1) Exposure: solo se la puntata principale è in corso e la lay è in corso
-        if (activeBetIds.has(parentId) && lb.stato === 'In Corso') {
+      activeLayData.forEach((lb: any) => {
+        if (lb.metodo === 'Banca' && activeBetIds.has(lb.parent_bet_id)) {
+          // Puntata in corso: sottrai liability dal bilancio
           const liability = Number(lb.stake) * (Number(lb.quota_banca) - 1);
+          const conto = lb.conto as string;
           giocateMap[conto] = (giocateMap[conto] || 0) - liability;
-          return;
-        }
-
-        // 2) Esiti: se la puntata principale è archiviata, applica il risultato della lay (indipendentemente dallo stato della lay)
-        if (esitiArchiviati.has(parentId)) {
-          const parentInfo = esitiArchiviati.get(parentId)!;
-          const { esito, tipo, esitoDettaglio } = parentInfo;
+        } else if (lb.metodo === 'Banca' && esitiArchiviati.has(lb.parent_bet_id)) {
+          const parentInfo = esitiArchiviati.get(lb.parent_bet_id)!;
+          const { esito, tipo, conto: contoPunta, esitoDettaglio } = parentInfo;
+          const conto = lb.conto as string;
 
           // Per le multiple: se esitoDettaglio è presente, verifichiamo il lay vincente
           if (tipo === 'Multipla' && esito === 'loss' && esitoDettaglio) {

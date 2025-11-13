@@ -222,25 +222,16 @@ export function BetProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase
         .from('bets')
         .update(dbUpdates)
-        .eq('id', id)
-        .eq('user_id', user?.id as string);
+        .eq('id', id);
 
       if (error) throw error;
 
       setBets((prev) =>
         prev.map((bet) => (bet.id === id ? { ...bet, ...updates } : bet))
       );
-      
-      // Don't show toast for stato_evento changes
-      if (updates.statoEvento === undefined) {
-        toast.success('Puntata aggiornata con successo');
-      }
+      toast.success('Puntata aggiornata con successo');
     } catch (error: any) {
-      // Suppress error toast when only stato_evento is being updated
-      const onlyStatoEvento = Object.keys(updates).length === 1 && 'statoEvento' in updates;
-      if (!onlyStatoEvento) {
-        toast.error('Errore durante l\'aggiornamento della puntata');
-      }
+      toast.error('Errore durante l\'aggiornamento della puntata');
       console.error('Error updating bet:', error);
     }
   };
@@ -395,17 +386,11 @@ export function BetProvider({ children }: { children: ReactNode }) {
       window.dispatchEvent(new Event('refresh-accounts'));
     }
 
-    await updateBet(id, { 
-      stato: 'In Corso', 
-      statoEvento: 'In Corso',
-      risultato: undefined,
-      esito: undefined,
-      esitoDettaglio: undefined
-    });
+    await updateBet(id, { stato: 'In Corso', risultato: undefined });
   };
 
   const getOngoingBets = () => {
-    return bets.filter((bet) => bet.stato === 'In Corso' && bet.tipo !== 'Rapida' && bet.statoEvento === 'In Corso');
+    return bets.filter((bet) => bet.stato === 'In Corso' && bet.tipo !== 'Rapida');
   };
 
   const getArchivedBets = () => {

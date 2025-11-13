@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Copy, Archive } from 'lucide-react';
+import { Plus, Copy } from 'lucide-react';
 import { Bet, LayBet } from '@/types';
 import { useLayBets } from '@/contexts/LayBetContext';
 import { useBetLegs } from '@/contexts/BetLegContext';
@@ -29,86 +29,9 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
   const { archiveBet, updateBet } = useBets();
   const [showLayBetForm, setShowLayBetForm] = useState(false);
   const [editingLayBet, setEditingLayBet] = useState<any>(null);
-  const [localStatoEvento, setLocalStatoEvento] = useState<Bet['statoEvento']>(bet?.statoEvento ?? 'Bozza');
 
   const layBets = bet ? getLayBetsByParentId(bet.id) : [];
   const betLegs = bet ? getBetLegsByBetId(bet.id) : [];
-
-  useEffect(() => {
-    setLocalStatoEvento(bet?.statoEvento ?? 'Bozza');
-  }, [bet?.id, bet?.statoEvento]);
-
-  // Helper per colorare il trigger del Select in base allo stato
-  const getStateTriggerClasses = (s?: 'Bozza' | 'In Corso' | 'Vinto' | 'Perso' | 'Annullato') => {
-    switch (s) {
-      case 'Bozza':
-        return 'bg-muted text-muted-foreground border-muted';
-      case 'In Corso':
-        return 'bg-accent/10 text-accent border-accent/20';
-      case 'Vinto':
-        return 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
-      case 'Perso':
-        return 'bg-destructive/10 text-destructive border-destructive/20';
-      case 'Annullato':
-        return 'bg-muted text-muted-foreground border-muted';
-      default:
-        return '';
-    }
-  };
-
-  // Valida se è possibile archiviare
-  const canArchive = useMemo(() => {
-    if (!bet) return false;
-    
-    // La multipla deve essere Vinto o Perso
-    if (!localStatoEvento || !['Vinto', 'Perso'].includes(localStatoEvento)) {
-      return false;
-    }
-    
-    // Se non ci sono bancate, può archiviare
-    if (layBets.length === 0) {
-      return true;
-    }
-    
-    // Ordina le bancate per data evento
-    const sortedLayBets = [...layBets].sort((a, b) => 
-      new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime()
-    );
-    
-    // Verifica gli stati delle bancate
-    for (let i = 0; i < sortedLayBets.length; i++) {
-      const currentLayBet = sortedLayBets[i];
-      const prevLayBet = i > 0 ? sortedLayBets[i - 1] : null;
-      
-      // Se è Bozza, controlla se la precedente è Vinto
-      if (currentLayBet.stato === 'Bozza') {
-        if (!prevLayBet || prevLayBet.stato !== 'Vinto') {
-          return false;
-        }
-      }
-      // Se non è Bozza, deve essere Vinto o Perso
-      else if (!['Vinto', 'Perso'].includes(currentLayBet.stato)) {
-        return false;
-      }
-    }
-    
-    // Verifica coerenza tra multipla e bancate non-Bozza
-    const nonBozzaLayBets = sortedLayBets.filter(lb => lb.stato !== 'Bozza');
-    
-    if (nonBozzaLayBets.length > 0) {
-      if (localStatoEvento === 'Vinto') {
-        // Tutte le bancate non-Bozza devono essere Perso
-        return nonBozzaLayBets.every(lb => lb.stato === 'Perso');
-      }
-      
-      if (localStatoEvento === 'Perso') {
-        // Tutte le bancate non-Bozza devono essere Vinto
-        return nonBozzaLayBets.every(lb => lb.stato === 'Vinto');
-      }
-    }
-    
-    return true;
-  }, [bet, layBets, localStatoEvento]);
 
   // Usa la funzione centralizzata per i calcoli
   const calculations = useMemo(
@@ -158,13 +81,13 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
   };
 
   const handleArchiviaFromMultipla = async () => {
-    if (!bet || !localStatoEvento) return;
+    if (!bet || !bet.statoEvento) return;
     
     // Calcola il risultato in base allo stato della multipla
     let risultato = 0;
     let esito: 'win' | 'loss' | 'refund' = 'loss';
     
-    if (localStatoEvento === 'Vinto') {
+    if (bet.statoEvento === 'Vinto') {
       // Multipla vinta: calcola la vincita
       const quotaEffettiva = bet.quotaCombinata || bet.quota || 1;
       if (bet.tipoBonus === 'Free Bet') {
@@ -183,7 +106,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
       });
       
       esito = 'win';
-    } else if (localStatoEvento === 'Perso') {
+    } else if (bet.statoEvento === 'Perso') {
       // Multipla persa
       if (bet.tipoBonus === 'Free Bet') {
         risultato = 0;
@@ -201,12 +124,13 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
       });
       
       esito = 'loss';
-    } else if (localStatoEvento === 'Annullato') {
+    } else if (bet.statoEvento === 'Annullato') {
       risultato = 0;
       esito = 'refund';
     }
     
     await archiveBet(bet.id, risultato, esito);
+    toast.success('Multipla archiviata automaticamente');
     onOpenChange(false);
   };
 
@@ -223,7 +147,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
 
           <div className="space-y-4">
             {/* Actions */}
-            <div className="flex justify-between items-center gap-2">
+            <div className="flex gap-2">
               <Button
                 size="sm"
                 variant="outline"
@@ -234,25 +158,6 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Nuova Bancata
-              </Button>
-              
-              <Button
-                size="sm"
-                variant="default"
-                disabled={!canArchive}
-                onClick={() => {
-                  if (confirm('Sei sicuro di voler archiviare questa multipla?')) {
-                    handleArchiviaFromMultipla();
-                  }
-                }}
-                title={
-                  !canArchive 
-                    ? 'Per archiviare: multipla Vinto/Perso, bancate Vinto/Perso/Bozza (Bozza solo se precedente Vinto), stati opposti' 
-                    : 'Archivia questa multipla'
-                }
-              >
-                <Archive className="h-4 w-4 mr-2" />
-                Archivia Multipla
               </Button>
             </div>
 
@@ -278,6 +183,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                       <TableHead>Mov.</TableHead>
                       <TableHead>Tag</TableHead>
                       <TableHead>Stato</TableHead>
+                      <TableHead>Archivia</TableHead>
                       <TableHead>Opzioni</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -290,10 +196,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           <Copy className="h-4 w-4" />
-                          {betLegs.length > 0 
-                            ? betLegs.map(leg => leg.evento).join(' + ')
-                            : (bet.evento || `MULTIPLA ${betLegs.length > 0 ? betLegs[0].competizione : ''}`)
-                          }
+                          {bet.evento || `MULTIPLA ${betLegs.length > 0 ? betLegs[0].competizione : ''}`}
                         </div>
                       </TableCell>
                       <TableCell>{betLegs.length > 0 ? betLegs[0].competizione : '-'}</TableCell>
@@ -316,16 +219,15 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                       <TableCell className="text-primary text-sm">{bet.tag || '(non impostato)'}</TableCell>
                       <TableCell>
                         <Select
-                          value={localStatoEvento || 'Bozza'}
+                          value={bet.statoEvento || 'Bozza'}
                           onValueChange={(value) => {
-                            setLocalStatoEvento(value as Bet['statoEvento']);
                             updateBet(bet.id, { statoEvento: value as Bet['statoEvento'] });
                           }}
                         >
-                          <SelectTrigger className={`w-[130px] ${getStateTriggerClasses(localStatoEvento || 'Bozza')}`}>
+                          <SelectTrigger className="w-[130px]">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent className="z-50 bg-background border border-border">
+                          <SelectContent>
                             <SelectItem value="Bozza">Bozza</SelectItem>
                             <SelectItem value="In Corso">In Corso</SelectItem>
                             <SelectItem value="Vinto">Vinto</SelectItem>
@@ -333,6 +235,21 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                             <SelectItem value="Annullato">Annullato</SelectItem>
                           </SelectContent>
                         </Select>
+                      </TableCell>
+                      <TableCell>
+                        {bet.statoEvento && ['Vinto', 'Perso', 'Annullato'].includes(bet.statoEvento) && (
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => {
+                              if (confirm(`Sei sicuro di voler archiviare la multipla? Lo stato è "${bet.statoEvento}".`)) {
+                                handleArchiviaFromMultipla();
+                              }
+                            }}
+                          >
+                            Archivia
+                          </Button>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Button size="sm" variant="ghost">
@@ -379,10 +296,10 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                                updateLayBet(layBet.id, { stato: value as LayBet['stato'] });
                              }}
                            >
-                           <SelectTrigger className={`w-[130px] ${getStateTriggerClasses(layBet.stato)}`}>
-                             <SelectValue />
-                           </SelectTrigger>
-                           <SelectContent className="z-50 bg-background border border-border">
+                             <SelectTrigger className="w-[130px]">
+                               <SelectValue />
+                             </SelectTrigger>
+                             <SelectContent>
                                <SelectItem value="Bozza">Bozza</SelectItem>
                                <SelectItem value="In Corso">In Corso</SelectItem>
                                <SelectItem value="Vinto">Vinto</SelectItem>
@@ -390,6 +307,21 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                                <SelectItem value="Annullato">Annullato</SelectItem>
                              </SelectContent>
                            </Select>
+                         </TableCell>
+                         <TableCell>
+                           {['Vinto', 'Perso', 'Annullato'].includes(layBet.stato) && (
+                             <Button
+                               size="sm"
+                               variant="default"
+                               onClick={() => {
+                                 if (confirm(`Sei sicuro di voler archiviare la multipla? Lo stato della bancata è "${layBet.stato}".`)) {
+                                   handleArchiviaFromLayBet(layBet);
+                                 }
+                               }}
+                             >
+                               Archivia
+                             </Button>
+                           )}
                          </TableCell>
                          <TableCell>
                           <div className="flex gap-1">
