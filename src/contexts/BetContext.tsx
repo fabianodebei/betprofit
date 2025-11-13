@@ -399,7 +399,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
   };
 
   const getOngoingBets = () => {
-    return bets.filter((bet) => bet.stato === 'In Corso' && bet.tipo !== 'Rapida');
+    return bets.filter((bet) => bet.stato === 'In Corso' && bet.tipo !== 'Rapida' && bet.statoEvento === 'In Corso');
   };
 
   const getArchivedBets = () => {
