@@ -257,11 +257,13 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                         <Select
                           value={bet.statoEvento || 'Bozza'}
                           onValueChange={(value) => {
-                            updateBet(bet.id, { statoEvento: value as Bet['statoEvento'] });
+                            const newStato = value as Bet['statoEvento'];
+                            console.log('Aggiornamento stato multipla:', bet.id, newStato);
+                            updateBet(bet.id, { statoEvento: newStato });
                           }}
                         >
                           <SelectTrigger className="w-[130px]">
-                            <SelectValue />
+                            <SelectValue placeholder="Seleziona stato" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="Bozza">Bozza</SelectItem>
