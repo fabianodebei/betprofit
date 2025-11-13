@@ -15,6 +15,7 @@ import { LayBetForm } from '@/components/forms/LayBetForm';
 import { formatCurrency } from '@/utils/currency';
 import { format } from 'date-fns';
 import { getMultiplaCalculations } from '@/utils/multiplaCalculations';
+import { StateBadge } from '@/components/common/StateBadge';
 import { toast } from 'sonner';
 
 interface MultiplaDetailDialogProps {
@@ -261,6 +262,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                       <TableHead>Mov.</TableHead>
                       <TableHead>Tag</TableHead>
                       <TableHead>Stato</TableHead>
+                      <TableHead>Cambia Stato</TableHead>
                       <TableHead>Opzioni</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -294,6 +296,9 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                       <TableCell>0,00</TableCell>
                       <TableCell>{formatCurrency(0)}</TableCell>
                       <TableCell className="text-primary text-sm">{bet.tag || '(non impostato)'}</TableCell>
+                      <TableCell>
+                        <StateBadge stato={localStatoEvento || 'Bozza'} />
+                      </TableCell>
                       <TableCell>
                         <Select
                           value={localStatoEvento || 'Bozza'}
@@ -352,6 +357,9 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                          <TableCell className="text-accent">{formatCurrency(tasse)}</TableCell>
                          <TableCell>{formatCurrency(0)}</TableCell>
                          <TableCell className="text-sm">-</TableCell>
+                         <TableCell>
+                           <StateBadge stato={layBet.stato} />
+                         </TableCell>
                          <TableCell>
                            <Select
                              value={layBet.stato}
