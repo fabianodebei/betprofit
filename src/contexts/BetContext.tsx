@@ -229,7 +229,11 @@ export function BetProvider({ children }: { children: ReactNode }) {
       setBets((prev) =>
         prev.map((bet) => (bet.id === id ? { ...bet, ...updates } : bet))
       );
-      toast.success('Puntata aggiornata con successo');
+      
+      // Don't show toast for stato_evento changes
+      if (updates.statoEvento === undefined) {
+        toast.success('Puntata aggiornata con successo');
+      }
     } catch (error: any) {
       toast.error('Errore durante l\'aggiornamento della puntata');
       console.error('Error updating bet:', error);
