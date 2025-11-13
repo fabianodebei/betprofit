@@ -14,7 +14,7 @@ import { useLayBets } from '@/contexts/LayBetContext';
 import { useYear } from '@/contexts/YearContext';
 import { useTags } from '@/contexts/TagContext';
 import { formatCurrency } from '@/utils/currency';
-import { formatDate } from '@/utils/dates';
+import { formatDate, formatDateTime } from '@/utils/dates';
 
 export default function ArchivedBets() {
   const { getArchivedBets, reopenBet, deleteBet, loading } = useBets();
@@ -180,7 +180,7 @@ export default function ArchivedBets() {
                         <td className="p-3">
                           <Badge variant="info">{bet.tipo}</Badge>
                         </td>
-                        <td className="p-3 text-sm">{formatDate(bet.dataEvento)}</td>
+                        <td className="p-3 text-sm">{formatDateTime(bet.dataEvento)}</td>
                         <td className="p-3 text-sm">{bet.evento || bet.nomeGioco || '-'}</td>
                         <td className="p-3">
                           <Badge variant="secondary">{bet.tipoBonus || 'Nessuno'}</Badge>
