@@ -9,7 +9,7 @@ import { useAccounts } from '@/contexts/AccountContext';
 import { useWallets } from '@/contexts/WalletContext';
 import { useTags } from '@/contexts/TagContext';
 import { formatCurrency } from '@/utils/currency';
-import { formatDate } from '@/utils/dates';
+import { formatDateTime } from '@/utils/dates';
 import Fuse from 'fuse.js';
 
 interface GlobalSearchDialogProps {
@@ -145,7 +145,7 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
                                 {bet.evento || bet.nomeGioco || 'Scommessa'}
                               </div>
                               <div className="text-xs text-muted-foreground">
-                                {bet.conto} • {formatDate(bet.dataEvento)}
+                                {bet.conto} • {formatDateTime(bet.dataEvento)}
                               </div>
                             </div>
                           </div>
