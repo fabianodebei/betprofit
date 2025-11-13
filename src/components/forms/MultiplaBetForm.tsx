@@ -20,6 +20,7 @@ import { useTags } from '@/contexts/TagContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useWallets } from '@/contexts/WalletContext';
 import { useIntestatari } from '@/contexts/IntestatariContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { PREDEFINED_TAGS } from '@/constants/predefinedTags';
 import { ALL_SPORT_MARKETS } from '@/constants/markets';
 import { Bet, BetLeg } from '@/types';
@@ -28,6 +29,7 @@ import { toast } from 'sonner';
 import { formatCurrency } from '@/utils/currency';
 import { formatOddsInput, parseOddsInput, handleInputClick } from '@/utils/inputFormatting';
 import { useDebounce } from '@/hooks/useDebounce';
+import { supabase } from '@/integrations/supabase/client';
 
 const STORAGE_KEY = 'multipla_form_draft';
 
@@ -123,6 +125,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
   const { settings } = useSettings();
   const { wallets } = useWallets();
   const { intestatari } = useIntestatari();
+  const { user } = useAuth();
   const [selectedIntestatario, setSelectedIntestatario] = useState<string>('');
   const [selectedConto, setSelectedConto] = useState<string>('');
   const [tipoBonus, setTipoBonus] = useState<Bet['tipoBonus']>('Nessuno');
@@ -389,6 +392,85 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
       if (mode === 'edit' && editingBet) {
         // Per le multiple usiamo la data della prima partita
         const firstMatchDate = selections.length > 0 ? selections[0].dataEvento : new Date();
+        
+        // Gestione bilancio quando si modifica una bet:
+        // 1. Restituire lo stake originale al conto originale
+        // 2. Detrarre il nuovo stake dal nuovo conto
+        
+        // Recupera i dati aggiornati degli account dal database
+        const { data: originalAccountData, error: originalAccountError } = await supabase
+          .from('accounts')
+          .select('*')
+          .eq('conto', editingBet.conto)
+          .eq('user_id', user?.id)
+          .single();
+          
+        if (originalAccountError || !originalAccountData) {
+          toast.error('Conto originale non trovato');
+          return;
+        }
+
+        const { data: newAccountData, error: newAccountError } = await supabase
+          .from('accounts')
+          .select('*')
+          .eq('conto', data.conto)
+          .eq('user_id', user?.id)
+          .single();
+          
+        if (newAccountError || !newAccountData) {
+          toast.error('Nuovo conto non trovato');
+          return;
+        }
+
+        // Se il conto è cambiato o lo stake è cambiato, aggiorna i bilanci
+        const stakeChanged = editingBet.stake !== data.stake;
+        const contoChanged = editingBet.conto !== data.conto;
+        
+        if (stakeChanged || contoChanged) {
+          // Restituire stake originale al conto originale (solo per bet tipo Multipla/Singola)
+          if (editingBet.tipo === 'Multipla' || editingBet.tipo === 'Singola') {
+            const { error: updateOriginalError } = await supabase
+              .from('accounts')
+              .update({
+                bilancio_giocate: originalAccountData.bilancio_giocate + editingBet.stake
+              })
+              .eq('id', originalAccountData.id);
+              
+            if (updateOriginalError) {
+              console.error('Error updating original account:', updateOriginalError);
+              throw updateOriginalError;
+            }
+          }
+
+          // Se il conto è cambiato, detrarre il nuovo stake dal nuovo conto
+          if (contoChanged) {
+            const { error: updateNewError } = await supabase
+              .from('accounts')
+              .update({
+                bilancio_giocate: newAccountData.bilancio_giocate - data.stake
+              })
+              .eq('id', newAccountData.id);
+              
+            if (updateNewError) {
+              console.error('Error updating new account:', updateNewError);
+              throw updateNewError;
+            }
+          } else {
+            // Se il conto è lo stesso, aggiusta il bilancio con la differenza
+            const stakeDiff = data.stake - editingBet.stake;
+            const { error: updateSameError } = await supabase
+              .from('accounts')
+              .update({
+                bilancio_giocate: newAccountData.bilancio_giocate - stakeDiff
+              })
+              .eq('id', newAccountData.id);
+              
+            if (updateSameError) {
+              console.error('Error updating account balance:', updateSameError);
+              throw updateSameError;
+            }
+          }
+        }
         
         await updateBet(editingBet.id, {
           ...editingBet,
