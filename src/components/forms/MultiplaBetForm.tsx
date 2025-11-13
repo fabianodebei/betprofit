@@ -26,6 +26,9 @@ import { Bet, BetLeg } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/utils/currency';
+import { useDebounce } from '@/hooks/useDebounce';
+
+const STORAGE_KEY = 'multipla_form_draft';
 
 interface BetSelection {
   evento: string;
@@ -35,6 +38,50 @@ interface BetSelection {
   quota: number;
   dataEvento: Date;
 }
+
+interface SavedFormState {
+  selections: Array<{
+    evento: string;
+    competizione: string;
+    mercato: string;
+    selezione: string;
+    quota: number;
+    dataEvento: string;
+  }>;
+  quotaInputs: string[];
+  formValues: MultiplaBetFormData;
+  selectedIntestatario: string;
+  selectedConto: string;
+  tipoBonus: string;
+}
+
+const saveFormState = (state: SavedFormState) => {
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (error) {
+    console.error('Error saving form state:', error);
+  }
+};
+
+const loadFormState = (): SavedFormState | null => {
+  try {
+    const saved = sessionStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (error) {
+    console.error('Error loading form state:', error);
+  }
+  return null;
+};
+
+const clearFormState = () => {
+  try {
+    sessionStorage.removeItem(STORAGE_KEY);
+  } catch (error) {
+    console.error('Error clearing form state:', error);
+  }
+};
 
 const createMultiplaBetSchema = (tagRequired: boolean) => z.object({
   intestatario: z.string().min(1, 'Intestatario è obbligatorio'),
@@ -148,6 +195,9 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
 
   useEffect(() => {
     if (editingBet && open) {
+      // Clear any saved draft when editing
+      clearFormState();
+      
       const account = accounts.find(a => a.conto === editingBet.conto);
       const intestatario = account?.intestatario || '';
       
@@ -188,24 +238,91 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
         }
       }
     } else if (!editingBet && open) {
-      const predefinito = intestatari.find(int => int.predefinito && int.stato === 'Abilitato');
-      if (predefinito) {
-        form.setValue('intestatario', predefinito.nome);
-        setSelectedIntestatario(predefinito.nome);
+      // Try to load saved state first
+      const savedState = loadFormState();
+      
+      if (savedState) {
+        // Restore from saved state
+        const restoredSelections = savedState.selections.map(sel => ({
+          ...sel,
+          dataEvento: new Date(sel.dataEvento),
+        }));
+        
+        setSelections(restoredSelections);
+        setQuotaInputs(savedState.quotaInputs);
+        setSelectedIntestatario(savedState.selectedIntestatario);
+        setSelectedConto(savedState.selectedConto);
+        setTipoBonus(savedState.tipoBonus as any);
+        
+        form.reset(savedState.formValues);
+        
+        toast.info('Recuperati dati non salvati');
       } else {
-        form.reset();
-        setSelectedIntestatario('');
-        setSelectedConto('');
-        setTipoBonus('Nessuno');
+        // Default initialization
+        const predefinito = intestatari.find(int => int.predefinito && int.stato === 'Abilitato');
+        if (predefinito) {
+          form.setValue('intestatario', predefinito.nome);
+          setSelectedIntestatario(predefinito.nome);
+        } else {
+          form.reset();
+          setSelectedIntestatario('');
+          setSelectedConto('');
+          setTipoBonus('Nessuno');
+        }
+        // Reset selections to default
+        setSelections([
+          { evento: '', competizione: '', mercato: '', selezione: '', quota: 1.5, dataEvento: new Date() },
+          { evento: '', competizione: '', mercato: '', selezione: '', quota: 1.5, dataEvento: new Date() },
+        ]);
+        setQuotaInputs(['1,50', '1,50']);
       }
-      // Reset selections to default
-      setSelections([
-        { evento: '', competizione: '', mercato: '', selezione: '', quota: 1.5, dataEvento: new Date() },
-        { evento: '', competizione: '', mercato: '', selezione: '', quota: 1.5, dataEvento: new Date() },
-      ]);
-      setQuotaInputs(['1,50', '1,50']);
     }
-  }, [editingBet, open, intestatari, accounts, mode]);
+  }, [editingBet, open, mode]);
+
+  // Auto-save form state with debounce (only when creating, not editing)
+  const debouncedSave = useDebounce(() => {
+    if (!editingBet && open) {
+      const formValues = form.getValues();
+      const state: SavedFormState = {
+        selections: selections.map(sel => ({
+          ...sel,
+          dataEvento: sel.dataEvento.toISOString(),
+        })),
+        quotaInputs,
+        formValues,
+        selectedIntestatario,
+        selectedConto,
+        tipoBonus,
+      };
+      saveFormState(state);
+    }
+  }, 500);
+
+  // Trigger auto-save when form data changes
+  useEffect(() => {
+    if (!editingBet && open) {
+      debouncedSave();
+    }
+  }, [selections, quotaInputs, selectedIntestatario, selectedConto, tipoBonus, form.watch()]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Only clear if not in the middle of a form submission
+      if (!editingBet) {
+        clearFormState();
+      }
+    };
+  }, []);
+
+  // Handle dialog close
+  const handleDialogClose = (newOpen: boolean) => {
+    if (!newOpen && !editingBet) {
+      // Clear saved state when closing without editing
+      clearFormState();
+    }
+    onOpenChange(newOpen);
+  };
 
   const handleAddSelection = () => {
     if (selections.length >= 10) {
@@ -343,6 +460,9 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
         toast.success('Multipla creata');
       }
 
+      // Clear saved state after successful submission
+      clearFormState();
+      
       onOpenChange(false);
       form.reset();
       setSelections([
@@ -361,7 +481,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
   );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
