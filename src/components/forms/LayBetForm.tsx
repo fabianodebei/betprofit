@@ -23,6 +23,7 @@ import { useBetLegs } from '@/contexts/BetLegContext';
 import { SPORT_MARKETS } from '@/constants/markets';
 import { LayBet, Bet } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { formatOddsInput, parseOddsInput, handleInputClick } from '@/utils/inputFormatting';
 
 const layBetSchema = z.object({
   metodo: z.enum(['Punta', 'Banca']),
@@ -59,6 +60,8 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
   const [selectedParentBetId, setSelectedParentBetId] = useState<string>(parentBetId || '');
   const [selectedParentBet, setSelectedParentBet] = useState<Bet | null>(parentBet || null);
   const [dynamicBetLegs, setDynamicBetLegs] = useState<any[]>([]);
+  const [quotaBancaInput, setQuotaBancaInput] = useState<string>('1,01');
+  const [quotaPuntaInput, setQuotaPuntaInput] = useState<string>('1,01');
   
   // Sincronizza la selezione della multipla quando il form viene aperto dal dettaglio multipla
   useEffect(() => {
@@ -129,6 +132,8 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
         tassePercentuale: editingLayBet.tassePercentuale,
         urlEvento: editingLayBet.urlEvento || '',
       });
+      setQuotaBancaInput(editingLayBet.quotaBanca.toFixed(2).replace('.', ','));
+      setQuotaPuntaInput(editingLayBet.quotaPunta.toFixed(2).replace('.', ','));
       setSelectedMetodo(editingLayBet.metodo);
     } else if (!editingLayBet && open && parentBet) {
       // Pre-compila con i dati della bet principale
@@ -147,6 +152,8 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
         tassePercentuale: 0,
         urlEvento: parentBet.urlEvento || '',
       });
+      setQuotaBancaInput('1,01');
+      setQuotaPuntaInput((firstLeg?.quota || parentBet.quota || 1.01).toFixed(2).replace('.', ','));
       setSelectedMetodo('Banca');
       if (firstLeg) setSelectedBetLeg(firstLeg);
     } else if (!editingLayBet && open) {
@@ -162,6 +169,8 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
         tassePercentuale: 0,
         urlEvento: '',
       });
+      setQuotaBancaInput('1,01');
+      setQuotaPuntaInput('1,01');
       setSelectedMetodo('Punta');
     }
   }, [editingLayBet, open, form, parentBet]);
@@ -486,6 +495,7 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                         placeholder="0.00"
                         {...field}
                         onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        onClick={handleInputClick}
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                     </div>
@@ -498,16 +508,24 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
               <FormField
                 control={form.control}
                 name="quotaBanca"
-                render={({ field }) => (
+                render={() => (
                   <FormItem>
                     <FormLabel>Quota Exchange *</FormLabel>
                     <FormControl>
                       <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="1.01"
-                        {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 1.01)}
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="1,01"
+                        value={quotaBancaInput}
+                        onChange={(e) => {
+                          const formatted = formatOddsInput(e.target.value);
+                          setQuotaBancaInput(formatted);
+                        }}
+                        onFocus={(e) => e.target.select()}
+                        onBlur={() => {
+                          const num = parseOddsInput(quotaBancaInput);
+                          form.setValue('quotaBanca', num >= 1.01 ? num : 1.01, { shouldValidate: true });
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -518,16 +536,24 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
               <FormField
                 control={form.control}
                 name="quotaPunta"
-                render={({ field }) => (
+                render={() => (
                   <FormItem>
                     <FormLabel>Quota *</FormLabel>
                     <FormControl>
                       <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="1.01"
-                        {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 1.01)}
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="1,01"
+                        value={quotaPuntaInput}
+                        onChange={(e) => {
+                          const formatted = formatOddsInput(e.target.value);
+                          setQuotaPuntaInput(formatted);
+                        }}
+                        onFocus={(e) => e.target.select()}
+                        onBlur={() => {
+                          const num = parseOddsInput(quotaPuntaInput);
+                          form.setValue('quotaPunta', num >= 1.01 ? num : 1.01, { shouldValidate: true });
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -549,6 +575,7 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                         placeholder="0"
                         {...field}
                         onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        onClick={handleInputClick}
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">%</span>
                     </div>

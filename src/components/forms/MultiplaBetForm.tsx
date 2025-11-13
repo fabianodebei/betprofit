@@ -26,6 +26,7 @@ import { Bet, BetLeg } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/utils/currency';
+import { formatOddsInput, parseOddsInput, handleInputClick } from '@/utils/inputFormatting';
 import { useDebounce } from '@/hooks/useDebounce';
 
 const STORAGE_KEY = 'multipla_form_draft';
@@ -599,25 +600,14 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                             value={quotaInputs[index] || ''}
                             onFocus={(e) => e.target.select()}
                             onChange={(e) => {
-                              let value = e.target.value.replace(/[^\d]/g, ''); // Solo numeri
                               const newQuotaInputs = [...quotaInputs];
-                              
-                              if (value.length === 0) {
-                                newQuotaInputs[index] = '';
-                                setQuotaInputs(newQuotaInputs);
-                              } else if (value.length <= 2) {
-                                newQuotaInputs[index] = value;
-                                setQuotaInputs(newQuotaInputs);
-                              } else {
-                                const intPart = value.slice(0, -2);
-                                const decPart = value.slice(-2);
-                                newQuotaInputs[index] = intPart + ',' + decPart;
-                                setQuotaInputs(newQuotaInputs);
-                              }
+                              const formatted = formatOddsInput(e.target.value);
+                              newQuotaInputs[index] = formatted;
+                              setQuotaInputs(newQuotaInputs);
                             }}
                             onBlur={() => {
                               const value = quotaInputs[index];
-                              const num = parseFloat(value.replace(',', '.'));
+                              const num = parseOddsInput(value);
                               handleSelectionChange(index, 'quota', Number.isFinite(num) && num > 0 ? num : 1.5);
                             }}
                             className={cn(
@@ -766,6 +756,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                         step="0.01"
                         {...field}
                         onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        onClick={handleInputClick}
                         disabled={tipoBonus !== 'Nessuno'}
                       />
                     </FormControl>
@@ -868,6 +859,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                             step="0.01"
                             {...field}
                             onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                            onClick={handleInputClick}
                           />
                         </FormControl>
                         <FormMessage />
@@ -889,6 +881,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                             step="0.01"
                             {...field}
                             onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                            onClick={handleInputClick}
                           />
                         </FormControl>
                         <FormMessage />
