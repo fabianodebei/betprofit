@@ -61,7 +61,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
-      const mappedLayBets: LayBet[] = (data || []).map((lb) => ({
+      const mappedLayBets: LayBet[] = (data || []).map((lb: any) => ({
         id: lb.id,
         parentBetId: lb.parent_bet_id,
         metodo: lb.metodo as 'Punta' | 'Banca',
@@ -125,7 +125,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
         quotaBanca: Number(data.quota_banca),
         quotaPunta: Number(data.quota_punta),
         tassePercentuale: Number(data.tasse_percentuale),
-        attiva: data.attiva ?? true,
+        attiva: (data as any).attiva ?? true,
         urlEvento: data.url_evento || undefined,
         createdAt: new Date(data.created_at),
       };
