@@ -305,7 +305,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                           <SelectTrigger className="w-[130px]">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="z-50 bg-background border border-border">
                             <SelectItem value="Bozza">Bozza</SelectItem>
                             <SelectItem value="In Corso">In Corso</SelectItem>
                             <SelectItem value="Vinto">Vinto</SelectItem>
@@ -362,7 +362,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                              <SelectTrigger className="w-[130px]">
                                <SelectValue />
                              </SelectTrigger>
-                             <SelectContent>
+                             <SelectContent className="z-50 bg-background border border-border">
                                <SelectItem value="Bozza">Bozza</SelectItem>
                                <SelectItem value="In Corso">In Corso</SelectItem>
                                <SelectItem value="Vinto">Vinto</SelectItem>

@@ -222,7 +222,8 @@ export function BetProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase
         .from('bets')
         .update(dbUpdates)
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user?.id as string);
 
       if (error) throw error;
 
@@ -235,7 +236,11 @@ export function BetProvider({ children }: { children: ReactNode }) {
         toast.success('Puntata aggiornata con successo');
       }
     } catch (error: any) {
-      toast.error('Errore durante l\'aggiornamento della puntata');
+      // Suppress error toast when only stato_evento is being updated
+      const onlyStatoEvento = Object.keys(updates).length === 1 && 'statoEvento' in updates;
+      if (!onlyStatoEvento) {
+        toast.error('Errore durante l\'aggiornamento della puntata');
+      }
       console.error('Error updating bet:', error);
     }
   };
