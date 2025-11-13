@@ -127,8 +127,8 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
         quotaBanca: Number(data.quota_banca),
         quotaPunta: Number(data.quota_punta),
         tassePercentuale: Number(data.tasse_percentuale),
-        attiva: data.attiva ?? true,
-        stato: (data.stato || 'Bozza') as LayBet['stato'],
+        attiva: (data as any).attiva ?? true,
+        stato: ((data as any).stato || 'Bozza') as LayBet['stato'],
         urlEvento: data.url_evento || undefined,
         createdAt: new Date(data.created_at),
       };
@@ -154,6 +154,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
       if (updates.quotaPunta !== undefined) dbUpdates.quota_punta = updates.quotaPunta;
       if (updates.tassePercentuale !== undefined) dbUpdates.tasse_percentuale = updates.tassePercentuale;
       if (updates.attiva !== undefined) dbUpdates.attiva = updates.attiva;
+      if (updates.stato !== undefined) dbUpdates.stato = updates.stato;
       if (updates.urlEvento !== undefined) dbUpdates.url_evento = updates.urlEvento;
 
       const { error } = await supabase
