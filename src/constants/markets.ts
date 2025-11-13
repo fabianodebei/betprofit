@@ -31,12 +31,9 @@ export const SPORT_MARKETS = {
     "3 - 1 Calcio",
     "3 - 2 Calcio",
     "3 - 3 Calcio",
-    "0 Calcio",
-    "3 Calcio",
-    "Virtuali Calcio",
   ],
-  tennis: ["Tennis", "Altro Tennis"],
-  basket: ["Basket"],
+  tennis: ["Tennis 1", "Tennis 2", "Altro Tennis"],
+  basket: ["Basket 1", "Basket 2"],
 } as const;
 
 export const CASINO_MARKETS = [
