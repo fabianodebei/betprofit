@@ -586,43 +586,84 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                         )}
                       </div>
 
-                      <div>
-                        <label className="text-sm font-medium">Quota *</label>
-                        <Input
-                          type="text"
-                          inputMode="decimal"
-                          value={quotaInputs[index] || ''}
-                          onFocus={(e) => e.target.select()}
-                          onChange={(e) => {
-                            let value = e.target.value.replace(/[^\d]/g, ''); // Solo numeri
-                            const newQuotaInputs = [...quotaInputs];
-                            
-                            if (value.length === 0) {
-                              newQuotaInputs[index] = '';
-                              setQuotaInputs(newQuotaInputs);
-                            } else if (value.length <= 2) {
-                              newQuotaInputs[index] = value;
-                              setQuotaInputs(newQuotaInputs);
-                            } else {
-                              const intPart = value.slice(0, -2);
-                              const decPart = value.slice(-2);
-                              newQuotaInputs[index] = intPart + ',' + decPart;
-                              setQuotaInputs(newQuotaInputs);
-                            }
-                          }}
-                          onBlur={() => {
-                            const value = quotaInputs[index];
-                            const num = parseFloat(value.replace(',', '.'));
-                            handleSelectionChange(index, 'quota', Number.isFinite(num) && num > 0 ? num : 1.5);
-                          }}
-                          className={cn(
-                            selectionErrors.includes(index) && selection.quota <= 1 && 
-                            "border-destructive focus-visible:ring-destructive"
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-sm font-medium">Quota *</label>
+                          <Input
+                            type="text"
+                            inputMode="decimal"
+                            value={quotaInputs[index] || ''}
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/[^\d]/g, ''); // Solo numeri
+                              const newQuotaInputs = [...quotaInputs];
+                              
+                              if (value.length === 0) {
+                                newQuotaInputs[index] = '';
+                                setQuotaInputs(newQuotaInputs);
+                              } else if (value.length <= 2) {
+                                newQuotaInputs[index] = value;
+                                setQuotaInputs(newQuotaInputs);
+                              } else {
+                                const intPart = value.slice(0, -2);
+                                const decPart = value.slice(-2);
+                                newQuotaInputs[index] = intPart + ',' + decPart;
+                                setQuotaInputs(newQuotaInputs);
+                              }
+                            }}
+                            onBlur={() => {
+                              const value = quotaInputs[index];
+                              const num = parseFloat(value.replace(',', '.'));
+                              handleSelectionChange(index, 'quota', Number.isFinite(num) && num > 0 ? num : 1.5);
+                            }}
+                            className={cn(
+                              selectionErrors.includes(index) && selection.quota <= 1 && 
+                              "border-destructive focus-visible:ring-destructive"
+                            )}
+                          />
+                          {selectionErrors.includes(index) && selection.quota <= 1 && (
+                            <p className="text-sm text-destructive mt-1">La quota deve essere maggiore di 1</p>
                           )}
-                        />
-                        {selectionErrors.includes(index) && selection.quota <= 1 && (
-                          <p className="text-sm text-destructive mt-1">La quota deve essere maggiore di 1</p>
-                        )}
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-medium">Data Evento *</label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full justify-start text-left font-normal",
+                                  !selection.dataEvento && "text-muted-foreground"
+                                )}
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {selection.dataEvento ? format(selection.dataEvento, 'dd/MM/yyyy HH:mm') : "Seleziona data"}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={selection.dataEvento}
+                                onSelect={(date) => {
+                                  if (date) {
+                                    const currentTime = selection.dataEvento || new Date();
+                                    const newDate = new Date(date);
+                                    newDate.setHours(currentTime.getHours(), currentTime.getMinutes());
+                                    handleSelectionChange(index, 'dataEvento', newDate);
+                                  }
+                                }}
+                                initialFocus
+                              />
+                              <div className="p-3 border-t">
+                                <TimePicker
+                                  value={selection.dataEvento}
+                                  onChange={(date) => handleSelectionChange(index, 'dataEvento', date)}
+                                />
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
