@@ -517,76 +517,80 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                       )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-sm font-medium">Evento *</label>
-                        <Input
-                          value={selection.evento}
-                          onChange={(e) => {
-                            let value = e.target.value;
-                            // Se l'utente digita uno spazio e non c'è già "vs" nel testo
-                            if (value.endsWith(' ') && !value.includes('vs') && value.trim().split(' ').length === 1) {
-                              value = value.trim() + ' vs ';
-                            }
-                            handleSelectionChange(index, 'evento', value);
-                          }}
-                          placeholder="Es: Manchester United vs Liverpool"
-                          className={cn(
-                            selectionErrors.includes(index) && !selection.evento && 
-                            "border-destructive focus-visible:ring-destructive"
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-sm font-medium">Evento *</label>
+                          <Input
+                            value={selection.evento}
+                            onChange={(e) => {
+                              let value = e.target.value;
+                              // Se l'utente digita uno spazio e non c'è già "vs" nel testo
+                              if (value.endsWith(' ') && !value.includes('vs') && value.trim().split(' ').length === 1) {
+                                value = value.trim() + ' vs ';
+                              }
+                              handleSelectionChange(index, 'evento', value);
+                            }}
+                            placeholder="Es: Manchester United vs Liverpool"
+                            className={cn(
+                              selectionErrors.includes(index) && !selection.evento && 
+                              "border-destructive focus-visible:ring-destructive"
+                            )}
+                          />
+                          {selectionErrors.includes(index) && !selection.evento && (
+                            <p className="text-sm text-destructive mt-1">Campo obbligatorio</p>
                           )}
-                        />
-                        {selectionErrors.includes(index) && !selection.evento && (
-                          <p className="text-sm text-destructive mt-1">Campo obbligatorio</p>
-                        )}
-                      </div>
+                        </div>
 
-                      <div>
-                        <label className="text-sm font-medium">Competizione</label>
-                        <Input
-                          value={selection.competizione}
-                          onChange={(e) => handleSelectionChange(index, 'competizione', e.target.value)}
-                          placeholder="Es: Premier League"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-sm font-medium">Mercato</label>
-                        <Select
-                          value={selection.mercato || "none"}
-                          onValueChange={(value) => handleSelectionChange(index, 'mercato', value === "none" ? "" : value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Seleziona mercato" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Nessuno</SelectItem>
-                            {ALL_SPORT_MARKETS.map((market) => (
-                              <SelectItem key={market} value={market}>
-                                {market}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
-                        <label className="text-sm font-medium">Selezione *</label>
-                        <Input
-                          value={selection.selezione}
-                          onChange={(e) => handleSelectionChange(index, 'selezione', e.target.value)}
-                          placeholder="Es: Manchester United"
-                          className={cn(
-                            selectionErrors.includes(index) && !selection.selezione && 
-                            "border-destructive focus-visible:ring-destructive"
-                          )}
-                        />
-                        {selectionErrors.includes(index) && !selection.selezione && (
-                          <p className="text-sm text-destructive mt-1">Campo obbligatorio</p>
-                        )}
+                        <div>
+                          <label className="text-sm font-medium">Competizione</label>
+                          <Input
+                            value={selection.competizione}
+                            onChange={(e) => handleSelectionChange(index, 'competizione', e.target.value)}
+                            placeholder="Es: Premier League"
+                          />
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-sm font-medium">Mercato</label>
+                          <Select
+                            value={selection.mercato || "none"}
+                            onValueChange={(value) => handleSelectionChange(index, 'mercato', value === "none" ? "" : value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Seleziona mercato" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Nessuno</SelectItem>
+                              {ALL_SPORT_MARKETS.map((market) => (
+                                <SelectItem key={market} value={market}>
+                                  {market}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-medium">Selezione *</label>
+                          <Input
+                            value={selection.selezione}
+                            onChange={(e) => handleSelectionChange(index, 'selezione', e.target.value)}
+                            placeholder="Es: Manchester United"
+                            className={cn(
+                              selectionErrors.includes(index) && !selection.selezione && 
+                              "border-destructive focus-visible:ring-destructive"
+                            )}
+                          />
+                          {selectionErrors.includes(index) && !selection.selezione && (
+                            <p className="text-sm text-destructive mt-1">Campo obbligatorio</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-3">
                         <div>
                           <label className="text-sm font-medium">Quota *</label>
                           <Input
@@ -626,7 +630,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                           )}
                         </div>
 
-                        <div>
+                        <div className="col-span-2">
                           <label className="text-sm font-medium">Data Evento *</label>
                           <Popover>
                             <PopoverTrigger asChild>
