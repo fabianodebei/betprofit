@@ -26,7 +26,7 @@ interface MultiplaDetailDialogProps {
 export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetailDialogProps) {
   const { getLayBetsByParentId, deleteLayBet, updateLayBet } = useLayBets();
   const { getBetLegsByBetId } = useBetLegs();
-  const { archiveBet, updateBet } = useBets();
+  const { archiveBet } = useBets();
   const [showLayBetForm, setShowLayBetForm] = useState(false);
   const [editingLayBet, setEditingLayBet] = useState<any>(null);
 
@@ -77,60 +77,6 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
     await archiveBet(bet.id, risultato, esito, esitoDettaglio);
     
     toast.success('Scommessa archiviata automaticamente');
-    onOpenChange(false);
-  };
-
-  const handleArchiviaFromMultipla = async () => {
-    if (!bet || !bet.statoEvento) return;
-    
-    // Calcola il risultato in base allo stato della multipla
-    let risultato = 0;
-    let esito: 'win' | 'loss' | 'refund' = 'loss';
-    
-    if (bet.statoEvento === 'Vinto') {
-      // Multipla vinta: calcola la vincita
-      const quotaEffettiva = bet.quotaCombinata || bet.quota || 1;
-      if (bet.tipoBonus === 'Free Bet') {
-        risultato = bet.stake * (quotaEffettiva - 1);
-      } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
-        risultato = (bet.stake + bet.bonus) * quotaEffettiva - bet.stake;
-      } else {
-        risultato = bet.stake * quotaEffettiva - bet.stake;
-      }
-      
-      // Sottrai le liability delle bancate
-      layBets.forEach(lb => {
-        if (lb.stato === 'In Corso') {
-          risultato -= lb.stake * (lb.quotaBanca - 1);
-        }
-      });
-      
-      esito = 'win';
-    } else if (bet.statoEvento === 'Perso') {
-      // Multipla persa
-      if (bet.tipoBonus === 'Free Bet') {
-        risultato = 0;
-      } else {
-        risultato = -(bet.stake - (bet.rimborso || 0));
-      }
-      
-      // Aggiungi le vincite delle bancate se presenti
-      layBets.forEach(lb => {
-        if (lb.stato === 'In Corso') {
-          const profittoLordo = lb.stake;
-          const tasse = profittoLordo * (lb.tassePercentuale / 100);
-          risultato += profittoLordo - tasse;
-        }
-      });
-      
-      esito = 'loss';
-    } else if (bet.statoEvento === 'Annullato') {
-      risultato = 0;
-      esito = 'refund';
-    }
-    
-    await archiveBet(bet.id, risultato, esito);
-    toast.success('Multipla archiviata automaticamente');
     onOpenChange(false);
   };
 
@@ -217,40 +163,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                       <TableCell>0,00</TableCell>
                       <TableCell>{formatCurrency(0)}</TableCell>
                       <TableCell className="text-primary text-sm">{bet.tag || '(non impostato)'}</TableCell>
-                      <TableCell>
-                        <Select
-                          value={bet.statoEvento || 'Bozza'}
-                          onValueChange={(value) => {
-                            updateBet(bet.id, { statoEvento: value as Bet['statoEvento'] });
-                          }}
-                        >
-                          <SelectTrigger className="w-[130px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Bozza">Bozza</SelectItem>
-                            <SelectItem value="In Corso">In Corso</SelectItem>
-                            <SelectItem value="Vinto">Vinto</SelectItem>
-                            <SelectItem value="Perso">Perso</SelectItem>
-                            <SelectItem value="Annullato">Annullato</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        {bet.statoEvento && ['Vinto', 'Perso', 'Annullato'].includes(bet.statoEvento) && (
-                          <Button
-                            size="sm"
-                            variant="default"
-                            onClick={() => {
-                              if (confirm(`Sei sicuro di voler archiviare la multipla? Lo stato è "${bet.statoEvento}".`)) {
-                                handleArchiviaFromMultipla();
-                              }
-                            }}
-                          >
-                            Archivia
-                          </Button>
-                        )}
-                      </TableCell>
+                      <TableCell>-</TableCell>
                       <TableCell>
                         <Button size="sm" variant="ghost">
                           Clona

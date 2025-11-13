@@ -61,7 +61,6 @@ export interface Bet {
   bonus?: number;
   rimborso?: number;
   stato: 'In Corso' | 'Archiviata';
-  statoEvento?: 'Bozza' | 'In Corso' | 'Vinto' | 'Perso' | 'Annullato';
   risultato?: number;
   esito?: 'win' | 'loss' | 'refund';
   esitoDettaglio?: string;
