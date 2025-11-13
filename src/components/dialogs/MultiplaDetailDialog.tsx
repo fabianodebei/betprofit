@@ -39,12 +39,30 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
     setLocalStatoEvento(bet?.statoEvento ?? 'Bozza');
   }, [bet?.id, bet?.statoEvento]);
 
+  // Helper per colorare il trigger del Select in base allo stato
+  const getStateTriggerClasses = (s?: 'Bozza' | 'In Corso' | 'Vinto' | 'Perso' | 'Annullato') => {
+    switch (s) {
+      case 'Bozza':
+        return 'bg-muted text-muted-foreground border-muted';
+      case 'In Corso':
+        return 'bg-accent/10 text-accent border-accent/20';
+      case 'Vinto':
+        return 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
+      case 'Perso':
+        return 'bg-destructive/10 text-destructive border-destructive/20';
+      case 'Annullato':
+        return 'bg-muted text-muted-foreground border-muted';
+      default:
+        return '';
+    }
+  };
+
   // Valida se è possibile archiviare
   const canArchive = useMemo(() => {
     if (!bet) return false;
     
     // La multipla deve essere Vinto o Perso
-    if (!bet.statoEvento || !['Vinto', 'Perso'].includes(bet.statoEvento)) {
+    if (!localStatoEvento || !['Vinto', 'Perso'].includes(localStatoEvento)) {
       return false;
     }
     
@@ -79,12 +97,12 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
     const nonBozzaLayBets = sortedLayBets.filter(lb => lb.stato !== 'Bozza');
     
     if (nonBozzaLayBets.length > 0) {
-      if (bet.statoEvento === 'Vinto') {
+      if (localStatoEvento === 'Vinto') {
         // Tutte le bancate non-Bozza devono essere Perso
         return nonBozzaLayBets.every(lb => lb.stato === 'Perso');
       }
       
-      if (bet.statoEvento === 'Perso') {
+      if (localStatoEvento === 'Perso') {
         // Tutte le bancate non-Bozza devono essere Vinto
         return nonBozzaLayBets.every(lb => lb.stato === 'Vinto');
       }
@@ -307,7 +325,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                             updateBet(bet.id, { statoEvento: value as Bet['statoEvento'] });
                           }}
                         >
-                          <SelectTrigger className="w-[130px]">
+                          <SelectTrigger className={`w-[130px] ${getStateTriggerClasses(localStatoEvento || 'Bozza')}`}>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="z-50 bg-background border border-border">
@@ -367,10 +385,10 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                                updateLayBet(layBet.id, { stato: value as LayBet['stato'] });
                              }}
                            >
-                             <SelectTrigger className="w-[130px]">
-                               <SelectValue />
-                             </SelectTrigger>
-                             <SelectContent className="z-50 bg-background border border-border">
+                           <SelectTrigger className={`w-[130px] ${getStateTriggerClasses(layBet.stato)}`}>
+                             <SelectValue />
+                           </SelectTrigger>
+                           <SelectContent className="z-50 bg-background border border-border">
                                <SelectItem value="Bozza">Bozza</SelectItem>
                                <SelectItem value="In Corso">In Corso</SelectItem>
                                <SelectItem value="Vinto">Vinto</SelectItem>
