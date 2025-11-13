@@ -38,6 +38,34 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
     setLocalStatoEvento(bet?.statoEvento ?? 'Bozza');
   }, [bet?.id, bet?.statoEvento]);
 
+  // Valida se è possibile archiviare
+  const canArchive = useMemo(() => {
+    if (!bet) return false;
+    
+    // La multipla deve essere Vinto o Perso
+    if (!bet.statoEvento || !['Vinto', 'Perso'].includes(bet.statoEvento)) {
+      return false;
+    }
+    
+    // Tutte le bancate devono essere Vinto o Perso
+    const allLayBetsValid = layBets.every(lb => ['Vinto', 'Perso'].includes(lb.stato));
+    if (!allLayBetsValid) {
+      return false;
+    }
+    
+    // Se multipla è Vinto, tutte le bancate devono essere Perso
+    if (bet.statoEvento === 'Vinto') {
+      return layBets.every(lb => lb.stato === 'Perso');
+    }
+    
+    // Se multipla è Perso, tutte le bancate devono essere Vinto
+    if (bet.statoEvento === 'Perso') {
+      return layBets.every(lb => lb.stato === 'Vinto');
+    }
+    
+    return false;
+  }, [bet, layBets]);
+
   // Usa la funzione centralizzata per i calcoli
   const calculations = useMemo(
     () => getMultiplaCalculations(bet, layBets, betLegs),
@@ -168,11 +196,17 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
               <Button
                 size="sm"
                 variant="default"
+                disabled={!canArchive}
                 onClick={() => {
                   if (confirm('Sei sicuro di voler archiviare questa multipla?')) {
                     handleArchiviaFromMultipla();
                   }
                 }}
+                title={
+                  !canArchive 
+                    ? 'Per archiviare: multipla deve essere Vinto/Perso, tutte le bancate Vinto/Perso, e stati opposti tra multipla e bancate' 
+                    : 'Archivia questa multipla'
+                }
               >
                 <Archive className="h-4 w-4 mr-2" />
                 Archivia Multipla
