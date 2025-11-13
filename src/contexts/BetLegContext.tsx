@@ -10,6 +10,7 @@ interface BetLegContextType {
   updateBetLeg: (id: string, betLeg: Partial<BetLeg>) => Promise<void>;
   deleteBetLeg: (id: string) => Promise<void>;
   getBetLegsByBetId: (betId: string) => BetLeg[];
+  refetchBetLegs: () => Promise<void>;
   loading: boolean;
 }
 
@@ -167,6 +168,7 @@ export const BetLegProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         updateBetLeg,
         deleteBetLeg,
         getBetLegsByBetId,
+        refetchBetLegs: fetchBetLegs,
         loading,
       }}
     >
