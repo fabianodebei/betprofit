@@ -35,7 +35,6 @@ interface BetSelection {
   evento: string;
   competizione: string;
   mercato: string;
-  selezione: string;
   quota: number;
   dataEvento: Date;
 }
@@ -45,7 +44,6 @@ interface SavedFormState {
     evento: string;
     competizione: string;
     mercato: string;
-    selezione: string;
     quota: number;
     dataEvento: string;
   }>;
@@ -137,7 +135,6 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
       evento: '',
       competizione: '',
       mercato: '',
-      selezione: '',
       quota: 1.5,
       dataEvento: new Date(),
     },
@@ -145,7 +142,6 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
       evento: '',
       competizione: '',
       mercato: '',
-      selezione: '',
       quota: 1.5,
       dataEvento: new Date(),
     },
@@ -230,7 +226,6 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
             evento: leg.evento,
             competizione: leg.competizione || '',
             mercato: leg.mercato || '',
-            selezione: leg.selezione,
             quota: leg.quota,
             dataEvento: new Date(leg.dataEvento),
           }));
@@ -272,8 +267,8 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
         }
         // Reset selections to default
         setSelections([
-          { evento: '', competizione: '', mercato: '', selezione: '', quota: 1.5, dataEvento: new Date() },
-          { evento: '', competizione: '', mercato: '', selezione: '', quota: 1.5, dataEvento: new Date() },
+          { evento: '', competizione: '', mercato: '', quota: 1.5, dataEvento: new Date() },
+          { evento: '', competizione: '', mercato: '', quota: 1.5, dataEvento: new Date() },
         ]);
         setQuotaInputs(['1,50', '1,50']);
       }
@@ -334,7 +329,6 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
       evento: '',
       competizione: '',
       mercato: '',
-      selezione: '',
       quota: 1.5,
       dataEvento: new Date(),
     }]);
@@ -361,7 +355,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
       // Validate selections
       const errors: number[] = [];
       selections.forEach((s, index) => {
-        if (!s.evento || !s.selezione || s.quota <= 1) {
+        if (!s.evento || !s.mercato || s.quota <= 1) {
           errors.push(index);
         }
       });
@@ -422,7 +416,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
           tipo: 'Multipla',
           conto: data.conto,
           stake: data.stake,
-          evento: selections.map(s => s.selezione).join(', '),
+          evento: selections.map(s => s.mercato || s.evento).filter(Boolean).join(', '),
           dataEvento: firstMatchDate,
           stato: 'In Corso',
           tipoBonus: data.tipoBonus,
@@ -444,7 +438,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
             evento: selection.evento,
             competizione: selection.competizione || undefined,
             mercato: selection.mercato || undefined,
-            selezione: selection.selezione,
+            selezione: selection.mercato || selection.evento,
             quota: selection.quota,
             stato: 'In Corso',
             dataEvento: selection.dataEvento,
@@ -466,8 +460,8 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
       onOpenChange(false);
       form.reset();
       setSelections([
-        { evento: '', competizione: '', mercato: '', selezione: '', quota: 1.5, dataEvento: new Date() },
-        { evento: '', competizione: '', mercato: '', selezione: '', quota: 1.5, dataEvento: new Date() },
+        { evento: '', competizione: '', mercato: '', quota: 1.5, dataEvento: new Date() },
+        { evento: '', competizione: '', mercato: '', quota: 1.5, dataEvento: new Date() },
       ]);
       setQuotaInputs(['1,50', '1,50']);
     } catch (error: any) {
@@ -553,42 +547,30 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-sm font-medium">Mercato</label>
-                          <Select
-                            value={selection.mercato || "none"}
-                            onValueChange={(value) => handleSelectionChange(index, 'mercato', value === "none" ? "" : value)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Seleziona mercato" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">Nessuno</SelectItem>
-                              {ALL_SPORT_MARKETS.map((market) => (
-                                <SelectItem key={market} value={market}>
-                                  {market}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <label className="text-sm font-medium">Selezione *</label>
-                          <Input
-                            value={selection.selezione}
-                            onChange={(e) => handleSelectionChange(index, 'selezione', e.target.value)}
-                            placeholder="Es: Manchester United"
-                            className={cn(
-                              selectionErrors.includes(index) && !selection.selezione && 
-                              "border-destructive focus-visible:ring-destructive"
-                            )}
-                          />
-                          {selectionErrors.includes(index) && !selection.selezione && (
-                            <p className="text-sm text-destructive mt-1">Campo obbligatorio</p>
-                          )}
-                        </div>
+                      <div>
+                        <label className="text-sm font-medium">Mercato *</label>
+                        <Select
+                          value={selection.mercato || "none"}
+                          onValueChange={(value) => handleSelectionChange(index, 'mercato', value === "none" ? "" : value)}
+                        >
+                          <SelectTrigger className={cn(
+                            selectionErrors.includes(index) && !selection.mercato && 
+                            "border-destructive focus-visible:ring-destructive"
+                          )}>
+                            <SelectValue placeholder="Seleziona mercato" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Nessuno</SelectItem>
+                            {ALL_SPORT_MARKETS.map((market) => (
+                              <SelectItem key={market} value={market}>
+                                {market}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {selectionErrors.includes(index) && !selection.mercato && (
+                          <p className="text-sm text-destructive mt-1">Campo obbligatorio</p>
+                        )}
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
