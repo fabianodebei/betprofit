@@ -53,7 +53,7 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
   const { addLayBet, updateLayBet } = useLayBets();
   const { accounts, updateAccount } = useAccounts();
   const { getOngoingBets } = useBets();
-  const { getBetLegsByBetId } = useBetLegs();
+  const { getBetLegsByBetId, refetchBetLegs } = useBetLegs();
   const [selectedMetodo, setSelectedMetodo] = useState<'Punta' | 'Banca'>('Punta');
   const [selectedBetLeg, setSelectedBetLeg] = useState<any>(null);
   const [selectedParentBetId, setSelectedParentBetId] = useState<string>(parentBetId || '');
@@ -98,14 +98,17 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
 
   // Carica bet legs quando viene selezionata una multipla
   useEffect(() => {
-    if (selectedParentBet?.tipo === 'Multipla' && selectedParentBetId) {
-      const legs = getBetLegsByBetId(selectedParentBetId);
-      console.log('Loading bet legs for multipla:', selectedParentBetId, 'legs:', legs);
-      setDynamicBetLegs(legs || []);
+    if (open && selectedParentBet?.tipo === 'Multipla' && selectedParentBetId) {
+      // Refetch per assicurarsi di avere i dati più recenti
+      refetchBetLegs().then(() => {
+        const legs = getBetLegsByBetId(selectedParentBetId);
+        console.log('Loading bet legs for multipla:', selectedParentBetId, 'legs:', legs);
+        setDynamicBetLegs(legs || []);
+      });
     } else {
       setDynamicBetLegs([]);
     }
-  }, [selectedParentBet, selectedParentBetId, getBetLegsByBetId]);
+  }, [open, selectedParentBet, selectedParentBetId, getBetLegsByBetId, refetchBetLegs]);
 
   // Debug: log effectiveBetLegs
   useEffect(() => {
