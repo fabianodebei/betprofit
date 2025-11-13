@@ -177,7 +177,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
       const { data: layData, error: layError } = await supabase
         .from('lay_bets')
-        .select('id, parent_bet_id, metodo, conto, stake, quota_banca, tasse_percentuale')
+        .select('id, parent_bet_id, metodo, conto, stake, quota_banca, tasse_percentuale, attiva')
         .eq('user_id', user.id);
 
       if (layError) {
@@ -185,7 +185,10 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         throw layError;
       }
 
-      (layData || []).forEach((lb: any) => {
+      // Filtra solo le lay bets attive
+      const activeLayData = (layData || []).filter((lb: any) => lb.attiva === true);
+
+      activeLayData.forEach((lb: any) => {
         if (lb.metodo === 'Banca' && activeBetIds.has(lb.parent_bet_id)) {
           // Puntata in corso: sottrai liability dal bilancio
           const liability = Number(lb.stake) * (Number(lb.quota_banca) - 1);
