@@ -696,11 +696,14 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {filteredAccounts.map((account) => (
-                          <SelectItem key={account.id} value={account.conto}>
-                            {account.conto} (€{account.saldoAttuale.toFixed(2)})
-                          </SelectItem>
-                        ))}
+                        {filteredAccounts.map((account) => {
+                          const disponibile = account.saldoAttuale + account.bilancioGiocate + account.bilancioGiocateRapide;
+                          return (
+                            <SelectItem key={account.id} value={account.conto}>
+                              {account.conto} (Disponibile: {formatCurrency(disponibile)})
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                     <FormMessage />
