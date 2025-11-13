@@ -118,6 +118,7 @@ export interface LayBet {
   quotaBanca: number;
   quotaPunta: number;
   tassePercentuale: number;
+  attiva: boolean;
   urlEvento?: string;
   createdAt: Date;
 }

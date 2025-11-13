@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Plus, Copy } from 'lucide-react';
 import { Bet } from '@/types';
 import { useLayBets } from '@/contexts/LayBetContext';
@@ -21,7 +22,7 @@ interface MultiplaDetailDialogProps {
 }
 
 export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetailDialogProps) {
-  const { getLayBetsByParentId, deleteLayBet } = useLayBets();
+  const { getLayBetsByParentId, deleteLayBet, updateLayBet } = useLayBets();
   const { getBetLegsByBetId } = useBetLegs();
   const [showLayBetForm, setShowLayBetForm] = useState(false);
   const [editingLayBet, setEditingLayBet] = useState<any>(null);
@@ -96,6 +97,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                       <TableHead>Tasse</TableHead>
                       <TableHead>Mov.</TableHead>
                       <TableHead>Tag</TableHead>
+                      <TableHead>Attiva</TableHead>
                       <TableHead>Opzioni</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -129,6 +131,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                       <TableCell>0,00</TableCell>
                       <TableCell>{formatCurrency(0)}</TableCell>
                       <TableCell className="text-primary text-sm">{bet.tag || '(non impostato)'}</TableCell>
+                      <TableCell>-</TableCell>
                       <TableCell>
                         <Button size="sm" variant="ghost">
                           Clona
@@ -167,6 +170,14 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                          <TableCell className="text-accent">{formatCurrency(tasse)}</TableCell>
                          <TableCell>{formatCurrency(0)}</TableCell>
                          <TableCell className="text-sm">-</TableCell>
+                         <TableCell>
+                           <Switch
+                             checked={layBet.attiva}
+                             onCheckedChange={(checked) => {
+                               updateLayBet(layBet.id, { attiva: checked });
+                             }}
+                           />
+                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
                             <Button

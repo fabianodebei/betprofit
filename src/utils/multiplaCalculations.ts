@@ -6,6 +6,7 @@ export interface LayBet {
   quotaBanca: number;
   quotaPunta: number;
   tassePercentuale: number;
+  attiva: boolean;
   evento: string;
 }
 
@@ -38,6 +39,9 @@ export function getMultiplaCalculations(
     };
   }
 
+  // Filtra solo le bancate attive
+  const activeBets = layBets.filter(lb => lb.attiva);
+
   // Calcola la liability per ogni lay bet (responsabilità se la bancata perde)
   const liability = (lb: LayBet) => lb.stake * (lb.quotaBanca - 1);
 
@@ -49,8 +53,8 @@ export function getMultiplaCalculations(
     return profitLordo - tasse;
   };
 
-  // Somma di tutte le liability
-  const sumLiability = layBets.reduce((sum, lb) => sum + liability(lb), 0);
+  // Somma di tutte le liability delle bancate attive
+  const sumLiability = activeBets.reduce((sum, lb) => sum + liability(lb), 0);
 
   // Quota effettiva della multipla: usa quotaCombinata se presente, altrimenti calcola dal prodotto delle quote delle gambe, fallback 1
   const quotaEffettiva =
@@ -88,14 +92,14 @@ export function getMultiplaCalculations(
   // Scenario vincita multipla = vincita punta - tutte le liability
   const scenarioVincita = puntaWin - sumLiability;
 
-  // Scenario per ogni gamba (multipla perde su quella specifica lay)
+  // Scenario per ogni gamba attiva (multipla perde su quella specifica lay)
   // STRATEGIA SEQUENZIALE: le bancate successive vengono piazzate solo se le precedenti vincono
-  const perGamba = layBets.map((lb, index) => {
+  const perGamba = activeBets.map((lb, index) => {
     // Se questa gamba fa vincere il lay (multipla perde su questa gamba):
     // 1. Perdi la puntata della multipla: puntaLoss
     // 2. Vinci il lay specifico: +layWinNet(lb)
     // 3. Perdi solo le liability PRECEDENTI (non quelle successive, perché non le hai ancora piazzate)
-    const liabilityPrecedenti = layBets
+    const liabilityPrecedenti = activeBets
       .slice(0, index) // Solo le bancate PRIMA di questa
       .reduce((sum, prev) => sum + liability(prev), 0);
     
