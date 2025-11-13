@@ -395,7 +395,13 @@ export function BetProvider({ children }: { children: ReactNode }) {
       window.dispatchEvent(new Event('refresh-accounts'));
     }
 
-    await updateBet(id, { stato: 'In Corso', risultato: undefined });
+    await updateBet(id, { 
+      stato: 'In Corso', 
+      statoEvento: 'In Corso',
+      risultato: undefined,
+      esito: undefined,
+      esitoDettaglio: undefined
+    });
   };
 
   const getOngoingBets = () => {
