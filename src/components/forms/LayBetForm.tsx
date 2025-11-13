@@ -74,7 +74,15 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
   const ongoingBets = getOngoingBets();
   
   // Usa betLegs passati come prop o quelli caricati dinamicamente
-  const effectiveBetLegs = betLegs.length > 0 ? betLegs : dynamicBetLegs;
+  const effectiveBetLegs = useMemo(() => {
+    const legs = betLegs.length > 0 ? betLegs : dynamicBetLegs;
+    // Ordina per data e ora di inizio
+    return [...legs].sort((a, b) => {
+      const dateA = new Date(a.dataEvento).getTime();
+      const dateB = new Date(b.dataEvento).getTime();
+      return dateA - dateB;
+    });
+  }, [betLegs, dynamicBetLegs]);
 
   const form = useForm<LayBetFormData>({
     resolver: zodResolver(layBetSchema),
@@ -342,7 +350,12 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                           <SelectContent>
                             {effectiveBetLegs.map((leg) => (
                               <SelectItem key={leg.id} value={leg.id}>
-                                {leg.evento} - {leg.selezione || leg.mercato} @ {leg.quota?.toFixed(2)}
+                                <div className="flex flex-col">
+                                  <span>{leg.evento} - {leg.selezione || leg.mercato} @ {leg.quota?.toFixed(2)}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {format(new Date(leg.dataEvento), 'dd/MM/yyyy HH:mm')}
+                                  </span>
+                                </div>
                               </SelectItem>
                             ))}
                           </SelectContent>
