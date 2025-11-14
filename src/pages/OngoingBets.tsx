@@ -17,6 +17,7 @@ import { useBets } from '@/contexts/BetContext';
 import { useYear } from '@/contexts/YearContext';
 import { useTags } from '@/contexts/TagContext';
 import { useLayBets } from '@/contexts/LayBetContext';
+import { useBetLegs } from '@/contexts/BetLegContext';
 import { formatDate, formatDateTime } from '@/utils/dates';
 import { formatCurrency } from '@/utils/currency';
 import { ArchiveBetDialog } from '@/components/dialogs/ArchiveBetDialog';
@@ -30,6 +31,7 @@ export default function OngoingBets() {
   const { selectedYear } = useYear();
   const { tags } = useTags();
   const { getLayBetsByParentId } = useLayBets();
+  const { getBetLegsByBetId } = useBetLegs();
   const allOngoingBets = getOngoingBets();
   const yearOngoingBets = allOngoingBets.filter(bet => bet.dataEvento.getFullYear() === selectedYear);
   
@@ -255,7 +257,18 @@ export default function OngoingBets() {
                                 )}
                               </div>
                             </td>
-                            <td className="p-2 md:p-3 text-xs md:text-sm max-w-[200px] truncate">{bet.evento || bet.nomeGioco || '-'}</td>
+                            <td className="p-2 md:p-3 text-xs md:text-sm max-w-[200px] truncate">
+                              {bet.tipo === 'Multipla' ? (
+                                (() => {
+                                  const legs = getBetLegsByBetId(bet.id);
+                                  return legs.length > 0 
+                                    ? legs.map(leg => leg.evento).join(', ')
+                                    : bet.evento || bet.nomeGioco || '-';
+                                })()
+                              ) : (
+                                bet.evento || bet.nomeGioco || '-'
+                              )}
+                            </td>
                             <td className="p-2 md:p-3 hidden lg:table-cell">
                               <Badge variant="secondary" className="text-xs">{bet.tipoBonus || 'Nessuno'}</Badge>
                             </td>
