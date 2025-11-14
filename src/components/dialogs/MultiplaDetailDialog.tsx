@@ -222,19 +222,26 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                            </Select>
                          </TableCell>
                          <TableCell>
-                           {['Vinto', 'Perso', 'Annullato'].includes(layBet.stato) && (
-                             <Button
-                               size="sm"
-                               variant="default"
-                               onClick={() => {
-                                 if (confirm(`Sei sicuro di voler archiviare la multipla? Lo stato della bancata è "${layBet.stato}".`)) {
-                                   handleArchiviaFromLayBet(layBet);
-                                 }
-                               }}
-                             >
-                               Archivia
-                             </Button>
-                           )}
+                           {(() => {
+                             const hasOtherActiveBets = layBets.some(
+                               lb => lb.id !== layBet.id && lb.stato === 'In Corso'
+                             );
+                             const canArchive = ['Vinto', 'Perso', 'Annullato'].includes(layBet.stato) && !hasOtherActiveBets;
+                             
+                             return canArchive ? (
+                               <Button
+                                 size="sm"
+                                 variant="default"
+                                 onClick={() => {
+                                   if (confirm(`Sei sicuro di voler archiviare la multipla? Lo stato della bancata è "${layBet.stato}".`)) {
+                                     handleArchiviaFromLayBet(layBet);
+                                   }
+                                 }}
+                               >
+                                 Archivia
+                               </Button>
+                             ) : null;
+                           })()}
                          </TableCell>
                          <TableCell>
                           <div className="flex gap-1">
