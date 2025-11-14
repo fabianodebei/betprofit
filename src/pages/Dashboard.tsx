@@ -2,7 +2,6 @@ import { useEffect, useMemo } from 'react';
 import { TrendingUp, Calendar, Trophy, Wallet, BarChart3, PieChart } from 'lucide-react';
 import { AdvancedKPICard } from '@/components/dashboard/AdvancedKPICard';
 import { ROIByBookmakerChart } from '@/components/dashboard/ROIByBookmakerChart';
-import { PerformanceMetricsCard } from '@/components/dashboard/PerformanceMetricsCard';
 import { BetTypeDistributionChart } from '@/components/dashboard/BetTypeDistributionChart';
 import { MonthlyComparisonChart } from '@/components/dashboard/MonthlyComparisonChart';
 import { QuickInsightsPanel, generateInsights } from '@/components/dashboard/QuickInsightsPanel';
@@ -452,19 +451,8 @@ export default function Dashboard() {
       </div>
 
       {/* Performance Analysis Section */}
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3 mb-8">
-        <div className="w-full">
-          <PerformanceMetricsCard
-            winRateRegular={winRateRegular}
-            winRateQuick={winRateQuick}
-            averageOdds={averageOdds}
-            currentStreak={currentStreak}
-            overallROI={overallROI}
-          />
-        </div>
-        <div className="w-full lg:col-span-2">
-          <ROIByBookmakerChart data={bookmakerStats} />
-        </div>
+      <div className="mb-8">
+        <ROIByBookmakerChart key={JSON.stringify(bookmakerStats)} data={bookmakerStats} />
       </div>
 
       {/* Distribution & Insights */}
