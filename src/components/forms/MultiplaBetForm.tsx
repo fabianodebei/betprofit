@@ -371,7 +371,8 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
       
       setSelectionErrors([]);
 
-      if (quotaCombinata > 50) {
+      // Solo per creazione, mostra warning su quota molto alta
+      if (mode !== 'edit' && quotaCombinata > 50) {
         toast.warning('Attenzione: quota combinata molto alta (@' + quotaCombinata.toFixed(2) + ')');
       }
 
