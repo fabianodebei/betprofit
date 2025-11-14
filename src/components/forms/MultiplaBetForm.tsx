@@ -254,8 +254,6 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
         setTipoBonus(savedState.tipoBonus as any);
         
         form.reset(savedState.formValues);
-        
-        toast.info('Recuperati dati non salvati');
       } else {
         // Default initialization
         const predefinito = intestatari.find(int => int.predefinito && int.stato === 'Abilitato');
