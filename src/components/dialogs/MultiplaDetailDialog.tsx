@@ -203,23 +203,55 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                          <TableCell>{formatCurrency(0)}</TableCell>
                          <TableCell className="text-sm">-</TableCell>
                          <TableCell>
-                           <Select
-                             value={layBet.stato}
-                             onValueChange={(value) => {
-                               updateLayBet(layBet.id, { stato: value as LayBet['stato'] });
-                             }}
-                           >
-                             <SelectTrigger className="w-[130px]">
-                               <SelectValue />
-                             </SelectTrigger>
-                             <SelectContent>
-                               <SelectItem value="Bozza">Bozza</SelectItem>
-                               <SelectItem value="In Corso">In Corso</SelectItem>
-                               <SelectItem value="Vinto">Vinto</SelectItem>
-                               <SelectItem value="Perso">Perso</SelectItem>
-                               <SelectItem value="Annullato">Annullato</SelectItem>
-                             </SelectContent>
-                           </Select>
+                           {(() => {
+                             // Trova l'indice corrente
+                             const currentIndex = layBets.findIndex(lb => lb.id === layBet.id);
+                             // Verifica se c'è una bancata vinta prima di questa
+                             const hasPreviousWonBet = layBets.slice(0, currentIndex).some(lb => lb.stato === 'Vinto');
+                             
+                             // Se c'è una bancata vinta prima, questo deve essere in bozza e non modificabile
+                             if (hasPreviousWonBet) {
+                               return (
+                                 <Select value="Bozza" disabled>
+                                   <SelectTrigger className="w-[130px]">
+                                     <SelectValue />
+                                   </SelectTrigger>
+                                   <SelectContent>
+                                     <SelectItem value="Bozza">Bozza</SelectItem>
+                                   </SelectContent>
+                                 </Select>
+                               );
+                             }
+                             
+                             // Altrimenti, normale select modificabile
+                             return (
+                               <Select
+                                 value={layBet.stato}
+                                 onValueChange={async (value) => {
+                                   await updateLayBet(layBet.id, { stato: value as LayBet['stato'] });
+                                   
+                                   // Se è stata vinta, imposta le successive a Bozza
+                                   if (value === 'Vinto') {
+                                     const nextBets = layBets.slice(currentIndex + 1);
+                                     for (const nextBet of nextBets) {
+                                       await updateLayBet(nextBet.id, { stato: 'Bozza' });
+                                     }
+                                   }
+                                 }}
+                               >
+                                 <SelectTrigger className="w-[130px]">
+                                   <SelectValue />
+                                 </SelectTrigger>
+                                 <SelectContent>
+                                   <SelectItem value="Bozza">Bozza</SelectItem>
+                                   <SelectItem value="In Corso">In Corso</SelectItem>
+                                   <SelectItem value="Vinto">Vinto</SelectItem>
+                                   <SelectItem value="Perso">Perso</SelectItem>
+                                   <SelectItem value="Annullato">Annullato</SelectItem>
+                                 </SelectContent>
+                               </Select>
+                             );
+                           })()}
                          </TableCell>
                          <TableCell>
                            {(() => {
