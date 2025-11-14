@@ -11,6 +11,7 @@ import { AdvancedFilterBar } from '@/components/filters/AdvancedFilterBar';
 import { useAdvancedFilters } from '@/hooks/useAdvancedFilters';
 import { useBets } from '@/contexts/BetContext';
 import { useLayBets } from '@/contexts/LayBetContext';
+import { useBetLegs } from '@/contexts/BetLegContext';
 import { useYear } from '@/contexts/YearContext';
 import { useTags } from '@/contexts/TagContext';
 import { formatCurrency } from '@/utils/currency';
@@ -19,6 +20,7 @@ import { formatDate, formatDateTime } from '@/utils/dates';
 export default function ArchivedBets() {
   const { getArchivedBets, reopenBet, deleteBet, loading } = useBets();
   const { layBets } = useLayBets();
+  const { getBetLegsByBetId } = useBetLegs();
   const { selectedYear } = useYear();
   const { tags } = useTags();
   const allArchivedBets = getArchivedBets();
@@ -181,7 +183,18 @@ export default function ArchivedBets() {
                           <Badge variant="info">{bet.tipo}</Badge>
                         </td>
                         <td className="p-3 text-sm">{formatDateTime(bet.dataEvento)}</td>
-                        <td className="p-3 text-sm">{bet.evento || bet.nomeGioco || '-'}</td>
+                        <td className="p-3 text-sm">
+                          {bet.tipo === 'Multipla' ? (
+                            (() => {
+                              const legs = getBetLegsByBetId(bet.id);
+                              return legs.length > 0 
+                                ? legs.map(leg => leg.evento).join(', ')
+                                : bet.evento || bet.nomeGioco || '-';
+                            })()
+                          ) : (
+                            bet.evento || bet.nomeGioco || '-'
+                          )}
+                        </td>
                         <td className="p-3">
                           <Badge variant="secondary">{bet.tipoBonus || 'Nessuno'}</Badge>
                         </td>
