@@ -219,15 +219,18 @@ export function AccountProvider({ children }: { children: ReactNode }) {
               const tasse = profittoLordo * (Number(lb.tasse_percentuale || 0) / 100);
               const guadagno = profittoLordo - tasse;
               giocateMap[conto] = (giocateMap[conto] || 0) + guadagno;
-            } else {
+            } else if (lb.stato === 'Perso' || lb.stato === 'Vinto') {
+              // Solo i lay che erano stati effettivamente attivati (non in Bozza)
               // Lay precedenti perdono (liability)
               const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
               giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
             }
           } else if (tipo === 'Multipla' && esito === 'win') {
-            // Multipla vinta: tutti i lay perdono
-            const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
-            giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
+            // Multipla vinta: solo i lay che erano in corso perdono
+            if (lb.stato === 'Perso' || lb.stato === 'Vinto') {
+              const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
+              giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
+            }
           } else if (tipo !== 'Multipla') {
             // Singole/casino: applica esito normale
             if (esito === 'win') {
