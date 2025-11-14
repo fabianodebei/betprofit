@@ -189,12 +189,21 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       const activeLayData = (layData || []).filter((lb: any) => lb.stato === 'In Corso');
 
       activeLayData.forEach((lb: any) => {
-        if (lb.metodo === 'Banca' && activeBetIds.has(lb.parent_bet_id)) {
-          // Puntata in corso: sottrai liability dal bilancio
+        const conto = lb.conto as string;
+        
+        if (lb.metodo === 'Banca') {
+          // Bancata in corso: sottrai liability dal bilancio
           const liability = Number(lb.stake) * (Number(lb.quota_banca) - 1);
-          const conto = lb.conto as string;
           giocateMap[conto] = (giocateMap[conto] || 0) - liability;
-        } else if (lb.metodo === 'Banca' && esitiArchiviati.has(lb.parent_bet_id)) {
+        } else if (lb.metodo === 'Punta') {
+          // Puntata in corso: sottrai stake dal bilancio
+          giocateMap[conto] = (giocateMap[conto] || 0) - Number(lb.stake);
+        }
+      });
+
+      // Gestione dei risultati per le bancate archiviate
+      (layData || []).forEach((lb: any) => {
+        if (lb.metodo === 'Banca' && esitiArchiviati.has(lb.parent_bet_id)) {
           const parentInfo = esitiArchiviati.get(lb.parent_bet_id)!;
           const { esito, tipo, conto: contoPunta, esitoDettaglio } = parentInfo;
           const conto = lb.conto as string;
