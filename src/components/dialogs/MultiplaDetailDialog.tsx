@@ -224,9 +224,19 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                          <TableCell>
                            {(() => {
                              const hasOtherActiveBets = layBets.some(
-                               lb => lb.id !== layBet.id && (lb.stato === 'In Corso' || lb.stato === 'Bozza')
+                               lb => lb.stato === 'In Corso' || lb.stato === 'Bozza'
                              );
-                             const canArchive = ['Vinto', 'Perso', 'Annullato'].includes(layBet.stato) && !hasOtherActiveBets;
+                             
+                             // Trova l'ultima bancata con stato finale
+                             const completedBets = layBets.filter(lb => 
+                               ['Vinto', 'Perso', 'Annullato'].includes(lb.stato)
+                             );
+                             const lastCompletedBet = completedBets.length > 0 
+                               ? completedBets[completedBets.length - 1] 
+                               : null;
+                             
+                             const isLastCompleted = lastCompletedBet?.id === layBet.id;
+                             const canArchive = isLastCompleted && !hasOtherActiveBets;
                              
                              return canArchive ? (
                                <Button
