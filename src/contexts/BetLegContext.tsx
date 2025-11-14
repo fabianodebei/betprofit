@@ -109,7 +109,6 @@ export const BetLegProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       ]);
 
       if (error) throw error;
-      toast.success('Selezione aggiunta');
     } catch (error: any) {
       console.error('Error adding bet leg:', error);
       toast.error("Errore nell'aggiunta della selezione");
@@ -132,7 +131,6 @@ export const BetLegProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const { error } = await supabase.from('bet_legs').update(updateData).eq('id', id);
 
       if (error) throw error;
-      toast.success('Selezione aggiornata');
     } catch (error: any) {
       console.error('Error updating bet leg:', error);
       toast.error("Errore nell'aggiornamento della selezione");
