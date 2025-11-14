@@ -30,8 +30,8 @@ const quickBetSchema = z.object({
   metodo: z.string().trim().min(1, 'Metodo è obbligatorio').max(100),
   movimento: z.number(),
   registrato: z.date(),
-  note: z.string().trim().max(500).optional(),
-  tag: z.string().trim().max(100).optional()
+  note: z.string().trim().max(500).or(z.literal('')).optional(),
+  tag: z.string().trim().max(100).or(z.literal('')).optional()
 });
 type QuickBetFormData = z.infer<typeof quickBetSchema>;
 interface QuickBetFormProps {
