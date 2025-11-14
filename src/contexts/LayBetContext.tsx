@@ -155,6 +155,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
       if (updates.quotaPunta !== undefined) dbUpdates.quota_punta = updates.quotaPunta;
       if (updates.tassePercentuale !== undefined) dbUpdates.tasse_percentuale = updates.tassePercentuale;
       if (updates.attiva !== undefined) dbUpdates.attiva = updates.attiva;
+      if (updates.stato !== undefined) dbUpdates.stato = updates.stato;
       if (updates.urlEvento !== undefined) dbUpdates.url_evento = updates.urlEvento;
 
       const { error } = await supabase
