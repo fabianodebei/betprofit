@@ -40,7 +40,10 @@ export function getMultiplaCalculations(
     };
   }
 
-  // Filtra solo le bancate attive
+  // Calcola il rischio totale per TUTTE le bancate
+  const allBets = layBets;
+
+  // Filtra solo le bancate attive per i calcoli degli scenari
   const activeBets = layBets.filter(lb => lb.stato === 'In Corso');
 
   // Calcola la liability per ogni lay bet (responsabilità se la bancata perde)
@@ -120,8 +123,8 @@ export function getMultiplaCalculations(
     ? Math.min(...perGamba.map((x) => x.risultato)) 
     : puntaLoss;
 
-  // Rischio totale = somma di tutte le liability
-  const totalRisk = sumLiability;
+  // Rischio totale = somma di tutte le liability (di tutte le bancate, non solo quelle attive)
+  const totalRisk = allBets.reduce((sum, lb) => sum + liability(lb), 0);
 
   // Guadagno totale = scenario peggiore tra vincita e perdita worst
   const guadagnoTotale = Math.min(scenarioVincita, scenarioPerditaWorst);
