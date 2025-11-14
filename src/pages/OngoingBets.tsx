@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { SingleBetForm } from '@/components/forms/SingleBetForm';
 import { CasinoBetForm } from '@/components/forms/CasinoBetForm';
 import { MultiplaBetForm } from '@/components/forms/MultiplaBetForm';
+import { LayBetForm } from '@/components/forms/LayBetForm';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -24,7 +25,7 @@ import { ArchiveBetDialog } from '@/components/dialogs/ArchiveBetDialog';
 import { MultiplaDetailDialog } from '@/components/dialogs/MultiplaDetailDialog';
 import { MultiplaArchiveDialog } from '@/components/dialogs/MultiplaArchiveDialog';
 import { SingleBetDetailDialog } from '@/components/dialogs/SingleBetDetailDialog';
-import { Bet } from '@/types';
+import { Bet, LayBet } from '@/types';
 
 export default function OngoingBets() {
   const { getOngoingBets, deleteBet, archiveBet, loading } = useBets();
@@ -66,6 +67,8 @@ export default function OngoingBets() {
   const [editingBet, setEditingBet] = useState<Bet | null>(null);
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'clone'>('create');
   const [expandedBets, setExpandedBets] = useState<Set<string>>(new Set());
+  const [showLayBetForm, setShowLayBetForm] = useState(false);
+  const [editingLayBet, setEditingLayBet] = useState<LayBet | null>(null);
 
   const toggleLayBets = (betId: string) => {
     setExpandedBets(prev => {
@@ -77,6 +80,11 @@ export default function OngoingBets() {
       }
       return newSet;
     });
+  };
+
+  const handleEditLayBet = (layBet: LayBet) => {
+    setEditingLayBet(layBet);
+    setShowLayBetForm(true);
   };
 
   const handleArchive = (bet: Bet) => {
@@ -336,7 +344,8 @@ export default function OngoingBets() {
                                 <td className="p-3 text-sm">{layBet.mercato}</td>
                                 <td className="p-3">
                                   <div className="flex gap-1">
-                                    <Button size="sm" variant="outline" onClick={() => handleShowSingleBetDetail(bet)}>Vedi Puntata</Button>
+                                    <Button size="sm" variant="outline" onClick={() => handleEditLayBet(layBet)} className="text-xs">Modifica</Button>
+                                    <Button size="sm" variant="outline" onClick={() => handleShowSingleBetDetail(bet)} className="text-xs">Vedi Puntata</Button>
                                   </div>
                                 </td>
                               </tr>
@@ -412,6 +421,18 @@ export default function OngoingBets() {
         open={showMultiplaArchiveDialog}
         onOpenChange={setShowMultiplaArchiveDialog}
         onConfirm={handleConfirmArchive}
+      />
+      <LayBetForm
+        open={showLayBetForm}
+        onOpenChange={(open) => {
+          setShowLayBetForm(open);
+          if (!open) {
+            setEditingLayBet(null);
+          }
+        }}
+        editingLayBet={editingLayBet}
+        mode={editingLayBet ? 'edit' : 'create'}
+        parentBetId={editingLayBet?.parentBetId}
       />
       <ArchiveBetDialog
         bet={selectedBet}
