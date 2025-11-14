@@ -115,22 +115,23 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
+      const dataAny = data as any;
       const newLayBet: LayBet = {
-        id: data.id,
-        parentBetId: data.parent_bet_id,
-        metodo: data.metodo as 'Punta' | 'Banca',
-        evento: data.evento,
-        dataEvento: new Date(data.data_evento),
-        mercato: data.mercato,
-        conto: data.conto,
-        stake: Number(data.stake),
-        quotaBanca: Number(data.quota_banca),
-        quotaPunta: Number(data.quota_punta),
-        tassePercentuale: Number(data.tasse_percentuale),
-        attiva: data.attiva ?? true,
-        stato: (data.stato || 'Bozza') as LayBet['stato'],
-        urlEvento: data.url_evento || undefined,
-        createdAt: new Date(data.created_at),
+        id: dataAny.id,
+        parentBetId: dataAny.parent_bet_id,
+        metodo: dataAny.metodo as 'Punta' | 'Banca',
+        evento: dataAny.evento,
+        dataEvento: new Date(dataAny.data_evento),
+        mercato: dataAny.mercato,
+        conto: dataAny.conto,
+        stake: Number(dataAny.stake),
+        quotaBanca: Number(dataAny.quota_banca),
+        quotaPunta: Number(dataAny.quota_punta),
+        tassePercentuale: Number(dataAny.tasse_percentuale),
+        attiva: dataAny.attiva ?? true,
+        stato: (dataAny.stato || 'Bozza') as LayBet['stato'],
+        urlEvento: dataAny.url_evento || undefined,
+        createdAt: new Date(dataAny.created_at),
       };
 
       setLayBets((prev) => [newLayBet, ...prev]);

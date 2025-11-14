@@ -516,7 +516,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
           vincitaPotenziale: vincitaPotenziale,
         });
 
-        toast.success('Multipla aggiornata');
+        
       } else {
         // Per le multiple usiamo la data della prima partita
         const firstMatchDate = selections.length > 0 ? selections[0].dataEvento : new Date();
@@ -560,7 +560,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
           // Implementation for wallet balance update would go here
         }
 
-        toast.success('Multipla creata');
+        
       }
 
       // Clear saved state after successful submission
