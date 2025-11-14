@@ -119,7 +119,7 @@ interface MultiplaBetFormProps {
 
 export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create' }: MultiplaBetFormProps) {
   const { addBet, updateBet } = useBets();
-  const { addBetLeg, getBetLegsByBetId } = useBetLegs();
+  const { addBetLeg, getBetLegsByBetId, refetchBetLegs } = useBetLegs();
   const { accounts, updateAccount } = useAccounts();
   const { tags } = useTags();
   const { settings } = useSettings();
@@ -553,6 +553,9 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
             dataEvento: selection.dataEvento,
           });
         }
+        
+        // Forza il refetch delle bet legs per aggiornare immediatamente la UI
+        await refetchBetLegs();
         
         // Nessun aggiornamento saldo: i bilanci vengono ricalcolati automaticamente dalle puntate in corso
 
