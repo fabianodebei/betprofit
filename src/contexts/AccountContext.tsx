@@ -185,8 +185,10 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         throw layError;
       }
 
-      // Filtra solo le lay bets attive (In Corso)
-      const activeLayData = (layData || []).filter((lb: any) => lb.stato === 'In Corso');
+      // Filtra solo le lay bets in stato "In Corso" E con parent bet ancora in corso
+      const activeLayData = (layData || []).filter((lb: any) => 
+        lb.stato === 'In Corso' && activeBetIds.has(lb.parent_bet_id)
+      );
 
       activeLayData.forEach((lb: any) => {
         const conto = lb.conto as string;
