@@ -168,7 +168,6 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
       setLayBets((prev) =>
         prev.map((layBet) => (layBet.id === id ? { ...layBet, ...updates } : layBet))
       );
-      toast.success('Bancata aggiornata con successo');
     } catch (error: any) {
       toast.error('Errore durante l\'aggiornamento della bancata');
       console.error('Error updating lay bet:', error);
