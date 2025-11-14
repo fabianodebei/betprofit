@@ -285,7 +285,6 @@ export default function OngoingBets() {
                                   <Button size="sm" variant="outline" onClick={() => handleShowSingleBetDetail(bet)} className="text-xs whitespace-nowrap">Dettagli</Button>
                                 )}
                                 <Button size="sm" variant="outline" onClick={() => handleDetail(bet)} className="text-xs hidden md:inline-flex">Modifica</Button>
-                                <Button size="sm" variant="outline" onClick={() => handleArchive(bet)} className="text-xs">Archivia</Button>
                                 <Button size="sm" variant="destructive" onClick={() => deleteBet(bet.id)} className="text-xs hidden md:inline-flex">Elimina</Button>
                               </div>
                             </td>
