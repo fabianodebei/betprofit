@@ -223,34 +223,57 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                          </TableCell>
                          <TableCell>
                            {(() => {
-                             const hasOtherActiveBets = layBets.some(
-                               lb => lb.stato === 'In Corso' || lb.stato === 'Bozza'
-                             );
+                             // Se questa bancata è vinta, la multipla è chiusa
+                             if (layBet.stato === 'Vinto') {
+                               return (
+                                 <Button
+                                   size="sm"
+                                   variant="default"
+                                   onClick={() => {
+                                     if (confirm(`La multipla è chiusa perché questa bancata è vinta. Vuoi archiviare?`)) {
+                                       handleArchiviaFromLayBet(layBet);
+                                     }
+                                   }}
+                                 >
+                                   Archivia
+                                 </Button>
+                               );
+                             }
                              
-                             // Trova l'ultima bancata con stato finale
-                             const completedBets = layBets.filter(lb => 
-                               ['Vinto', 'Perso', 'Annullato'].includes(lb.stato)
-                             );
-                             const lastCompletedBet = completedBets.length > 0 
-                               ? completedBets[completedBets.length - 1] 
-                               : null;
+                             // Per altri stati finali, verifica che non ci siano bancate attive
+                             if (['Perso', 'Annullato'].includes(layBet.stato)) {
+                               const hasOtherActiveBets = layBets.some(
+                                 lb => lb.stato === 'In Corso' || lb.stato === 'Bozza'
+                               );
+                               
+                               const completedBets = layBets.filter(lb => 
+                                 ['Vinto', 'Perso', 'Annullato'].includes(lb.stato)
+                               );
+                               const lastCompletedBet = completedBets.length > 0 
+                                 ? completedBets[completedBets.length - 1] 
+                                 : null;
+                               
+                               const isLastCompleted = lastCompletedBet?.id === layBet.id;
+                               const canArchive = isLastCompleted && !hasOtherActiveBets;
+                               
+                               if (canArchive) {
+                                 return (
+                                   <Button
+                                     size="sm"
+                                     variant="default"
+                                     onClick={() => {
+                                       if (confirm(`Sei sicuro di voler archiviare la multipla? Lo stato della bancata è "${layBet.stato}".`)) {
+                                         handleArchiviaFromLayBet(layBet);
+                                       }
+                                     }}
+                                   >
+                                     Archivia
+                                   </Button>
+                                 );
+                               }
+                             }
                              
-                             const isLastCompleted = lastCompletedBet?.id === layBet.id;
-                             const canArchive = isLastCompleted && !hasOtherActiveBets;
-                             
-                             return canArchive ? (
-                               <Button
-                                 size="sm"
-                                 variant="default"
-                                 onClick={() => {
-                                   if (confirm(`Sei sicuro di voler archiviare la multipla? Lo stato della bancata è "${layBet.stato}".`)) {
-                                     handleArchiviaFromLayBet(layBet);
-                                   }
-                                 }}
-                               >
-                                 Archivia
-                               </Button>
-                             ) : null;
+                             return null;
                            })()}
                          </TableCell>
                          <TableCell>
