@@ -477,7 +477,16 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Conto *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select 
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      // Se contiene "Betfair", imposta automaticamente le tasse al 4,50%
+                      if (value.toLowerCase().includes('betfair')) {
+                        form.setValue('tassePercentuale', 4.50);
+                      }
+                    }} 
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleziona conto" />
