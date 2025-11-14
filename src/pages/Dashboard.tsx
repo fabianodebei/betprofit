@@ -173,8 +173,11 @@ export default function Dashboard() {
 
   // Add lay bets results for archived bets
   bets.filter(b => b.stato === 'Archiviata' && b.esito).forEach(bet => {
-    const layResult = calculateLayBetResults(bet.id, bet.esito!, bet.esitoDettaglio);
-    const layBetsForBet = layBets.filter(lb => lb.parentBetId === bet.id && lb.metodo === 'Banca' && lb.attiva);
+    const layBetsForBet = layBets.filter(lb => 
+      lb.parentBetId === bet.id && 
+      lb.metodo === 'Banca' && 
+      ['Vinto', 'Perso', 'In Corso'].includes(lb.stato) // Solo bancate effettivamente giocate
+    );
     
     layBetsForBet.forEach(lb => {
       if (!stats.has(lb.conto)) {
@@ -187,12 +190,15 @@ export default function Dashboard() {
       
       // Calcola la quota parte di questo lay
       if (bet.esito === 'win') {
+        // Punta vinta -> bancata perde (liability)
         s.profitto -= lb.stake * (lb.quotaBanca - 1);
       } else if (bet.esito === 'loss' && bet.esitoDettaglio === lb.id) {
+        // Questo lay ha vinto
         const profittoLordo = lb.stake;
         const tasse = profittoLordo * (lb.tassePercentuale / 100);
         s.profitto += profittoLordo - tasse;
-      } else if (bet.esito === 'loss' && bet.esitoDettaglio) {
+      } else if (bet.esito === 'loss' && bet.esitoDettaglio && lb.stato === 'Perso') {
+        // Lay precedenti a quello vincente perdono (solo se erano stati attivati)
         s.profitto -= lb.stake * (lb.quotaBanca - 1);
       }
     });
