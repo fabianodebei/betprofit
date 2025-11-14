@@ -119,7 +119,7 @@ interface MultiplaBetFormProps {
 
 export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create' }: MultiplaBetFormProps) {
   const { addBet, updateBet } = useBets();
-  const { addBetLeg, getBetLegsByBetId, refetchBetLegs } = useBetLegs();
+  const { addBetLeg, getBetLegsByBetId, refetchBetLegs, deleteBetLeg } = useBetLegs();
   const { accounts, updateAccount } = useAccounts();
   const { tags } = useTags();
   const { settings } = useSettings();
@@ -515,6 +515,29 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
           quotaCombinata: quotaCombinata,
           vincitaPotenziale: vincitaPotenziale,
         });
+
+        // Aggiorna anche le bet_legs: elimina le vecchie e crea le nuove
+        const existingLegs = getBetLegsByBetId(editingBet.id);
+        for (const leg of existingLegs) {
+          await deleteBetLeg(leg.id);
+        }
+        
+        // Crea le nuove bet_legs con i dati aggiornati
+        for (const selection of selections) {
+          await addBetLeg({
+            betId: editingBet.id,
+            evento: selection.evento,
+            competizione: selection.competizione || undefined,
+            mercato: selection.mercato || undefined,
+            selezione: selection.mercato || selection.evento,
+            quota: selection.quota,
+            stato: 'In Corso',
+            dataEvento: selection.dataEvento,
+          });
+        }
+        
+        // Forza il refetch delle bet legs per aggiornare immediatamente la UI
+        await refetchBetLegs();
 
         
       } else {
