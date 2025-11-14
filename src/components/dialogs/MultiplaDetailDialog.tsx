@@ -224,7 +224,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                          <TableCell>
                            {(() => {
                              const hasOtherActiveBets = layBets.some(
-                               lb => lb.id !== layBet.id && lb.stato === 'In Corso'
+                               lb => lb.id !== layBet.id && (lb.stato === 'In Corso' || lb.stato === 'Bozza')
                              );
                              const canArchive = ['Vinto', 'Perso', 'Annullato'].includes(layBet.stato) && !hasOtherActiveBets;
                              
