@@ -128,7 +128,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       // Recalcolo bilanci dalle puntate per correggere eventuali inconsistenze
       const { data: betsData, error: betsError } = await supabase
         .from('bets')
-        .select('id, tipo, conto, stato, stake, risultato, tipo_bonus, esito, esito_dettaglio')
+        .select('id, tipo, conto, stato, stake, risultato, tipo_bonus, bonus, esito, esito_dettaglio')
         .eq('user_id', user.id);
 
       if (betsError) {
@@ -153,7 +153,15 @@ export function AccountProvider({ children }: { children: ReactNode }) {
           }
         } else if (b.stato === 'Archiviata') {
           // A fine corsa contano solo i profitti netti (risultato)
-          giocateMap[conto] = (giocateMap[conto] || 0) + (Number(b.risultato) || 0);
+          let risultatoNetto = Number(b.risultato) || 0;
+          
+          // Per Bonus Bet e Free Bet, sottrai il bonus dal risultato per ottenere il profitto netto reale
+          // perché il bonus non era denaro reale dell'utente
+          if ((b.tipo_bonus === 'Bonus' || b.tipo_bonus === 'Free Bet') && risultatoNetto > 0) {
+            risultatoNetto -= Number(b.bonus) || 0;
+          }
+          
+          giocateMap[conto] = (giocateMap[conto] || 0) + risultatoNetto;
         }
       });
 
