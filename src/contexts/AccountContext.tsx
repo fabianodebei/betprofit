@@ -153,15 +153,8 @@ export function AccountProvider({ children }: { children: ReactNode }) {
           }
         } else if (b.stato === 'Archiviata') {
           // A fine corsa contano solo i profitti netti (risultato)
-          let risultatoNetto = Number(b.risultato) || 0;
-          
-          // Per Bonus Bet e Free Bet, sottrai il bonus dal risultato per ottenere il profitto netto reale
-          // perché il bonus non era denaro reale dell'utente
-          if ((b.tipo_bonus === 'Bonus' || b.tipo_bonus === 'Free Bet') && risultatoNetto > 0) {
-            risultatoNetto -= Number(b.bonus) || 0;
-          }
-          
-          giocateMap[conto] = (giocateMap[conto] || 0) + risultatoNetto;
+          // Per scommesse bonus il risultato è già il profitto netto - il bonus non era nel saldo
+          giocateMap[conto] = (giocateMap[conto] || 0) + (Number(b.risultato) || 0);
         }
       });
 
