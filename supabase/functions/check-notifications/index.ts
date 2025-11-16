@@ -110,6 +110,9 @@ const handler = async (req: Request): Promise<Response> => {
     // Check bets to report (1 hour and 40 minutes after match start)
     await checkBetsToReport(supabase, supabaseUrl, supabaseServiceKey);
 
+    // Check lay bets to notify
+    await checkLayBets(supabase, supabaseUrl, supabaseServiceKey);
+
     return new Response(
       JSON.stringify({ success: true, message: 'Notification check completed' }),
       {
@@ -347,6 +350,111 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
         });
 
       console.log('Notification sent');
+    }
+  }
+}
+
+async function checkLayBets(supabase: any, supabaseUrl: string, serviceKey: string) {
+  console.log('Processing lay bets');
+
+  const { data: layBets, error } = await supabase
+    .from('lay_bets')
+    .select('*, user_id')
+    .eq('stato', 'In Corso')
+    .eq('attiva', true);
+
+  if (error) {
+    console.error('Query failed for lay bets');
+    return;
+  }
+
+  console.log(`Processing ${layBets?.length || 0} lay bet items`);
+
+  const now = new Date();
+
+  for (const layBet of layBets || []) {
+    // Check if already notified
+    const { data: existingLog } = await supabase
+      .from('notification_logs')
+      .select('id')
+      .eq('type', 'lay_bet')
+      .eq('reference_id', layBet.id)
+      .single();
+
+    if (existingLog) {
+      continue;
+    }
+
+    const eventDate = new Date(layBet.data_evento);
+    
+    // Add 1 hour and 40 minutes (100 minutes) after the match starts
+    const reportTime = new Date(eventDate.getTime() + 100 * 60 * 1000);
+
+    // Send notification if time has arrived
+    if (now >= reportTime) {
+      // Check if there are more lay bets for the same parent bet with later dates
+      const { data: futureLays, error: futureError } = await supabase
+        .from('lay_bets')
+        .select('id, data_evento')
+        .eq('parent_bet_id', layBet.parent_bet_id)
+        .eq('attiva', true)
+        .gt('data_evento', layBet.data_evento)
+        .order('data_evento', { ascending: true });
+
+      if (futureError) {
+        console.error('Error checking future lay bets:', futureError);
+        continue;
+      }
+
+      const hasMoreLays = futureLays && futureLays.length > 0;
+      
+      // Sanitize all user-provided fields
+      const metodo = sanitizeField(layBet.metodo, 50, 'layBet.metodo');
+      const evento = sanitizeField(layBet.evento, 200, 'layBet.evento');
+      const mercato = sanitizeField(layBet.mercato, 100, 'layBet.mercato');
+      const conto = sanitizeField(layBet.conto, 100, 'layBet.conto');
+      
+      let message = `🎯 <b>BANCATA CONCLUSA</b>\n\n` +
+        `📋 Metodo: ${escapeHtml(metodo)}\n` +
+        `🎮 Evento: ${escapeHtml(evento)}\n` +
+        `📊 Mercato: ${escapeHtml(mercato)}\n` +
+        `💳 Conto: ${escapeHtml(conto)}\n` +
+        `💰 Stake: €${formatCurrency(layBet.stake)}\n` +
+        `📈 Quota Punta: ${layBet.quota_punta}\n` +
+        `📉 Quota Banca: ${layBet.quota_banca}\n` +
+        `🕐 Conclusa: ${formatDate(eventDate)}\n\n`;
+
+      if (hasMoreLays) {
+        const nextDate = new Date(futureLays[0].data_evento);
+        message += `⚠️ <b>Banca la prossima giocata!</b>\n` +
+          `📅 Prossimo evento: ${formatDate(nextDate)}`;
+      } else {
+        message += `✅ <b>Ultima bancata - Archivia la scommessa!</b>`;
+      }
+
+      console.log(`Sending lay bet notification for ${layBet.id}`);
+
+      await fetch(`${supabaseUrl}/functions/v1/send-telegram-notification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${serviceKey}`,
+        },
+        body: JSON.stringify({ 
+          message,
+          user_id: layBet.user_id 
+        }),
+      });
+
+      // Log notification
+      await supabase
+        .from('notification_logs')
+        .insert({
+          type: 'lay_bet',
+          reference_id: layBet.id,
+        });
+
+      console.log('Lay bet notification sent');
     }
   }
 }
