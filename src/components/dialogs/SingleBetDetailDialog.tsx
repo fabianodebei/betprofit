@@ -211,17 +211,10 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                           <div className="flex gap-1">
                             <Button
                               size="sm"
-                              variant="ghost"
+                              variant="outline"
                               onClick={() => handleEditLayBet(layBet)}
                             >
-                              Clona
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleEditLayBet(layBet)}
-                            >
-                              Punta
+                              Modifica
                             </Button>
                             <Button
                               size="sm"
