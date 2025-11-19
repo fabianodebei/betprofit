@@ -46,9 +46,13 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
     setShowLayBetForm(true);
   };
 
-  const handleDeleteLayBet = async (id: string) => {
+  const handleDeleteLayBet = async (layBet: any) => {
+    if (layBet.stato !== 'Bozza') {
+      toast.error('Puoi eliminare solo bancate in stato Bozza');
+      return;
+    }
     if (confirm('Sei sicuro di voler eliminare questa bancata?')) {
-      await deleteLayBet(id);
+      await deleteLayBet(layBet.id);
     }
   };
 
@@ -330,7 +334,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                               size="sm"
                               variant="ghost"
                               className="text-destructive"
-                              onClick={() => handleDeleteLayBet(layBet.id)}
+                              onClick={() => handleDeleteLayBet(layBet)}
                             >
                               Elimina
                             </Button>
