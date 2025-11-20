@@ -41,8 +41,13 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         )
         .subscribe();
 
+      // Listen to custom refresh event
+      const handleRefresh = () => fetchWallets();
+      window.addEventListener('refresh-wallets', handleRefresh);
+
       return () => {
         supabase.removeChannel(channel);
+        window.removeEventListener('refresh-wallets', handleRefresh);
       };
     } else {
       setWallets([]);

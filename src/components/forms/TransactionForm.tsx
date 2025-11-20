@@ -182,8 +182,9 @@ export function TransactionForm({ open, onOpenChange, preselectedAccount }: Tran
     setSelectedAccountId(null);
     onOpenChange(false);
     
-    // Reload to refresh account balances
-    window.location.reload();
+    // Trigger refresh events instead of page reload
+    window.dispatchEvent(new Event('refresh-accounts'));
+    window.dispatchEvent(new Event('refresh-wallets'));
   };
 
   return (

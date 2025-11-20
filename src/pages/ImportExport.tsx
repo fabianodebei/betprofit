@@ -184,8 +184,14 @@ export default function ImportExport() {
       setImportFile(null);
       setImportPreview(null);
       
-      // Refresh page to reload all contexts
-      window.location.reload();
+      // Trigger refresh events for all contexts
+      window.dispatchEvent(new Event('refresh-accounts'));
+      window.dispatchEvent(new Event('refresh-wallets'));
+      window.dispatchEvent(new Event('refresh-bets'));
+      window.dispatchEvent(new Event('refresh-transactions'));
+      
+      // Navigate to home after brief delay to allow events to process
+      setTimeout(() => navigate('/'), 500);
     } catch (error) {
       console.error('Import error:', error);
       toast.error('Errore durante l\'importazione dei dati');
