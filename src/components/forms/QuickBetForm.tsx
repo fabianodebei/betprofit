@@ -86,8 +86,11 @@ export function QuickBetForm({
   // Get available intestatari (abilitati)
   const availableIntestatari = intestatari.filter(int => int.stato === 'Abilitato');
 
-  // Reset form with editing bet data when it changes
+  // Reset form with editing bet data when it changes or dialog opens
   useEffect(() => {
+    // Only reset when dialog opens or when switching to edit mode
+    if (!open) return;
+    
     if (editingBet) {
       const account = accounts.find(a => a.conto === editingBet.conto);
       const intestatario = account?.intestatario || '';
@@ -103,19 +106,23 @@ export function QuickBetForm({
       setSelectedIntestatario(intestatario);
       setSelectedConto(editingBet.conto || '');
     } else {
-      form.reset({
-        intestatario: '',
-        conto: '',
-        metodo: '',
-        movimento: 0,
-        registrato: new Date(),
-        note: '',
-        tag: ''
-      });
-      setSelectedIntestatario('');
-      setSelectedConto('');
+      // Only reset if form is pristine (no user input yet)
+      const hasUserInput = form.formState.isDirty;
+      if (!hasUserInput) {
+        form.reset({
+          intestatario: '',
+          conto: '',
+          metodo: '',
+          movimento: 0,
+          registrato: new Date(),
+          note: '',
+          tag: ''
+        });
+        setSelectedIntestatario('');
+        setSelectedConto('');
+      }
     }
-  }, [editingBet, form, accounts]);
+  }, [open, editingBet]);
   const onSubmit = async (data: QuickBetFormData) => {
     const account = accounts.find(a => a.conto === data.conto);
 
