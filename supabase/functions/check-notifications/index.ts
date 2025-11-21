@@ -107,10 +107,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Check reminders
     await checkReminders(supabase, supabaseUrl, supabaseServiceKey);
 
-    // Check bets to report (1 hour and 40 minutes after match start)
-    await checkBetsToReport(supabase, supabaseUrl, supabaseServiceKey);
-
-    // Check lay bets to notify
+    // Check lay bets to notify (this handles all bet notifications correctly)
     await checkLayBets(supabase, supabaseUrl, supabaseServiceKey);
 
     return new Response(
@@ -224,136 +221,6 @@ async function checkReminders(supabase: any, supabaseUrl: string, serviceKey: st
   }
 }
 
-async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey: string) {
-  console.log('Processing bets');
-
-  const { data: bets, error } = await supabase
-    .from('bets')
-    .select('*, user_id')
-    .eq('stato', 'In Corso')
-    .neq('tipo', 'Rapida');
-
-  if (error) {
-    console.error('Query failed');
-    return;
-  }
-
-  console.log(`Processing ${bets?.length || 0} items`);
-
-  const now = new Date();
-
-  for (const bet of bets || []) {
-    // Check if already notified
-    const { data: existingLog } = await supabase
-      .from('notification_logs')
-      .select('id')
-      .eq('type', 'bet')
-      .eq('reference_id', bet.id)
-      .single();
-
-    if (existingLog) {
-      continue;
-    }
-
-    let eventDate: Date;
-    const isMultiple = bet.tipo === 'Multipla';
-    
-    // For multiple bets, find the first match date from bet_legs
-    if (isMultiple) {
-      const { data: legs, error: legsError } = await supabase
-        .from('bet_legs')
-        .select('data_evento')
-        .eq('bet_id', bet.id)
-        .order('data_evento', { ascending: true })
-        .limit(1);
-      
-      if (legsError || !legs || legs.length === 0) {
-        console.warn(`No bet_legs found for multiple bet ${bet.id}, skipping`);
-        continue;
-      }
-      
-      eventDate = new Date(legs[0].data_evento);
-      console.log(`Multiple bet ${bet.id}: using first match date ${eventDate.toISOString()}`);
-    } else {
-      // For single bets, use the bet's event date
-      eventDate = new Date(bet.data_evento);
-    }
-    
-    // Add 1 hour and 40 minutes (100 minutes) after the first match starts
-    const reportTime = new Date(eventDate.getTime() + 100 * 60 * 1000);
-
-    // Send notification if time has arrived
-    if (now >= reportTime) {
-      const isMultiple = bet.tipo === 'Multipla';
-      
-      // Sanitize all user-provided fields with appropriate length limits
-      const tipo = sanitizeField(bet.tipo, 50, 'bet.tipo');
-      const evento = sanitizeField(bet.evento, 200, 'bet.evento');
-      const nomeGioco = sanitizeField(bet.nome_gioco, 200, 'bet.nome_gioco');
-      const conto = sanitizeField(bet.conto, 100, 'bet.conto');
-      const tag = sanitizeField(bet.tag, 100, 'bet.tag');
-      const note = sanitizeField(bet.note, 500, 'bet.note');
-      
-      let message = `⚽ <b>PARTITA CONCLUSA${isMultiple ? ' - MULTIPLA' : ''}</b>\n\n` +
-        `🎯 Tipo: ${escapeHtml(tipo)}\n`;
-
-      if (evento) {
-        message += `🎮 Evento: ${escapeHtml(evento)}\n`;
-      }
-      if (nomeGioco) {
-        message += `🎰 Gioco: ${escapeHtml(nomeGioco)}\n`;
-      }
-
-      message += `💳 Conto: ${escapeHtml(conto)}\n` +
-        `💰 Stake: €${formatCurrency(bet.stake)}\n`;
-
-      if (bet.quota) {
-        message += `📊 Quota: ${bet.quota}\n`;
-      }
-
-      message += `🕐 Iniziata: ${formatDate(eventDate)}\n`;
-
-      if (tag) {
-        message += `🏷️ Tag: ${escapeHtml(tag)}\n`;
-      }
-
-      if (note) {
-        message += `📝 Note: ${escapeHtml(note)}\n`;
-      }
-
-      message += `\n✅ Archivia la scommessa`;
-
-      if (isMultiple) {
-        message += `\n⚠️ <b>Banca la prossima scommessa della multipla!</b>`;
-      }
-
-      console.log('Sending notification');
-
-      await fetch(`${supabaseUrl}/functions/v1/send-telegram-notification`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${serviceKey}`,
-        },
-        body: JSON.stringify({ 
-          message,
-          user_id: bet.user_id 
-        }),
-      });
-
-      // Log notification
-      await supabase
-        .from('notification_logs')
-        .insert({
-          type: 'bet',
-          reference_id: bet.id,
-        });
-
-      console.log('Notification sent');
-    }
-  }
-}
-
 async function checkLayBets(supabase: any, supabaseUrl: string, serviceKey: string) {
   console.log('Processing lay bets');
 
@@ -373,15 +240,16 @@ async function checkLayBets(supabase: any, supabaseUrl: string, serviceKey: stri
   const now = new Date();
 
   for (const layBet of layBets || []) {
-    // Check if already notified
+    // Check if already notified with more robust duplicate prevention
     const { data: existingLog } = await supabase
       .from('notification_logs')
       .select('id')
       .eq('type', 'lay_bet')
       .eq('reference_id', layBet.id)
-      .single();
+      .maybeSingle();
 
     if (existingLog) {
+      console.log(`Lay bet ${layBet.id} already notified, skipping`);
       continue;
     }
 
@@ -434,6 +302,20 @@ async function checkLayBets(supabase: any, supabaseUrl: string, serviceKey: stri
 
       console.log(`Sending lay bet notification for ${layBet.id}`);
 
+      // Log notification BEFORE sending to prevent duplicates in race conditions
+      const { error: logError } = await supabase
+        .from('notification_logs')
+        .insert({
+          type: 'lay_bet',
+          reference_id: layBet.id,
+        });
+
+      // If insert fails (duplicate), skip this notification
+      if (logError) {
+        console.log(`Notification already logged for lay bet ${layBet.id}, skipping`);
+        continue;
+      }
+
       await fetch(`${supabaseUrl}/functions/v1/send-telegram-notification`, {
         method: 'POST',
         headers: {
@@ -445,14 +327,6 @@ async function checkLayBets(supabase: any, supabaseUrl: string, serviceKey: stri
           user_id: layBet.user_id 
         }),
       });
-
-      // Log notification
-      await supabase
-        .from('notification_logs')
-        .insert({
-          type: 'lay_bet',
-          reference_id: layBet.id,
-        });
 
       console.log('Lay bet notification sent');
     }
