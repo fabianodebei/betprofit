@@ -153,7 +153,7 @@ export default function Dashboard() {
   const bookmakerStats = useMemo(() => {
     const stats = new Map();
     
-    // Add ALL bets (archived + ongoing)
+    // Add ALL bets (archived + ongoing) for stake calculation
     bets.forEach(bet => {
       if (!stats.has(bet.conto)) {
         stats.set(bet.conto, { stake: 0, profitto: 0, count: 0 });
@@ -161,12 +161,15 @@ export default function Dashboard() {
       const s = stats.get(bet.conto);
       s.stake += bet.stake;
       
-      // For quick bets, profitto is the stake itself
-      // For other bets, profitto is the risultato
-      if (bet.tipo === 'Rapida') {
-        s.profitto += bet.stake;
-      } else {
-        s.profitto += bet.risultato || 0;
+      // ONLY add profit for archived bets
+      if (bet.stato === 'Archiviata') {
+        // For quick bets, profitto is the stake itself
+        // For other bets, profitto is the risultato
+        if (bet.tipo === 'Rapida') {
+          s.profitto += bet.stake;
+        } else {
+          s.profitto += bet.risultato || 0;
+        }
       }
       s.count += 1;
     });
