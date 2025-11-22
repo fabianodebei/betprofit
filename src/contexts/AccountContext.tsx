@@ -143,7 +143,10 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         const conto = b.conto as string;
         if (b.tipo === 'Rapida') {
           // Le giocate rapide riflettono direttamente il movimento/profitto registrato
-          rapideMap[conto] = (rapideMap[conto] || 0) + (Number(b.risultato) || 0);
+          // SOLO per bet archiviate
+          if (b.stato === 'Archiviata') {
+            rapideMap[conto] = (rapideMap[conto] || 0) + (Number(b.risultato) || 0);
+          }
           return;
         }
         if (b.stato === 'In Corso') {
