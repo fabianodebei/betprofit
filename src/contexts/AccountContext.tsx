@@ -169,24 +169,24 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         associatedLayBets.forEach((lb: any) => {
           console.log(`  Lay bet: stake=${lb.stake}, quota=${lb.quota_banca}, stato=${lb.stato}, tasse=${lb.tasse_percentuale}`);
           
-          if (esito === 'Vinto') {
+          if (esito === 'win') {
             // Parent vinta: le lay bets sono perse
             const liability = lb.stake * (lb.quota_banca - 1);
-            console.log(`  Parent VINTA -> sottraggo liability: ${liability}`);
+            console.log(`  Parent WIN -> sottraggo liability: ${liability}`);
             total -= liability;
-          } else if (esito === 'Perso') {
+          } else if (esito === 'loss') {
             // Parent persa: controlla lo stato effettivo di ogni lay bet
             if (lb.stato === 'Vinto') {
               // Lay bet vinta: profitto al netto delle tasse
               const profittoLordo = lb.stake;
               const tasse = profittoLordo * (lb.tasse_percentuale / 100);
               const netto = profittoLordo - tasse;
-              console.log(`  Parent PERSA, Lay VINTA -> aggiungo netto: ${netto}`);
+              console.log(`  Parent LOSS, Lay VINTA -> aggiungo netto: ${netto}`);
               total += netto;
             } else if (lb.stato === 'Perso') {
               // Lay bet persa: perdita della responsabilità
               const liability = lb.stake * (lb.quota_banca - 1);
-              console.log(`  Parent PERSA, Lay PERSA -> sottraggo liability: ${liability}`);
+              console.log(`  Parent LOSS, Lay PERSA -> sottraggo liability: ${liability}`);
               total -= liability;
             }
           }
