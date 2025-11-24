@@ -154,17 +154,21 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       }
 
       // Function to calculate lay bet results (same as ArchivedBets.tsx)
-      const calculateLayBetResults = (betId: string, outcome: string, esitoDettaglio?: string) => {
+      const calculateLayBetResults = (betId: string, esito: string | null) => {
         const associatedLayBets = (layData || []).filter(
           (lb: any) => lb.parent_bet_id === betId && lb.metodo === 'Banca' && ['In Corso', 'Vinto', 'Perso'].includes(lb.stato)
         );
+        
+        // Se non ci sono lay bets associate, return 0
+        if (associatedLayBets.length === 0) return 0;
+        
         let total = 0;
         
         associatedLayBets.forEach((lb: any) => {
-          if (outcome === 'win') {
+          if (esito === 'Vinto') {
             // Parent vinta: le lay bets sono perse
             total -= lb.stake * (lb.quota_banca - 1);
-          } else if (outcome === 'loss') {
+          } else if (esito === 'Perso') {
             // Parent persa: controlla lo stato effettivo di ogni lay bet
             if (lb.stato === 'Vinto') {
               // Lay bet vinta: profitto al netto delle tasse
@@ -175,8 +179,8 @@ export function AccountProvider({ children }: { children: ReactNode }) {
               // Lay bet persa: perdita della responsabilità
               total -= lb.stake * (lb.quota_banca - 1);
             }
-            // Se stato è 'In Corso' o altro, non fare nulla
           }
+          // Per Rimborsato o altri esiti, non fare nulla
         });
         
         return total;
@@ -213,7 +217,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
           }
         } else if (stato === 'Archiviata') {
           // Archived bets: add result + lay bet results
-          const layResult = calculateLayBetResults(b.id, esito || 'refund', esitoDettaglio);
+          const layResult = calculateLayBetResults(b.id, esito);
           const totalResult = risultato + layResult;
           
           if (!isFreeOrBonus) {
