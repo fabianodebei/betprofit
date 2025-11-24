@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 import { useDebounce } from '@/hooks/useDebounce';
 
 export interface AdminPreferences {
@@ -30,7 +29,6 @@ const DEFAULT_PREFERENCES: AdminPreferences = {
 export const useAdminPreferences = () => {
   const [preferences, setPreferences] = useState<AdminPreferences>(DEFAULT_PREFERENCES);
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
 
   // Load preferences from database
   useEffect(() => {
@@ -81,13 +79,8 @@ export const useAdminPreferences = () => {
       if (error) throw error;
     } catch (error) {
       console.error('Error saving admin preferences:', error);
-      toast({
-        title: 'Errore',
-        description: 'Impossibile salvare le preferenze',
-        variant: 'destructive',
-      });
     }
-  }, [toast]);
+  }, []);
 
   // Debounced save function with proper cleanup
   const debouncedSave = useDebounce(savePreferencesImmediate, 500);
@@ -105,11 +98,7 @@ export const useAdminPreferences = () => {
   const resetPreferences = useCallback(async () => {
     setPreferences(DEFAULT_PREFERENCES);
     await savePreferencesImmediate(DEFAULT_PREFERENCES);
-    toast({
-      title: 'Preferenze ripristinate',
-      description: 'Le preferenze sono state ripristinate ai valori predefiniti',
-    });
-  }, [savePreferencesImmediate, toast]);
+  }, [savePreferencesImmediate]);
 
   return {
     preferences,

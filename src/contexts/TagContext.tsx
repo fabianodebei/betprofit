@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
-import { toast } from '@/hooks/use-toast';
 
 export interface Tag {
   id: string;
@@ -49,11 +48,6 @@ export const TagProvider = ({ children }: { children: ReactNode }) => {
       })));
     } catch (error) {
       console.error('Error fetching tags:', error);
-      toast({
-        title: 'Errore',
-        description: 'Impossibile caricare i tag',
-        variant: 'destructive',
-      });
     } finally {
       setLoading(false);
     }
@@ -99,18 +93,8 @@ export const TagProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
 
       await fetchTags();
-
-      toast({
-        title: 'Successo',
-        description: 'Tag aggiunto con successo',
-      });
     } catch (error: any) {
       console.error('Error adding tag:', error);
-      toast({
-        title: 'Errore',
-        description: error.message || 'Impossibile aggiungere il tag',
-        variant: 'destructive',
-      });
       throw error;
     }
   };
@@ -125,18 +109,8 @@ export const TagProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
 
       await fetchTags();
-
-      toast({
-        title: 'Successo',
-        description: 'Tag aggiornato con successo',
-      });
     } catch (error: any) {
       console.error('Error updating tag:', error);
-      toast({
-        title: 'Errore',
-        description: error.message || 'Impossibile aggiornare il tag',
-        variant: 'destructive',
-      });
       throw error;
     }
   };
@@ -151,18 +125,8 @@ export const TagProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
 
       await fetchTags();
-
-      toast({
-        title: 'Successo',
-        description: 'Tag eliminato con successo',
-      });
     } catch (error: any) {
       console.error('Error deleting tag:', error);
-      toast({
-        title: 'Errore',
-        description: error.message || 'Impossibile eliminare il tag',
-        variant: 'destructive',
-      });
       throw error;
     }
   };

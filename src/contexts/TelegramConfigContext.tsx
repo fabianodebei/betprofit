@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
-import { toast } from 'sonner';
 
 interface TelegramConfig {
   id: string;
@@ -134,11 +133,8 @@ export const TelegramConfigProvider = ({ children }: { children: ReactNode }) =>
 
       // Refresh config (only non-sensitive fields)
       await fetchConfig();
-
-      toast.success('Configurazione Telegram aggiornata');
     } catch (error: any) {
       console.error('Error updating telegram config:', error);
-      toast.error('Errore nell\'aggiornamento della configurazione');
       throw error;
     }
   };

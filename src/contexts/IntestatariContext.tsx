@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
-import { toast } from 'sonner';
 
 export type Intestatario = {
   id: string;
@@ -77,7 +76,6 @@ export function IntestatariProvider({ children }: { children: ReactNode }) {
       })));
     } catch (error) {
       console.error('Error fetching intestatari:', error);
-      toast.error('Errore nel caricamento degli intestatari');
     } finally {
       setLoading(false);
     }
@@ -100,14 +98,8 @@ export function IntestatariProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       
       await fetchIntestatari();
-      toast.success('Intestatario aggiunto con successo');
     } catch (error: any) {
       console.error('Error adding intestatario:', error);
-      if (error.code === '23505') {
-        toast.error('Un intestatario con questo nome esiste già');
-      } else {
-        toast.error('Errore nell\'aggiunta dell\'intestatario');
-      }
       throw error;
     }
   };
@@ -128,14 +120,8 @@ export function IntestatariProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       
       await fetchIntestatari();
-      toast.success('Intestatario aggiornato con successo');
     } catch (error: any) {
       console.error('Error updating intestatario:', error);
-      if (error.code === '23505') {
-        toast.error('Un intestatario con questo nome esiste già');
-      } else {
-        toast.error('Errore nell\'aggiornamento dell\'intestatario');
-      }
       throw error;
     }
   };
@@ -150,10 +136,8 @@ export function IntestatariProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       
       await fetchIntestatari();
-      toast.success('Intestatario eliminato con successo');
     } catch (error) {
       console.error('Error deleting intestatario:', error);
-      toast.error('Errore nell\'eliminazione dell\'intestatario');
       throw error;
     }
   };

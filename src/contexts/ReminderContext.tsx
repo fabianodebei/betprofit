@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { Reminder } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
-import { toast } from 'sonner';
 
 interface ReminderContextType {
   reminders: Reminder[];
@@ -52,7 +51,6 @@ export function ReminderProvider({ children }: { children: ReactNode }) {
 
       setReminders(mappedReminders);
     } catch (error: any) {
-      toast.error('Errore nel caricamento dei promemoria');
       console.error('Error fetching reminders:', error);
     } finally {
       setLoading(false);
@@ -91,9 +89,7 @@ export function ReminderProvider({ children }: { children: ReactNode }) {
       };
 
       setReminders((prev) => [newReminder, ...prev]);
-      toast.success('Promemoria aggiunto con successo');
     } catch (error: any) {
-      toast.error('Errore durante l\'aggiunta del promemoria');
       console.error('Error adding reminder:', error);
     }
   };
@@ -118,9 +114,7 @@ export function ReminderProvider({ children }: { children: ReactNode }) {
       setReminders((prev) =>
         prev.map((reminder) => (reminder.id === id ? { ...reminder, ...updates } : reminder))
       );
-      toast.success('Promemoria aggiornato con successo');
     } catch (error: any) {
-      toast.error('Errore durante l\'aggiornamento del promemoria');
       console.error('Error updating reminder:', error);
     }
   };
@@ -135,9 +129,7 @@ export function ReminderProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
 
       setReminders((prev) => prev.filter((reminder) => reminder.id !== id));
-      toast.success('Promemoria eliminato con successo');
     } catch (error: any) {
-      toast.error('Errore durante l\'eliminazione del promemoria');
       console.error('Error deleting reminder:', error);
     }
   };
