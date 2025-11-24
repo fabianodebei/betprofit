@@ -10,9 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { TimePicker } from '@/components/ui/time-picker';
-import { CalendarIcon, AlertTriangle } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { checkMarketCompatibility } from '@/utils/accaCalculations';
 import { format } from 'date-fns';
 import { formatDate } from '@/utils/dates';
 import { cn } from '@/lib/utils';
@@ -29,7 +28,7 @@ const layBetSchema = z.object({
   metodo: z.enum(['Punta', 'Banca']),
   evento: z.string().min(1, 'Evento è obbligatorio'),
   dataEvento: z.date(),
-  mercato: z.string().min(1, 'Mercato è obbligatorio'),
+  mercato: z.string().default('Banca l\'evento già giocato'),
   conto: z.string().min(1, 'Conto è obbligatorio'),
   stake: z.number().positive('Lo stake deve essere positivo'),
   quotaBanca: z.number().min(1.01, 'La quota banca deve essere almeno 1.01'),
@@ -91,7 +90,7 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
       metodo: 'Punta',
       evento: '',
       dataEvento: new Date(),
-      mercato: '',
+      mercato: 'Banca l\'evento già giocato',
       conto: '',
       stake: 0,
       quotaBanca: 1.01,
@@ -102,12 +101,6 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
     },
   });
 
-  // Verifica compatibilità mercato (dopo form.watch disponibile)
-  const mercato = form.watch('mercato');
-  const marketCompatibility = useMemo(() => {
-    if (!selectedBetLeg?.selezione || !mercato) return { compatible: true };
-    return checkMarketCompatibility(selectedBetLeg.selezione, mercato);
-  }, [selectedBetLeg, mercato]);
 
   // Carica bet legs quando viene selezionata una multipla
   useEffect(() => {
@@ -155,7 +148,7 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
         metodo: 'Banca',
         evento: firstLeg?.evento || parentBet.evento || '',
         dataEvento: new Date(firstLeg?.dataEvento || parentBet.dataEvento),
-        mercato: firstLeg?.mercato || parentBet.mercato || '',
+        mercato: 'Banca l\'evento già giocato',
         conto: '',
         stake: 0,
         quotaBanca: 1.01,
@@ -172,7 +165,7 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
         metodo: 'Punta',
         evento: '',
         dataEvento: new Date(),
-        mercato: '',
+        mercato: 'Banca l\'evento già giocato',
         conto: '',
         stake: 0,
         quotaBanca: 1.01,
@@ -339,9 +332,6 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                               setSelectedBetLeg(leg);
                               form.setValue('evento', leg.evento);
                               form.setValue('dataEvento', new Date(leg.dataEvento));
-                              // Suggerisci mercato corretto
-                              const suggestedMarket = `Esito Finale - ${leg.selezione || leg.mercato}`;
-                              form.setValue('mercato', suggestedMarket);
                               form.setValue('quotaPunta', leg.quota);
                             }
                           }}
@@ -373,16 +363,6 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                   <div className="p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
                     Questa multipla non ha partite salvate. Non è possibile bancarla.
                   </div>
-                )}
-
-                {/* Warning se mercato incompatibile */}
-                {!marketCompatibility.compatible && (
-                  <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription>
-                      <strong>Attenzione:</strong> {marketCompatibility.warning}
-                    </AlertDescription>
-                  </Alert>
                 )}
               </>
             )}
@@ -436,37 +416,6 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                       />
                     </PopoverContent>
                   </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="mercato"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Mercato *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleziona mercato" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="max-h-[300px]">
-                      {Object.entries(SPORT_MARKETS).map(([categoria, mercati]) => (
-                        <div key={categoria}>
-                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase">
-                            {categoria}
-                          </div>
-                          {mercati.map((mercato) => (
-                            <SelectItem key={mercato} value={mercato}>
-                              {mercato}
-                            </SelectItem>
-                          ))}
-                        </div>
-                      ))}
-                    </SelectContent>
-                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
