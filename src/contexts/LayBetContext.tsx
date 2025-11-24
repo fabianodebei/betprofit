@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { LayBet } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
-import { toast } from 'sonner';
 
 interface LayBetContextType {
   layBets: LayBet[];
@@ -81,7 +80,6 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
 
       setLayBets(mappedLayBets);
     } catch (error: any) {
-      toast.error('Errore nel caricamento delle bancate');
       console.error('Error fetching lay bets:', error);
     } finally {
       setLoading(false);
@@ -135,9 +133,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
       };
 
       setLayBets((prev) => [newLayBet, ...prev]);
-      toast.success('Bancata aggiunta con successo');
     } catch (error: any) {
-      toast.error('Errore durante l\'aggiunta della bancata');
       console.error('Error adding lay bet:', error);
     }
   };
@@ -169,7 +165,6 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
         prev.map((layBet) => (layBet.id === id ? { ...layBet, ...updates } : layBet))
       );
     } catch (error: any) {
-      toast.error('Errore durante l\'aggiornamento della bancata');
       console.error('Error updating lay bet:', error);
     }
   };
@@ -184,9 +179,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
 
       setLayBets((prev) => prev.filter((layBet) => layBet.id !== id));
-      toast.success('Bancata eliminata con successo');
     } catch (error: any) {
-      toast.error('Errore durante l\'eliminazione della bancata');
       console.error('Error deleting lay bet:', error);
     }
   };

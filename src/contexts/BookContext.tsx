@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
-import { toast } from '@/hooks/use-toast';
 
 export interface Book {
   id: string;
@@ -68,11 +67,6 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
       })));
     } catch (error) {
       console.error('Error fetching books:', error);
-      toast({
-        title: 'Errore',
-        description: 'Impossibile caricare i book',
-        variant: 'destructive',
-      });
     } finally {
       setLoading(false);
     }
@@ -113,18 +107,8 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
         .insert([{ ...book, user_id: user.id }]);
 
       if (error) throw error;
-
-      toast({
-        title: 'Successo',
-        description: 'Book aggiunto con successo',
-      });
     } catch (error: any) {
       console.error('Error adding book:', error);
-      toast({
-        title: 'Errore',
-        description: error.message || 'Impossibile aggiungere il book',
-        variant: 'destructive',
-      });
       throw error;
     }
   };
@@ -137,18 +121,8 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
         .eq('id', id);
 
       if (error) throw error;
-
-      toast({
-        title: 'Successo',
-        description: 'Book aggiornato con successo',
-      });
     } catch (error: any) {
       console.error('Error updating book:', error);
-      toast({
-        title: 'Errore',
-        description: error.message || 'Impossibile aggiornare il book',
-        variant: 'destructive',
-      });
       throw error;
     }
   };
@@ -161,18 +135,8 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
         .eq('id', id);
 
       if (error) throw error;
-
-      toast({
-        title: 'Successo',
-        description: 'Book eliminato con successo',
-      });
     } catch (error: any) {
       console.error('Error deleting book:', error);
-      toast({
-        title: 'Errore',
-        description: error.message || 'Impossibile eliminare il book',
-        variant: 'destructive',
-      });
       throw error;
     }
   };
@@ -195,11 +159,6 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
       return uniqueBooks;
     } catch (error: any) {
       console.error('Error fetching public books:', error);
-      toast({
-        title: 'Errore',
-        description: 'Impossibile caricare i book pubblici',
-        variant: 'destructive',
-      });
       return [];
     }
   };
@@ -214,20 +173,8 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) throw error;
-
-      toast({
-        title: 'Successo',
-        description: 'Book aggiunto con successo',
-      });
     } catch (error: any) {
       console.error('Error adding public book:', error);
-      toast({
-        title: 'Errore',
-        description: error.message === 'You already have this book in your collection' 
-          ? 'Hai già questo book nella tua collezione'
-          : 'Impossibile aggiungere il book',
-        variant: 'destructive',
-      });
       throw error;
     }
   };

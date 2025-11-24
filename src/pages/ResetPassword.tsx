@@ -4,7 +4,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -42,11 +41,9 @@ export default function ResetPassword() {
 
       if (error) throw error;
 
-      toast.success('Password aggiornata con successo!');
       navigate('/');
     } catch (error: any) {
       console.error('Password reset error:', error);
-      toast.error(error.message || 'Errore durante l\'aggiornamento della password');
     } finally {
       setLoading(false);
     }

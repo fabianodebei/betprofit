@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { Wallet } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
-import { toast } from 'sonner';
 
 interface WalletContextType {
   wallets: Wallet[];
@@ -73,7 +72,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
       setWallets(mappedWallets);
     } catch (error: any) {
-      toast.error('Errore nel caricamento dei wallet');
       console.error('Error fetching wallets:', error);
     } finally {
       setLoading(false);
@@ -110,9 +108,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       };
 
       setWallets((prev) => [newWallet, ...prev]);
-      toast.success('Wallet aggiunto con successo');
     } catch (error: any) {
-      toast.error('Errore durante l\'aggiunta del wallet');
       console.error('Error adding wallet:', error);
     }
   };
@@ -136,9 +132,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       setWallets((prev) =>
         prev.map((wallet) => (wallet.id === id ? { ...wallet, ...updates } : wallet))
       );
-      toast.success('Wallet aggiornato con successo');
     } catch (error: any) {
-      toast.error('Errore durante l\'aggiornamento del wallet');
       console.error('Error updating wallet:', error);
     }
   };
@@ -153,9 +147,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
 
       setWallets((prev) => prev.filter((wallet) => wallet.id !== id));
-      toast.success('Wallet eliminato con successo');
     } catch (error: any) {
-      toast.error('Errore durante l\'eliminazione del wallet');
       console.error('Error deleting wallet:', error);
     }
   };

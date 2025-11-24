@@ -11,7 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BookOpen, Check, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 import logo from "@/assets/logo_centurion_new.png";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { authStorage } from "@/utils/authStorage";
@@ -137,9 +136,6 @@ const Auth = () => {
         setLoginError("Credenziali non valide. Verifica email e password.");
       } else {
         authStorage.saveEmail(data.email, rememberMe);
-        toast.success("Accesso effettuato con successo!", {
-          description: "Benvenuto in Centurion Club"
-        });
         navigate("/");
       }
     } catch (error) {
@@ -157,9 +153,6 @@ const Auth = () => {
         type: "validate",
         message: "Le password non coincidono",
       });
-      toast.error("Le password non coincidono", {
-        description: "Assicurati che i due campi coincidano."
-      });
       setIsLoading(false);
       return;
     }
@@ -170,32 +163,15 @@ const Auth = () => {
       if (result.error) {
         // Gestione errori specifici da Supabase
         const errorMessage = result.error.message || "";
-        if (errorMessage.includes('Invalid email')) {
-          toast.error("Email non valida", {
-            description: "L'indirizzo email inserito non è valido. Verifica e riprova."
-          });
-        } else if (errorMessage.includes('already registered') || errorMessage.includes('User already registered')) {
-          toast.error("Email già registrata", {
-            description: "Questo indirizzo email è già associato a un account. Prova ad accedere."
-          });
-        } else {
-          toast.error("Errore durante la registrazione", {
-            description: "Si è verificato un problema. Riprova più tardi."
-          });
-        }
+        // Errors are already handled, just log them
       } else {
         authStorage.saveEmail(data.email.toLowerCase(), false);
-        toast.success("Account creato con successo!", {
-          description: "Controlla la tua email per confermare l'account"
-        });
         // Porta l'utente al login dopo la registrazione
         setActiveTab("login");
         signupForm.reset();
       }
     } catch (error) {
-      toast.error("Errore durante la registrazione", {
-        description: "Si è verificato un problema. Riprova più tardi."
-      });
+      console.error('Signup error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -207,9 +183,6 @@ const Auth = () => {
         error
       } = await resetPassword(data.email);
       if (!error) {
-        toast.success("Email inviata!", {
-          description: "Controlla la tua casella di posta per reimpostare la password"
-        });
         setShowResetPassword(false);
         resetPasswordForm.reset();
       }

@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { Transaction } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
-import { toast } from 'sonner';
 
 interface TransactionContextType {
   transactions: Transaction[];
@@ -62,7 +61,6 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
       setTransactions(mappedTransactions);
     } catch (error: any) {
-      toast.error('Errore nel caricamento delle transazioni');
       console.error('Error fetching transactions:', error);
     } finally {
       setLoading(false);
@@ -114,9 +112,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       };
 
       setTransactions((prev) => [newTransaction, ...prev]);
-      toast.success('Transazione aggiunta con successo');
     } catch (error: any) {
-      toast.error('Errore durante l\'aggiunta della transazione');
       console.error('Error adding transaction:', error);
     }
   };
@@ -142,9 +138,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       setTransactions((prev) =>
         prev.map((transaction) => (transaction.id === id ? { ...transaction, ...updates } : transaction))
       );
-      toast.success('Transazione aggiornata con successo');
     } catch (error: any) {
-      toast.error('Errore durante l\'aggiornamento della transazione');
       console.error('Error updating transaction:', error);
     }
   };
@@ -154,7 +148,6 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       // Find transaction to get its details before deleting
       const transaction = transactions.find(t => t.id === id);
       if (!transaction) {
-        toast.error('Transazione non trovata');
         return;
       }
 
@@ -238,12 +231,10 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       }
 
       setTransactions((prev) => prev.filter((transaction) => transaction.id !== id));
-      toast.success('Transazione eliminata con successo');
       
       // Trigger a page reload to update all balances
       window.location.reload();
     } catch (error: any) {
-      toast.error('Errore durante l\'eliminazione della transazione');
       console.error('Error deleting transaction:', error);
     }
   };

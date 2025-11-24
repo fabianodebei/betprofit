@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { Account } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
-import { toast } from 'sonner';
 
 interface AccountContextType {
   accounts: Account[];
@@ -304,7 +303,6 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
       setAccounts(correctedAccounts);
     } catch (error: any) {
-      toast.error('Errore nel caricamento dei conti');
       console.error('Error fetching accounts:', error);
     } finally {
       setLoading(false);
@@ -352,9 +350,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       };
 
       setAccounts((prev) => [newAccount, ...prev]);
-      toast.success('Conto aggiunto con successo');
     } catch (error: any) {
-      toast.error('Errore durante l\'aggiunta del conto');
       console.error('Error adding account:', error);
     }
   };
@@ -381,9 +377,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       setAccounts((prev) =>
         prev.map((account) => (account.id === id ? { ...account, ...updates } : account))
       );
-      toast.success('Conto aggiornato con successo');
     } catch (error: any) {
-      toast.error('Errore durante l\'aggiornamento del conto');
       console.error('Error updating account:', error);
     }
   };
@@ -398,9 +392,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
 
       setAccounts((prev) => prev.filter((account) => account.id !== id));
-      toast.success('Conto eliminato con successo');
     } catch (error: any) {
-      toast.error('Errore durante l\'eliminazione del conto');
       console.error('Error deleting account:', error);
     }
   };

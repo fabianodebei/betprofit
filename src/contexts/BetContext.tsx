@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { Bet } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
-import { toast } from 'sonner';
 import { calculateDeleteBetUpdate } from '@/utils/betCalculations';
 
 interface BetContextType {
@@ -100,7 +99,6 @@ export function BetProvider({ children }: { children: ReactNode }) {
 
       setBets(mappedBets);
     } catch (error: any) {
-      toast.error('Errore nel caricamento delle puntate');
       console.error('Error fetching bets:', error);
     } finally {
       setLoading(false);
@@ -179,7 +177,6 @@ export function BetProvider({ children }: { children: ReactNode }) {
       setBets((prev) => [newBet, ...prev]);
       return data.id;
     } catch (error: any) {
-      toast.error('Errore durante l\'aggiunta della puntata');
       console.error('Error adding bet:', error);
       throw error;
     }
@@ -226,7 +223,6 @@ export function BetProvider({ children }: { children: ReactNode }) {
         prev.map((bet) => (bet.id === id ? { ...bet, ...updates } : bet))
       );
     } catch (error: any) {
-      toast.error('Errore durante l\'aggiornamento della puntata');
       console.error('Error updating bet:', error);
     }
   };
@@ -276,9 +272,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
 
       setBets((prev) => prev.filter((bet) => bet.id !== id));
-      toast.success('Puntata eliminata e saldi ripristinati');
     } catch (error: any) {
-      toast.error('Errore durante l\'eliminazione della puntata');
       console.error('Error deleting bet:', error);
     }
   };
@@ -330,7 +324,6 @@ export function BetProvider({ children }: { children: ReactNode }) {
       window.dispatchEvent(new Event('refresh-accounts'));
     } catch (error) {
       console.error('Error archiving bet:', error);
-      toast.error('Errore durante l\'archiviazione della puntata');
     }
   };
 

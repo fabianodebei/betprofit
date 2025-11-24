@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
 import type { BetLeg } from '@/types';
-import { toast } from 'sonner';
 
 interface BetLegContextType {
   betLegs: BetLeg[];
@@ -60,7 +59,6 @@ export const BetLegProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setBetLegs(mappedLegs);
     } catch (error: any) {
       console.error('Error fetching bet legs:', error);
-      toast.error('Errore nel caricamento delle selezioni');
     } finally {
       setLoading(false);
     }
@@ -111,7 +109,6 @@ export const BetLegProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (error) throw error;
     } catch (error: any) {
       console.error('Error adding bet leg:', error);
-      toast.error("Errore nell'aggiunta della selezione");
       throw error;
     }
   };
@@ -133,7 +130,6 @@ export const BetLegProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (error) throw error;
     } catch (error: any) {
       console.error('Error updating bet leg:', error);
-      toast.error("Errore nell'aggiornamento della selezione");
       throw error;
     }
   };
@@ -143,10 +139,8 @@ export const BetLegProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const { error } = await supabase.from('bet_legs').delete().eq('id', id);
 
       if (error) throw error;
-      toast.success('Selezione eliminata');
     } catch (error: any) {
       console.error('Error deleting bet leg:', error);
-      toast.error("Errore nell'eliminazione della selezione");
       throw error;
     }
   };
