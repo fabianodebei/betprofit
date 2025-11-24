@@ -46,13 +46,9 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
     setShowLayBetForm(true);
   };
 
-  const handleDeleteLayBet = async (layBet: any) => {
-    if (layBet.stato !== 'Bozza') {
-      toast.error('Puoi eliminare solo bancate in stato Bozza');
-      return;
-    }
+  const handleDeleteLayBet = async (id: string) => {
     if (confirm('Sei sicuro di voler eliminare questa bancata?')) {
-      await deleteLayBet(layBet.id);
+      await deleteLayBet(id);
     }
   };
 
@@ -325,16 +321,23 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                           <div className="flex gap-1">
                             <Button
                               size="sm"
-                              variant="outline"
+                              variant="ghost"
                               onClick={() => handleEditLayBet(layBet)}
                             >
-                              Modifica
+                              Clona
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEditLayBet(layBet)}
+                            >
+                              Punta
                             </Button>
                             <Button
                               size="sm"
                               variant="ghost"
                               className="text-destructive"
-                              onClick={() => handleDeleteLayBet(layBet)}
+                              onClick={() => handleDeleteLayBet(layBet.id)}
                             >
                               Elimina
                             </Button>

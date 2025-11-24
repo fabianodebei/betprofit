@@ -356,7 +356,6 @@ export type Database = {
       }
       lay_bets: {
         Row: {
-          attiva: boolean
           conto: string
           created_at: string
           data_evento: string
@@ -368,13 +367,11 @@ export type Database = {
           quota_banca: number
           quota_punta: number
           stake: number
-          stato: string
           tasse_percentuale: number
           url_evento: string | null
           user_id: string
         }
         Insert: {
-          attiva?: boolean
           conto: string
           created_at?: string
           data_evento: string
@@ -386,13 +383,11 @@ export type Database = {
           quota_banca: number
           quota_punta: number
           stake: number
-          stato?: string
           tasse_percentuale?: number
           url_evento?: string | null
           user_id: string
         }
         Update: {
-          attiva?: boolean
           conto?: string
           created_at?: string
           data_evento?: string
@@ -404,7 +399,6 @@ export type Database = {
           quota_banca?: number
           quota_punta?: number
           stake?: number
-          stato?: string
           tasse_percentuale?: number
           url_evento?: string | null
           user_id?: string

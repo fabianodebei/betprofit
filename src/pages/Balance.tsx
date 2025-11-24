@@ -2,8 +2,6 @@ import { Scale, ChevronDown, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { useAccounts } from '@/contexts/AccountContext';
 import { useWallets } from '@/contexts/WalletContext';
 import { useBets } from '@/contexts/BetContext';
@@ -18,30 +16,24 @@ export default function Balance() {
   const { getTotalStakeInCorso, getOngoingBets } = useBets();
   const { layBets } = useLayBets();
   const [openIntestatari, setOpenIntestatari] = useState<Set<string>>(new Set());
-  const [includeEsposizione, setIncludeEsposizione] = useState(true);
 
-  // Calcola l'esposizione totale in corso
-  const esitoEsposizioneInCorso = useMemo(() => {
+  const saldoBookmakers = getAccountsBalance();
+  const saldoWallets = getWalletsBalance();
+  
+  // Calcola puntate in corso includendo le liability delle bancate
+  const puntateInCorso = useMemo(() => {
     const stakeInCorso = getTotalStakeInCorso();
     const ongoingBets = getOngoingBets();
     const ongoingBetIds = new Set(ongoingBets.map(b => b.id));
     
     // Somma le liability delle bancate associate a puntate in corso
     const liabilityBancate = layBets
-      .filter(lb => lb.metodo === 'Banca' && lb.stato === 'In Corso' && ongoingBetIds.has(lb.parentBetId))
+      .filter(lb => lb.metodo === 'Banca' && ongoingBetIds.has(lb.parentBetId))
       .reduce((sum, lb) => sum + (lb.stake * (lb.quotaBanca - 1)), 0);
     
     return stakeInCorso + liabilityBancate;
   }, [getTotalStakeInCorso, getOngoingBets, layBets]);
-
-  // Calcola i saldi con o senza esposizione
-  const saldoBookmakers = useMemo(() => {
-    const balanceWithExposure = getAccountsBalance();
-    return includeEsposizione ? balanceWithExposure : balanceWithExposure + esitoEsposizioneInCorso;
-  }, [getAccountsBalance, includeEsposizione, esitoEsposizioneInCorso]);
-
-  const saldoWallets = getWalletsBalance();
-  const puntateInCorso = includeEsposizione ? esitoEsposizioneInCorso : 0;
+  
   const saldoTotale = saldoBookmakers + saldoWallets;
 
   // Raggruppa gli account per intestatario
@@ -68,18 +60,8 @@ export default function Balance() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6">
         <h1 className="text-3xl font-bold text-foreground">Bilancio</h1>
-        <div className="flex items-center gap-3">
-          <Label htmlFor="include-exposure" className="text-sm font-medium">
-            Includi esposizione in corso
-          </Label>
-          <Switch
-            id="include-exposure"
-            checked={includeEsposizione}
-            onCheckedChange={setIncludeEsposizione}
-          />
-        </div>
       </div>
 
       {/* Summary Cards */}
@@ -96,14 +78,12 @@ export default function Balance() {
             <p className="mt-2 text-2xl font-bold text-foreground">{formatCurrency(saldoWallets)}</p>
           </CardContent>
         </Card>
-        {includeEsposizione && (
-          <Card>
-            <CardContent className="p-6">
-              <p className="text-sm font-medium text-muted-foreground uppercase">Puntate In Corso</p>
-              <p className="mt-2 text-2xl font-bold text-warning">{formatCurrency(puntateInCorso)}</p>
-            </CardContent>
-          </Card>
-        )}
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-sm font-medium text-muted-foreground uppercase">Puntate In Corso</p>
+            <p className="mt-2 text-2xl font-bold text-warning">{formatCurrency(puntateInCorso)}</p>
+          </CardContent>
+        </Card>
         <Card>
           <CardContent className="p-6">
             <p className="text-sm font-medium text-muted-foreground uppercase">Saldo Totale</p>

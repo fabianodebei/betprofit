@@ -11,8 +11,6 @@ interface State {
   hasError: boolean;
   error: Error | null;
   errorInfo: ErrorInfo | null;
-  retryCount: number;
-  autoRetryCountdown: number;
 }
 
 /**
@@ -24,88 +22,24 @@ export class ErrorBoundary extends Component<Props, State> {
     hasError: false,
     error: null,
     errorInfo: null,
-    retryCount: 0,
-    autoRetryCountdown: 5,
   };
 
-  private countdownInterval?: NodeJS.Timeout;
-
   public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error, errorInfo: null, retryCount: 0, autoRetryCountdown: 5 };
+    return { hasError: true, error, errorInfo: null };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
-    // Log to console with structured format
-    console.group('🔴 Error Boundary Caught Error');
-    console.error('Error:', error.message);
-    console.error('Component Stack:', errorInfo.componentStack);
-    console.error('Timestamp:', new Date().toISOString());
-    console.groupEnd();
-    
     this.setState({
       error,
       errorInfo,
     });
-
-    // Start auto-retry countdown for transient errors
-    if (this.state.retryCount < 2) {
-      this.startAutoRetryCountdown();
-    }
   }
-
-  private startAutoRetryCountdown = () => {
-    this.countdownInterval = setInterval(() => {
-      this.setState((prev) => {
-        if (prev.autoRetryCountdown <= 1) {
-          this.handleAutoRetry();
-          return prev;
-        }
-        return { ...prev, autoRetryCountdown: prev.autoRetryCountdown - 1 };
-      });
-    }, 1000);
-  };
-
-  private handleAutoRetry = () => {
-    if (this.countdownInterval) {
-      clearInterval(this.countdownInterval);
-    }
-    this.setState((prev) => ({
-      hasError: false,
-      error: null,
-      errorInfo: null,
-      retryCount: prev.retryCount + 1,
-      autoRetryCountdown: 5,
-    }));
-  };
-
-  private handleManualRetry = () => {
-    if (this.countdownInterval) {
-      clearInterval(this.countdownInterval);
-    }
-    this.setState({
-      hasError: false,
-      error: null,
-      errorInfo: null,
-      retryCount: 0,
-      autoRetryCountdown: 5,
-    });
-  };
 
   private handleReset = () => {
-    if (this.countdownInterval) {
-      clearInterval(this.countdownInterval);
-    }
-    this.setState({ hasError: false, error: null, errorInfo: null, retryCount: 0, autoRetryCountdown: 5 });
+    this.setState({ hasError: false, error: null, errorInfo: null });
     window.location.href = '/';
   };
-
-  public componentWillUnmount() {
-    if (this.countdownInterval) {
-      clearInterval(this.countdownInterval);
-    }
-  }
 
   public render() {
     if (this.state.hasError) {
@@ -124,47 +58,30 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {this.state.retryCount < 2 && this.state.autoRetryCountdown > 0 && (
-                <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
-                  <p className="text-sm text-primary">
-                    Tentativo automatico di ripristino tra {this.state.autoRetryCountdown} secondi...
-                  </p>
-                </div>
-              )}
-              
               {this.state.error && (
-                <div className="p-4 bg-muted rounded-lg space-y-2">
-                  <p className="text-sm font-semibold text-foreground">Messaggio di errore:</p>
+                <div className="p-4 bg-muted rounded-lg">
                   <p className="font-mono text-sm text-destructive">
-                    {this.state.error.message || this.state.error.toString()}
+                    {this.state.error.toString()}
                   </p>
                 </div>
               )}
-              
-              {this.state.retryCount > 0 && (
-                <div className="p-3 bg-muted/50 rounded border text-sm text-muted-foreground">
-                  Tentativi di ripristino: {this.state.retryCount}
-                </div>
-              )}
-              
               {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
                 <details className="p-4 bg-muted rounded-lg">
                   <summary className="cursor-pointer text-sm font-medium mb-2">
                     Dettagli tecnici (solo in sviluppo)
                   </summary>
-                  <pre className="text-xs overflow-auto max-h-48">
+                  <pre className="text-xs overflow-auto">
                     {this.state.errorInfo.componentStack}
                   </pre>
                 </details>
               )}
-              
-              <div className="flex gap-2 flex-wrap">
-                <Button onClick={this.handleManualRetry} className="flex-1">
+              <div className="flex gap-2">
+                <Button onClick={this.handleReset} className="flex-1">
                   <RefreshCcw className="h-4 w-4 mr-2" />
-                  Riprova Ora
-                </Button>
-                <Button variant="outline" onClick={this.handleReset} className="flex-1">
                   Torna alla Home
+                </Button>
+                <Button variant="outline" onClick={() => window.location.reload()}>
+                  Ricarica
                 </Button>
               </div>
             </CardContent>

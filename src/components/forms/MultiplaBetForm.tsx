@@ -254,6 +254,8 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
         setTipoBonus(savedState.tipoBonus as any);
         
         form.reset(savedState.formValues);
+        
+        toast.info('Recuperati dati non salvati');
       } else {
         // Default initialization
         const predefinito = intestatari.find(int => int.predefinito && int.stato === 'Abilitato');
@@ -369,8 +371,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
       
       setSelectionErrors([]);
 
-      // Solo per creazione, mostra warning su quota molto alta
-      if (mode !== 'edit' && quotaCombinata > 50) {
+      if (quotaCombinata > 50) {
         toast.warning('Attenzione: quota combinata molto alta (@' + quotaCombinata.toFixed(2) + ')');
       }
 

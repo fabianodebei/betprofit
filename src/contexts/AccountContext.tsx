@@ -24,12 +24,6 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     if (user) {
       fetchAccounts();
 
-      // Listen for custom refresh events from BetContext
-      const handleRefetch = () => {
-        fetchAccounts();
-      };
-      window.addEventListener('refresh-accounts', handleRefetch);
-
       // Listen to realtime changes
       const channel = supabase
         .channel('accounts-changes')
@@ -96,7 +90,6 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         .subscribe();
 
       return () => {
-        window.removeEventListener('refresh-accounts', handleRefetch);
         supabase.removeChannel(channel);
         supabase.removeChannel(betsChannel);
         supabase.removeChannel(transactionsChannel);
@@ -135,13 +128,52 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       // Recalcolo bilanci dalle puntate per correggere eventuali inconsistenze
       const { data: betsData, error: betsError } = await supabase
         .from('bets')
-        .select('id, tipo, conto, stato, stake, risultato, tipo_bonus, bonus, esito, esito_dettaglio')
+        .select('id, tipo, conto, stato, stake, risultato, tipo_bonus, esito, esito_dettaglio')
         .eq('user_id', user.id);
 
       if (betsError) {
         console.error('Error fetching bets for account calculation:', betsError);
         throw betsError;
       }
+
+      const giocateMap: Record<string, number> = {};
+      const rapideMap: Record<string, number> = {};
+
+      (betsData || []).forEach((b: any) => {
+        const conto = b.conto as string;
+        if (b.tipo === 'Rapida') {
+          // Le giocate rapide riflettono direttamente il movimento/profitto registrato
+          rapideMap[conto] = (rapideMap[conto] || 0) + (Number(b.risultato) || 0);
+          return;
+        }
+        if (b.stato === 'In Corso') {
+          // Mentre sono in corso, lo stake reale va a decrementare temporaneamente il bilancio
+          if (b.tipo_bonus !== 'Free Bet' && b.tipo_bonus !== 'Bonus') {
+            giocateMap[conto] = (giocateMap[conto] || 0) - (Number(b.stake) || 0);
+          }
+        } else if (b.stato === 'Archiviata') {
+          // A fine corsa contano solo i profitti netti (risultato)
+          giocateMap[conto] = (giocateMap[conto] || 0) + (Number(b.risultato) || 0);
+        }
+      });
+
+      // Exposure delle bancate per le scommesse ancora in corso + risultati per scommesse archiviate
+      const activeBetIds = new Set((betsData || [])
+        .filter((b: any) => b.stato === 'In Corso')
+        .map((b: any) => b.id));
+
+      // Map: betId -> { esito, tipo, conto, esitoDettaglio }
+      const esitiArchiviati = new Map<string, { esito: string; tipo: string; conto: string; esitoDettaglio?: string }>();
+      (betsData || []).forEach((b: any) => {
+        if (b.stato === 'Archiviata' && b.esito) {
+          esitiArchiviati.set(b.id, { 
+            esito: b.esito as string, 
+            tipo: b.tipo, 
+            conto: b.conto,
+            esitoDettaglio: b.esito_dettaglio || undefined
+          });
+        }
+      });
 
       const { data: layData, error: layError } = await supabase
         .from('lay_bets')
@@ -153,86 +185,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         throw layError;
       }
 
-      // Function to calculate lay bet results (same as ArchivedBets.tsx)
-      const calculateLayBetResults = (betId: string, esito: string | null) => {
-        if (!esito) return 0;
-        
-        const normalizedEsito = esito.trim().toLowerCase();
-        
-        const associatedLayBets = (layData || []).filter(
-          (lb: any) => lb.parent_bet_id === betId && lb.metodo === 'Banca' && ['In Corso', 'Vinto', 'Perso'].includes(lb.stato)
-        );
-        
-        // Se non ci sono lay bets associate, return 0
-        if (associatedLayBets.length === 0) return 0;
-        
-        let total = 0;
-        
-        associatedLayBets.forEach((lb: any) => {
-          if (normalizedEsito === 'win') {
-            // Parent vinta: le lay bets sono perse
-            const liability = lb.stake * (lb.quota_banca - 1);
-            total -= liability;
-          } else if (normalizedEsito === 'loss') {
-            // Parent persa: controlla lo stato effettivo di ogni lay bet
-            if (lb.stato === 'Vinto') {
-              // Lay bet vinta: profitto al netto delle tasse
-              const profittoLordo = lb.stake;
-              const tasse = profittoLordo * (lb.tasse_percentuale / 100);
-              total += profittoLordo - tasse;
-            } else if (lb.stato === 'Perso') {
-              // Lay bet persa: perdita della responsabilità
-              const liability = lb.stake * (lb.quota_banca - 1);
-              total -= liability;
-            }
-          }
-        });
-        
-        return total;
-      };
-
-      const giocateMap: Record<string, number> = {};
-      const rapideMap: Record<string, number> = {};
-
-      // Process all bets
-      (betsData || []).forEach((b: any) => {
-        const conto = b.conto as string;
-        const tipo = b.tipo as string;
-        const tipoBonus = b.tipo_bonus as string | null;
-        const stake = Number(b.stake) || 0;
-        const risultato = Number(b.risultato) || 0;
-        const stato = b.stato as string;
-        const esito = b.esito as string;
-        const esitoDettaglio = b.esito_dettaglio as string | undefined;
-
-        const isFreeOrBonus = tipoBonus === 'Free Bet' || tipoBonus === 'Bonus';
-
-        if (tipo === 'Rapida' || tipo === 'Giocata Rapida' || tipo === 'Cashout') {
-          // Quick bets
-          if (stato === 'Archiviata') {
-            rapideMap[conto] = (rapideMap[conto] || 0) + risultato;
-          }
-          return;
-        }
-
-        if (stato === 'In Corso') {
-          // Ongoing bets: deduct stake
-          if (!isFreeOrBonus) {
-            giocateMap[conto] = (giocateMap[conto] || 0) - stake;
-          }
-        } else if (stato === 'Archiviata') {
-          // Archived bets: ALWAYS add result (even for bonus bets, winnings go to account!)
-          const layResult = calculateLayBetResults(b.id, esito);
-          const totalResult = risultato + layResult;
-          giocateMap[conto] = (giocateMap[conto] || 0) + totalResult;
-        }
-      });
-
-      // Handle ongoing lay bets exposure (only for bets still in progress)
-      const activeBetIds = new Set((betsData || [])
-        .filter((b: any) => b.stato === 'In Corso')
-        .map((b: any) => b.id));
-
+      // Filtra solo le lay bets in stato "In Corso" E con parent bet ancora in corso
       const activeLayData = (layData || []).filter((lb: any) => 
         lb.stato === 'In Corso' && activeBetIds.has(lb.parent_bet_id)
       );
@@ -247,6 +200,51 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         } else if (lb.metodo === 'Punta') {
           // Puntata in corso: sottrai stake dal bilancio
           giocateMap[conto] = (giocateMap[conto] || 0) - Number(lb.stake);
+        }
+      });
+
+      // Gestione dei risultati per le bancate archiviate
+      (layData || []).forEach((lb: any) => {
+        if (lb.metodo === 'Banca' && esitiArchiviati.has(lb.parent_bet_id)) {
+          const parentInfo = esitiArchiviati.get(lb.parent_bet_id)!;
+          const { esito, tipo, conto: contoPunta, esitoDettaglio } = parentInfo;
+          const conto = lb.conto as string;
+
+          // Per le multiple: se esitoDettaglio è presente, verifichiamo il lay vincente
+          if (tipo === 'Multipla' && esito === 'loss' && esitoDettaglio) {
+            // Multipla persa su un lay specifico
+            if (lb.id === esitoDettaglio) {
+              // Questo lay ha vinto
+              const profittoLordo = Number(lb.stake);
+              const tasse = profittoLordo * (Number(lb.tasse_percentuale || 0) / 100);
+              const guadagno = profittoLordo - tasse;
+              giocateMap[conto] = (giocateMap[conto] || 0) + guadagno;
+            } else if (lb.stato === 'Perso' || lb.stato === 'Vinto') {
+              // Solo i lay che erano stati effettivamente attivati (non in Bozza)
+              // Lay precedenti perdono (liability)
+              const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
+              giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
+            }
+          } else if (tipo === 'Multipla' && esito === 'win') {
+            // Multipla vinta: solo i lay che erano in corso perdono
+            if (lb.stato === 'Perso' || lb.stato === 'Vinto') {
+              const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
+              giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
+            }
+          } else if (tipo !== 'Multipla') {
+            // Singole/casino: applica esito normale
+            if (esito === 'win') {
+              // la punta ha vinto -> la bancata perde (liability)
+              const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
+              giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
+            } else if (esito === 'loss') {
+              // la punta ha perso -> la bancata vince (stake meno tasse)
+              const profittoLordo = Number(lb.stake);
+              const tasse = profittoLordo * (Number(lb.tasse_percentuale || 0) / 100);
+              giocateMap[conto] = (giocateMap[conto] || 0) + (profittoLordo - tasse);
+            }
+            // refund -> 0
+          }
         }
       });
 

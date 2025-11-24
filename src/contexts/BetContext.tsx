@@ -47,13 +47,8 @@ export function BetProvider({ children }: { children: ReactNode }) {
         )
         .subscribe();
 
-      // Listen to custom refresh event
-      const handleRefresh = () => fetchBets();
-      window.addEventListener('refresh-bets', handleRefresh);
-
       return () => {
         supabase.removeChannel(channel);
-        window.removeEventListener('refresh-bets', handleRefresh);
       };
     } else {
       setBets([]);

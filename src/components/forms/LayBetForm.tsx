@@ -339,8 +339,9 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                               setSelectedBetLeg(leg);
                               form.setValue('evento', leg.evento);
                               form.setValue('dataEvento', new Date(leg.dataEvento));
-                              // Usa direttamente il mercato della gamba (es: Basket 1, Basket 2, 1 Calcio, 2 Calcio, ecc)
-                              form.setValue('mercato', leg.mercato);
+                              // Suggerisci mercato corretto
+                              const suggestedMarket = `Esito Finale - ${leg.selezione || leg.mercato}`;
+                              form.setValue('mercato', suggestedMarket);
                               form.setValue('quotaPunta', leg.quota);
                             }
                           }}

@@ -30,8 +30,8 @@ const quickBetSchema = z.object({
   metodo: z.string().trim().min(1, 'Metodo è obbligatorio').max(100),
   movimento: z.number(),
   registrato: z.date(),
-  note: z.string().trim().max(500).or(z.literal('')).optional(),
-  tag: z.string().trim().max(100).or(z.literal('')).optional()
+  note: z.string().trim().max(500).optional(),
+  tag: z.string().trim().max(100).optional()
 });
 type QuickBetFormData = z.infer<typeof quickBetSchema>;
 interface QuickBetFormProps {
@@ -86,11 +86,8 @@ export function QuickBetForm({
   // Get available intestatari (abilitati)
   const availableIntestatari = intestatari.filter(int => int.stato === 'Abilitato');
 
-  // Reset form with editing bet data when it changes or dialog opens
+  // Reset form with editing bet data when it changes
   useEffect(() => {
-    // Only reset when dialog opens or when switching to edit mode
-    if (!open) return;
-    
     if (editingBet) {
       const account = accounts.find(a => a.conto === editingBet.conto);
       const intestatario = account?.intestatario || '';
@@ -106,23 +103,19 @@ export function QuickBetForm({
       setSelectedIntestatario(intestatario);
       setSelectedConto(editingBet.conto || '');
     } else {
-      // Only reset if form is pristine (no user input yet)
-      const hasUserInput = form.formState.isDirty;
-      if (!hasUserInput) {
-        form.reset({
-          intestatario: '',
-          conto: '',
-          metodo: '',
-          movimento: 0,
-          registrato: new Date(),
-          note: '',
-          tag: ''
-        });
-        setSelectedIntestatario('');
-        setSelectedConto('');
-      }
+      form.reset({
+        intestatario: '',
+        conto: '',
+        metodo: '',
+        movimento: 0,
+        registrato: new Date(),
+        note: '',
+        tag: ''
+      });
+      setSelectedIntestatario('');
+      setSelectedConto('');
     }
-  }, [open, editingBet]);
+  }, [editingBet, form, accounts]);
   const onSubmit = async (data: QuickBetFormData) => {
     const account = accounts.find(a => a.conto === data.conto);
 
@@ -193,8 +186,7 @@ export function QuickBetForm({
               field.onChange(value);
               setSelectedIntestatario(value);
               form.setValue('conto', '');
-              setSelectedConto('');
-            }} value={field.value}>
+            }} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleziona intestatario" />
@@ -215,7 +207,7 @@ export function QuickBetForm({
                   <Select onValueChange={value => {
               field.onChange(value);
               setSelectedConto(value);
-            }} value={field.value}>
+            }} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleziona conto" />
@@ -241,7 +233,7 @@ export function QuickBetForm({
             field
           }) => <FormItem>
                   <FormLabel>Metodo *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleziona metodo" />

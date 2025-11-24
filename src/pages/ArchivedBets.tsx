@@ -33,20 +33,19 @@ export default function ArchivedBets() {
     
     associatedLayBets.forEach(lb => {
       if (outcome === 'win') {
-        // Parent vinta: le lay bets sono perse
         total -= lb.stake * (lb.quotaBanca - 1);
       } else if (outcome === 'loss') {
-        // Parent persa: controlla lo stato effettivo di ogni lay bet
-        if (lb.stato === 'Vinto') {
-          // Lay bet vinta: profitto al netto delle tasse
+        if (esitoDettaglio && lb.id === esitoDettaglio) {
           const profittoLordo = lb.stake;
           const tasse = profittoLordo * (lb.tassePercentuale / 100);
           total += profittoLordo - tasse;
-        } else if (lb.stato === 'Perso') {
-          // Lay bet persa: perdita della responsabilità
+        } else if (esitoDettaglio) {
           total -= lb.stake * (lb.quotaBanca - 1);
+        } else {
+          const profittoLordo = lb.stake;
+          const tasse = profittoLordo * (lb.tassePercentuale / 100);
+          total += profittoLordo - tasse;
         }
-        // Se stato è 'In Corso' o altro, non fare nulla
       }
     });
     

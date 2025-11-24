@@ -22,14 +22,6 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (user) {
       fetchTransactions();
-      
-      // Listen to custom refresh event
-      const handleRefresh = () => fetchTransactions();
-      window.addEventListener('refresh-transactions', handleRefresh);
-
-      return () => {
-        window.removeEventListener('refresh-transactions', handleRefresh);
-      };
     } else {
       setTransactions([]);
       setLoading(false);
@@ -248,9 +240,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       setTransactions((prev) => prev.filter((transaction) => transaction.id !== id));
       toast.success('Transazione eliminata con successo');
       
-      // Trigger refresh events instead of page reload
-      window.dispatchEvent(new Event('refresh-accounts'));
-      window.dispatchEvent(new Event('refresh-wallets'));
+      // Trigger a page reload to update all balances
+      window.location.reload();
     } catch (error: any) {
       toast.error('Errore durante l\'eliminazione della transazione');
       console.error('Error deleting transaction:', error);
