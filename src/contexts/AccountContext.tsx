@@ -24,6 +24,12 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     if (user) {
       fetchAccounts();
 
+      // Listen for custom refresh events from BetContext
+      const handleRefetch = () => {
+        fetchAccounts();
+      };
+      window.addEventListener('refresh-accounts', handleRefetch);
+
       // Listen to realtime changes
       const channel = supabase
         .channel('accounts-changes')
@@ -90,6 +96,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         .subscribe();
 
       return () => {
+        window.removeEventListener('refresh-accounts', handleRefetch);
         supabase.removeChannel(channel);
         supabase.removeChannel(betsChannel);
         supabase.removeChannel(transactionsChannel);
