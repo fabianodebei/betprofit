@@ -369,11 +369,33 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
             </div>
 
             {/* Summary */}
-            <div className="flex justify-center px-4 py-3 bg-muted/30 rounded-lg border border-border">
+            <div className="flex justify-center gap-8 px-4 py-3 bg-muted/30 rounded-lg border border-border">
               <div className="text-center">
                 <div className="text-xs text-muted-foreground mb-1">Totale Rischio</div>
                 <div className="text-lg font-bold text-red-600">
                   {formatCurrency(calculations.totalRisk)}
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-muted-foreground mb-1">GM Totale</div>
+                <div className={`text-lg font-bold ${
+                  layBets.reduce((sum, lb) => {
+                    const tasse = lb.stake * (lb.quotaBanca - 1) * (lb.tassePercentuale / 100);
+                    const rischio = lb.stake * (lb.quotaBanca - 1);
+                    let gm = 0;
+                    if (lb.stato === 'Vinto') gm = lb.stake - tasse;
+                    else if (lb.stato === 'Perso') gm = -(rischio + tasse);
+                    return sum + gm;
+                  }, 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {formatCurrency(layBets.reduce((sum, lb) => {
+                    const tasse = lb.stake * (lb.quotaBanca - 1) * (lb.tassePercentuale / 100);
+                    const rischio = lb.stake * (lb.quotaBanca - 1);
+                    let gm = 0;
+                    if (lb.stato === 'Vinto') gm = lb.stake - tasse;
+                    else if (lb.stato === 'Perso') gm = -(rischio + tasse);
+                    return sum + gm;
+                  }, 0))}
                 </div>
               </div>
             </div>
