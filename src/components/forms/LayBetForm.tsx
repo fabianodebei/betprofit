@@ -144,11 +144,16 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
       // Se è una multipla, usa i dati della prima selezione
       const firstLeg = betLegs.length > 0 ? betLegs[0] : null;
       
+      // Imposta il mercato come "Banca [selezione]" se c'è una selezione
+      const mercatoBanca = firstLeg?.selezione 
+        ? `Banca ${firstLeg.selezione}` 
+        : 'Banca l\'evento già giocato';
+      
       form.reset({
         metodo: 'Banca',
         evento: firstLeg?.evento || parentBet.evento || '',
         dataEvento: new Date(firstLeg?.dataEvento || parentBet.dataEvento),
-        mercato: 'Banca l\'evento già giocato',
+        mercato: mercatoBanca,
         conto: '',
         stake: 0,
         quotaBanca: 1.01,
@@ -332,6 +337,9 @@ export function LayBetForm({ open, onOpenChange, parentBetId, editingLayBet, mod
                               setSelectedBetLeg(leg);
                               form.setValue('evento', leg.evento);
                               form.setValue('dataEvento', new Date(leg.dataEvento));
+                              // Imposta il mercato come "Banca [selezione]"
+                              const mercatoBanca = `Banca ${leg.selezione}`;
+                              form.setValue('mercato', mercatoBanca);
                               form.setValue('quotaPunta', leg.quota);
                             }
                           }}
