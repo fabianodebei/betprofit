@@ -127,6 +127,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                       <TableHead>Rimborso</TableHead>
                       <TableHead>Tasse</TableHead>
                       <TableHead>Mov.</TableHead>
+                      <TableHead>GM</TableHead>
                       <TableHead>Tag</TableHead>
                       <TableHead>Stato</TableHead>
                       <TableHead>Archivia</TableHead>
@@ -164,6 +165,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                       <TableCell>{formatCurrency(bet.rimborso || 0)}</TableCell>
                       <TableCell>0,00</TableCell>
                       <TableCell>{formatCurrency(0)}</TableCell>
+                      <TableCell>-</TableCell>
                       <TableCell className="text-primary text-sm">{bet.tag || '(non impostato)'}</TableCell>
                       <TableCell>-</TableCell>
                       <TableCell>
@@ -177,6 +179,19 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                   {layBets.map((layBet) => {
                     const rischio = layBet.stake * (layBet.quotaBanca - 1);
                     const tasse = layBet.stake * (layBet.quotaBanca - 1) * (layBet.tassePercentuale / 100);
+                    
+                    // Calcolo GM in base allo stato della bancata
+                    let gm = 0;
+                    if (layBet.stato === 'Vinto') {
+                      // Bancata vinta = ho vinto lo stake meno le tasse
+                      gm = layBet.stake - tasse;
+                    } else if (layBet.stato === 'Perso') {
+                      // Bancata persa = ho perso il rischio
+                      gm = -(rischio + tasse);
+                    } else if (layBet.stato === 'Annullato') {
+                      gm = 0;
+                    }
+                    // Se è in Bozza o In Corso, GM = 0
                     
                     return (
                       <TableRow key={layBet.id} className="bg-accent/5 border-l-4 border-l-accent">
@@ -203,6 +218,9 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                          <TableCell>{formatCurrency(0)}</TableCell>
                          <TableCell className="text-accent">{formatCurrency(tasse)}</TableCell>
                          <TableCell>{formatCurrency(0)}</TableCell>
+                         <TableCell className={`font-semibold ${gm > 0 ? 'text-green-600' : gm < 0 ? 'text-red-600' : ''}`}>
+                           {formatCurrency(gm)}
+                         </TableCell>
                          <TableCell className="text-sm">-</TableCell>
                          <TableCell>
                            {(() => {
