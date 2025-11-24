@@ -143,49 +143,6 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         throw betsError;
       }
 
-      const giocateMap: Record<string, number> = {};
-      const rapideMap: Record<string, number> = {};
-
-      (betsData || []).forEach((b: any) => {
-        const conto = b.conto as string;
-        if (b.tipo === 'Rapida') {
-          // Le giocate rapide riflettono direttamente il movimento/profitto registrato
-          // SOLO per bet archiviate
-          if (b.stato === 'Archiviata') {
-            rapideMap[conto] = (rapideMap[conto] || 0) + (Number(b.risultato) || 0);
-          }
-          return;
-        }
-        if (b.stato === 'In Corso') {
-          // Mentre sono in corso, lo stake reale va a decrementare temporaneamente il bilancio
-          if (b.tipo_bonus !== 'Free Bet' && b.tipo_bonus !== 'Bonus') {
-            giocateMap[conto] = (giocateMap[conto] || 0) - (Number(b.stake) || 0);
-          }
-        } else if (b.stato === 'Archiviata') {
-          // A fine corsa contano solo i profitti netti (risultato)
-          // Per scommesse bonus il risultato è già il profitto netto - il bonus non era nel saldo
-          giocateMap[conto] = (giocateMap[conto] || 0) + (Number(b.risultato) || 0);
-        }
-      });
-
-      // Exposure delle bancate per le scommesse ancora in corso + risultati per scommesse archiviate
-      const activeBetIds = new Set((betsData || [])
-        .filter((b: any) => b.stato === 'In Corso')
-        .map((b: any) => b.id));
-
-      // Map: betId -> { esito, tipo, conto, esitoDettaglio }
-      const esitiArchiviati = new Map<string, { esito: string; tipo: string; conto: string; esitoDettaglio?: string }>();
-      (betsData || []).forEach((b: any) => {
-        if (b.stato === 'Archiviata' && b.esito) {
-          esitiArchiviati.set(b.id, { 
-            esito: b.esito as string, 
-            tipo: b.tipo, 
-            conto: b.conto,
-            esitoDettaglio: b.esito_dettaglio || undefined
-          });
-        }
-      });
-
       const { data: layData, error: layError } = await supabase
         .from('lay_bets')
         .select('id, parent_bet_id, metodo, conto, stake, quota_banca, tasse_percentuale, attiva, stato')
@@ -196,7 +153,80 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         throw layError;
       }
 
-      // Filtra solo le lay bets in stato "In Corso" E con parent bet ancora in corso
+      // Function to calculate lay bet results (same as ArchivedBets.tsx)
+      const calculateLayBetResults = (betId: string, outcome: string, esitoDettaglio?: string) => {
+        const associatedLayBets = (layData || []).filter(
+          (lb: any) => lb.parent_bet_id === betId && lb.metodo === 'Banca' && ['In Corso', 'Vinto', 'Perso'].includes(lb.stato)
+        );
+        let total = 0;
+        
+        associatedLayBets.forEach((lb: any) => {
+          if (outcome === 'win') {
+            // Parent vinta: le lay bets sono perse
+            total -= lb.stake * (lb.quota_banca - 1);
+          } else if (outcome === 'loss') {
+            // Parent persa: controlla lo stato effettivo di ogni lay bet
+            if (lb.stato === 'Vinto') {
+              // Lay bet vinta: profitto al netto delle tasse
+              const profittoLordo = lb.stake;
+              const tasse = profittoLordo * (lb.tasse_percentuale / 100);
+              total += profittoLordo - tasse;
+            } else if (lb.stato === 'Perso') {
+              // Lay bet persa: perdita della responsabilità
+              total -= lb.stake * (lb.quota_banca - 1);
+            }
+            // Se stato è 'In Corso' o altro, non fare nulla
+          }
+        });
+        
+        return total;
+      };
+
+      const giocateMap: Record<string, number> = {};
+      const rapideMap: Record<string, number> = {};
+
+      // Process all bets
+      (betsData || []).forEach((b: any) => {
+        const conto = b.conto as string;
+        const tipo = b.tipo as string;
+        const tipoBonus = b.tipo_bonus as string | null;
+        const stake = Number(b.stake) || 0;
+        const risultato = Number(b.risultato) || 0;
+        const stato = b.stato as string;
+        const esito = b.esito as string;
+        const esitoDettaglio = b.esito_dettaglio as string | undefined;
+
+        const isFreeOrBonus = tipoBonus === 'Free Bet' || tipoBonus === 'Bonus';
+
+        if (tipo === 'Rapida' || tipo === 'Giocata Rapida' || tipo === 'Cashout') {
+          // Quick bets
+          if (stato === 'Archiviata') {
+            rapideMap[conto] = (rapideMap[conto] || 0) + risultato;
+          }
+          return;
+        }
+
+        if (stato === 'In Corso') {
+          // Ongoing bets: deduct stake
+          if (!isFreeOrBonus) {
+            giocateMap[conto] = (giocateMap[conto] || 0) - stake;
+          }
+        } else if (stato === 'Archiviata') {
+          // Archived bets: add result + lay bet results
+          const layResult = calculateLayBetResults(b.id, esito || 'refund', esitoDettaglio);
+          const totalResult = risultato + layResult;
+          
+          if (!isFreeOrBonus) {
+            giocateMap[conto] = (giocateMap[conto] || 0) + totalResult;
+          }
+        }
+      });
+
+      // Handle ongoing lay bets exposure (only for bets still in progress)
+      const activeBetIds = new Set((betsData || [])
+        .filter((b: any) => b.stato === 'In Corso')
+        .map((b: any) => b.id));
+
       const activeLayData = (layData || []).filter((lb: any) => 
         lb.stato === 'In Corso' && activeBetIds.has(lb.parent_bet_id)
       );
@@ -213,93 +243,6 @@ export function AccountProvider({ children }: { children: ReactNode }) {
           giocateMap[conto] = (giocateMap[conto] || 0) - Number(lb.stake);
         }
       });
-
-      // DEBUG Eurobet: Log stato iniziale giocateMap
-      console.log('Eurobet giocateMap BEFORE lay processing:', giocateMap['Eurobet']);
-      
-      // Gestione dei risultati per le bancate archiviate
-      (layData || []).forEach((lb: any) => {
-        if (lb.metodo === 'Banca' && esitiArchiviati.has(lb.parent_bet_id)) {
-          const parentInfo = esitiArchiviati.get(lb.parent_bet_id)!;
-          const { esito, tipo, conto: contoPunta, esitoDettaglio } = parentInfo;
-          const conto = lb.conto as string;
-
-          // DEBUG: Log per Eurobet
-          if (contoPunta === 'Eurobet') {
-            console.log('Eurobet Lay Bet:', {
-              layId: lb.id,
-              layStato: lb.stato,
-              parentTipo: tipo,
-              parentEsito: esito,
-              parentEsitoDettaglio: esitoDettaglio,
-              stake: lb.stake,
-              quotaBanca: lb.quota_banca,
-              tasse: lb.tasse_percentuale
-            });
-          }
-
-          // Per le multiple: se esitoDettaglio è presente, verifichiamo il lay vincente
-          if (tipo === 'Multipla' && esito === 'loss' && esitoDettaglio) {
-            // Multipla persa: controlla lo stato effettivo di ogni lay
-            if (lb.stato === 'Vinto') {
-              // Lay vinto: profitto al netto delle tasse
-              const profittoLordo = Number(lb.stake);
-              const tasse = profittoLordo * (Number(lb.tasse_percentuale || 0) / 100);
-              const guadagno = profittoLordo - tasse;
-              giocateMap[conto] = (giocateMap[conto] || 0) + guadagno;
-              
-              if (contoPunta === 'Eurobet') {
-                console.log('Eurobet Lay VINTO:', { profittoLordo, tasse, guadagno, newTotal: giocateMap[conto] });
-              }
-            } else if (lb.stato === 'Perso') {
-              // Lay perso: perde la liability
-              const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
-              giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
-              
-              if (contoPunta === 'Eurobet') {
-                console.log('Eurobet Lay PERSO:', { liability: perdita, newTotal: giocateMap[conto] });
-              }
-            }
-            // Se stato è 'In Corso' o 'Bozza', non fare nulla
-          } else if (tipo === 'Multipla' && esito === 'loss' && !esitoDettaglio) {
-            // Multipla persa senza esitoDettaglio: controlla stato effettivo di ogni lay
-            if (lb.stato === 'Vinto') {
-              // Lay vinto: profitto al netto delle tasse
-              const profittoLordo = Number(lb.stake);
-              const tasse = profittoLordo * (Number(lb.tasse_percentuale || 0) / 100);
-              const guadagno = profittoLordo - tasse;
-              giocateMap[conto] = (giocateMap[conto] || 0) + guadagno;
-            } else if (lb.stato === 'Perso') {
-              // Lay perso: perde la liability
-              const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
-              giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
-            }
-            // Se stato è 'In Corso' o 'Bozza', non fare nulla
-          } else if (tipo === 'Multipla' && esito === 'win') {
-            // Multipla vinta: solo i lay che erano in corso perdono
-            if (lb.stato === 'Perso' || lb.stato === 'Vinto') {
-              const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
-              giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
-            }
-          } else if (tipo !== 'Multipla') {
-            // Singole/casino: applica esito normale
-            if (esito === 'win') {
-              // la punta ha vinto -> la bancata perde (liability)
-              const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
-              giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
-            } else if (esito === 'loss') {
-              // la punta ha perso -> la bancata vince (stake meno tasse)
-              const profittoLordo = Number(lb.stake);
-              const tasse = profittoLordo * (Number(lb.tasse_percentuale || 0) / 100);
-              giocateMap[conto] = (giocateMap[conto] || 0) + (profittoLordo - tasse);
-            }
-            // refund -> 0
-          }
-        }
-      });
-      
-      // DEBUG Eurobet: Log stato finale giocateMap
-      console.log('Eurobet giocateMap AFTER lay processing:', giocateMap['Eurobet']);
 
       // Ricalcola saldo_attuale dalle transazioni (depositi/prelievi)
       const { data: transactionsData } = await supabase
@@ -329,17 +272,6 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         const saldoBase = saldoDisponibileMap[acc.conto] ?? 0;
         // Il saldo attuale è: saldo base (depositi - prelievi) + bilancio giocate + bilancio rapide
         const newSaldo = Number((saldoBase + newBG + newBR).toFixed(4));
-        
-        // DEBUG: Log per Eurobet
-        if (acc.conto === 'Eurobet') {
-          console.log('Eurobet FINAL CALCULATION:', {
-            currentBG: acc.bilancioGiocate,
-            newBG: newBG,
-            saldoBase,
-            newSaldo,
-            willUpdate: Math.abs(newBG - acc.bilancioGiocate) > 0.01
-          });
-        }
         
         // Confronta con tolleranza per evitare loop infiniti dovuti ad arrotondamenti
         const bgDiff = Math.abs(newBG - acc.bilancioGiocate);
