@@ -221,6 +221,20 @@ export function AccountProvider({ children }: { children: ReactNode }) {
           const { esito, tipo, conto: contoPunta, esitoDettaglio } = parentInfo;
           const conto = lb.conto as string;
 
+          // DEBUG: Log per Eurobet
+          if (contoPunta === 'Eurobet') {
+            console.log('Eurobet Lay Bet:', {
+              layId: lb.id,
+              layStato: lb.stato,
+              parentTipo: tipo,
+              parentEsito: esito,
+              parentEsitoDettaglio: esitoDettaglio,
+              stake: lb.stake,
+              quotaBanca: lb.quota_banca,
+              tasse: lb.tasse_percentuale
+            });
+          }
+
           // Per le multiple: se esitoDettaglio è presente, verifichiamo il lay vincente
           if (tipo === 'Multipla' && esito === 'loss' && esitoDettaglio) {
             // Multipla persa: controlla lo stato effettivo di ogni lay
@@ -230,10 +244,18 @@ export function AccountProvider({ children }: { children: ReactNode }) {
               const tasse = profittoLordo * (Number(lb.tasse_percentuale || 0) / 100);
               const guadagno = profittoLordo - tasse;
               giocateMap[conto] = (giocateMap[conto] || 0) + guadagno;
+              
+              if (contoPunta === 'Eurobet') {
+                console.log('Eurobet Lay VINTO:', { profittoLordo, tasse, guadagno, newTotal: giocateMap[conto] });
+              }
             } else if (lb.stato === 'Perso') {
               // Lay perso: perde la liability
               const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
               giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
+              
+              if (contoPunta === 'Eurobet') {
+                console.log('Eurobet Lay PERSO:', { liability: perdita, newTotal: giocateMap[conto] });
+              }
             }
             // Se stato è 'In Corso' o 'Bozza', non fare nulla
           } else if (tipo === 'Multipla' && esito === 'loss' && !esitoDettaglio) {
@@ -301,6 +323,17 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         const saldoBase = saldoDisponibileMap[acc.conto] ?? 0;
         // Il saldo attuale è: saldo base (depositi - prelievi) + bilancio giocate + bilancio rapide
         const newSaldo = Number((saldoBase + newBG + newBR).toFixed(4));
+        
+        // DEBUG: Log per Eurobet
+        if (acc.conto === 'Eurobet') {
+          console.log('Eurobet FINAL CALCULATION:', {
+            currentBG: acc.bilancioGiocate,
+            newBG: newBG,
+            saldoBase,
+            newSaldo,
+            willUpdate: Math.abs(newBG - acc.bilancioGiocate) > 0.01
+          });
+        }
         
         // Confronta con tolleranza per evitare loop infiniti dovuti ad arrotondamenti
         const bgDiff = Math.abs(newBG - acc.bilancioGiocate);
