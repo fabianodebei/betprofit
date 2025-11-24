@@ -221,13 +221,10 @@ export function AccountProvider({ children }: { children: ReactNode }) {
             giocateMap[conto] = (giocateMap[conto] || 0) - stake;
           }
         } else if (stato === 'Archiviata') {
-          // Archived bets: add result + lay bet results
+          // Archived bets: ALWAYS add result (even for bonus bets, winnings go to account!)
           const layResult = calculateLayBetResults(b.id, esito);
           const totalResult = risultato + layResult;
-          
-          if (!isFreeOrBonus) {
-            giocateMap[conto] = (giocateMap[conto] || 0) + totalResult;
-          }
+          giocateMap[conto] = (giocateMap[conto] || 0) + totalResult;
         }
       });
 
