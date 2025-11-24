@@ -229,6 +229,20 @@ export function AccountProvider({ children }: { children: ReactNode }) {
               const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
               giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
             }
+          } else if (tipo === 'Multipla' && esito === 'loss' && !esitoDettaglio) {
+            // Multipla persa senza esitoDettaglio: controlla stato effettivo di ogni lay
+            if (lb.stato === 'Vinto') {
+              // Lay vinto: profitto al netto delle tasse
+              const profittoLordo = Number(lb.stake);
+              const tasse = profittoLordo * (Number(lb.tasse_percentuale || 0) / 100);
+              const guadagno = profittoLordo - tasse;
+              giocateMap[conto] = (giocateMap[conto] || 0) + guadagno;
+            } else if (lb.stato === 'Perso') {
+              // Lay perso: perde la liability
+              const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
+              giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
+            }
+            // Se stato è 'In Corso' o 'Bozza', non fare nulla
           } else if (tipo === 'Multipla' && esito === 'win') {
             // Multipla vinta: solo i lay che erano in corso perdono
             if (lb.stato === 'Perso' || lb.stato === 'Vinto') {
