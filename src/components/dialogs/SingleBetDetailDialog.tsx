@@ -138,6 +138,7 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                     <TableHead>Rimborso</TableHead>
                     <TableHead>Tasse</TableHead>
                     <TableHead>Mov.</TableHead>
+                    <TableHead>GM</TableHead>
                     <TableHead>Tag</TableHead>
                     <TableHead>Opzioni</TableHead>
                   </TableRow>
@@ -168,6 +169,7 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                     <TableCell>{formatCurrency(bet.rimborso || 0)}</TableCell>
                     <TableCell>0,00</TableCell>
                     <TableCell>{formatCurrency(0)}</TableCell>
+                    <TableCell>-</TableCell>
                     <TableCell className="text-primary text-sm">{bet.tag || '(non impostato)'}</TableCell>
                     <TableCell>
                       <Button size="sm" variant="ghost">
@@ -180,6 +182,7 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                   {layBets.map((layBet) => {
                     const rischio = layBet.stake * (layBet.quotaBanca - 1) * (1 + layBet.tassePercentuale / 100);
                     const tasse = layBet.stake * (layBet.quotaBanca - 1) * (layBet.tassePercentuale / 100);
+                    const gm = layBet.stake - tasse;
                     
                     return (
                       <TableRow key={layBet.id} className="bg-accent/5 border-l-4 border-l-accent">
@@ -206,6 +209,9 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                         <TableCell>{formatCurrency(0)}</TableCell>
                         <TableCell className="text-accent">{formatCurrency(tasse)}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
+                        <TableCell className={`font-semibold ${gm >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatCurrency(gm)}
+                        </TableCell>
                         <TableCell className="text-sm">-</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
