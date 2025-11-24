@@ -214,6 +214,9 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         }
       });
 
+      // DEBUG Eurobet: Log stato iniziale giocateMap
+      console.log('Eurobet giocateMap BEFORE lay processing:', giocateMap['Eurobet']);
+      
       // Gestione dei risultati per le bancate archiviate
       (layData || []).forEach((lb: any) => {
         if (lb.metodo === 'Banca' && esitiArchiviati.has(lb.parent_bet_id)) {
@@ -294,6 +297,9 @@ export function AccountProvider({ children }: { children: ReactNode }) {
           }
         }
       });
+      
+      // DEBUG Eurobet: Log stato finale giocateMap
+      console.log('Eurobet giocateMap AFTER lay processing:', giocateMap['Eurobet']);
 
       // Ricalcola saldo_attuale dalle transazioni (depositi/prelievi)
       const { data: transactionsData } = await supabase
