@@ -155,6 +155,10 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
       // Function to calculate lay bet results (same as ArchivedBets.tsx)
       const calculateLayBetResults = (betId: string, esito: string | null) => {
+        if (!esito) return 0;
+        
+        const normalizedEsito = esito.trim().toLowerCase();
+        
         const associatedLayBets = (layData || []).filter(
           (lb: any) => lb.parent_bet_id === betId && lb.metodo === 'Banca' && ['In Corso', 'Vinto', 'Perso'].includes(lb.stato)
         );
@@ -162,38 +166,28 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         // Se non ci sono lay bets associate, return 0
         if (associatedLayBets.length === 0) return 0;
         
-        console.log(`Calculating lay results for bet ${betId.slice(0,8)}, esito: "${esito}", lay bets found: ${associatedLayBets.length}`);
-        
         let total = 0;
         
         associatedLayBets.forEach((lb: any) => {
-          console.log(`  Lay bet: stake=${lb.stake}, quota=${lb.quota_banca}, stato=${lb.stato}, tasse=${lb.tasse_percentuale}`);
-          
-          if (esito === 'win') {
+          if (normalizedEsito === 'win') {
             // Parent vinta: le lay bets sono perse
             const liability = lb.stake * (lb.quota_banca - 1);
-            console.log(`  Parent WIN -> sottraggo liability: ${liability}`);
             total -= liability;
-          } else if (esito === 'loss') {
+          } else if (normalizedEsito === 'loss') {
             // Parent persa: controlla lo stato effettivo di ogni lay bet
             if (lb.stato === 'Vinto') {
               // Lay bet vinta: profitto al netto delle tasse
               const profittoLordo = lb.stake;
               const tasse = profittoLordo * (lb.tasse_percentuale / 100);
-              const netto = profittoLordo - tasse;
-              console.log(`  Parent LOSS, Lay VINTA -> aggiungo netto: ${netto}`);
-              total += netto;
+              total += profittoLordo - tasse;
             } else if (lb.stato === 'Perso') {
               // Lay bet persa: perdita della responsabilità
               const liability = lb.stake * (lb.quota_banca - 1);
-              console.log(`  Parent LOSS, Lay PERSA -> sottraggo liability: ${liability}`);
               total -= liability;
             }
           }
-          // Per Rimborsato o altri esiti, non fare nulla
         });
         
-        console.log(`  TOTAL lay result: ${total}`);
         return total;
       };
 
@@ -230,10 +224,6 @@ export function AccountProvider({ children }: { children: ReactNode }) {
           // Archived bets: add result + lay bet results
           const layResult = calculateLayBetResults(b.id, esito);
           const totalResult = risultato + layResult;
-          
-          if (conto === 'Eurobet') {
-            console.log(`EUROBET BET: tipo=${tipo}, esito=${esito}, risultato=${risultato}, layResult=${layResult}, total=${totalResult}`);
-          }
           
           if (!isFreeOrBonus) {
             giocateMap[conto] = (giocateMap[conto] || 0) + totalResult;
