@@ -187,8 +187,8 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                       // Bancata vinta = ho vinto lo stake meno le tasse sullo stake
                       gm = layBet.stake - tassePerStake;
                     } else if (layBet.stato === 'Perso') {
-                      // Bancata persa = ho perso il rischio più le tasse sul rischio
-                      gm = -(rischio + tassePerRischio);
+                      // Bancata persa = ho perso SOLO il rischio (liability), SENZA tasse!
+                      gm = -rischio;
                     } else if (layBet.stato === 'Annullato') {
                       gm = 0;
                     }
