@@ -385,23 +385,74 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
               <div className="text-center">
                 <div className="text-xs text-muted-foreground mb-1">GM Totale</div>
                 <div className={`text-lg font-bold ${
-                  layBets.reduce((sum, lb) => {
-                    const rischio = lb.stake * (lb.quotaBanca - 1);
-                    const tassePerStake = lb.stake * (lb.tassePercentuale / 100);
-                    let gm = 0;
-                    if (lb.stato === 'Vinto') gm = lb.stake - tassePerStake;
-                    else if (lb.stato === 'Perso') gm = -rischio; // Solo rischio, SENZA tasse
-                    return sum + gm;
-                  }, 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                  (() => {
+                    // Se TUTTE le bancate sono perse, la multipla è vinta
+                    const tutteBancatePerso = layBets.length > 0 && layBets.every(lb => lb.stato === 'Perso');
+                    
+                    if (tutteBancatePerso) {
+                      // Calcola vincita multipla
+                      const quotaEffettiva = bet.quotaCombinata || bet.quota || 1;
+                      let vincitaMultipla = 0;
+                      if (bet.tipoBonus === 'Free Bet') {
+                        vincitaMultipla = bet.stake * (quotaEffettiva - 1);
+                      } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
+                        vincitaMultipla = (bet.stake + bet.bonus) * quotaEffettiva - bet.stake;
+                      } else {
+                        vincitaMultipla = bet.stake * quotaEffettiva - bet.stake;
+                      }
+                      
+                      // GM = vincita multipla - tutti i rischi
+                      const sommaRischi = layBets.reduce((sum, lb) => sum + lb.stake * (lb.quotaBanca - 1), 0);
+                      return vincitaMultipla - sommaRischi >= 0;
+                    }
+                    
+                    // Altrimenti, calcolo normale
+                    const gmTotale = layBets.reduce((sum, lb) => {
+                      const rischio = lb.stake * (lb.quotaBanca - 1);
+                      const tassePerStake = lb.stato === 'Vinto' 
+                        ? lb.stake * (lb.tassePercentuale / 100)
+                        : 0;
+                      let gm = 0;
+                      if (lb.stato === 'Vinto') gm = lb.stake - tassePerStake;
+                      else if (lb.stato === 'Perso') gm = -rischio;
+                      return sum + gm;
+                    }, 0);
+                    return gmTotale >= 0;
+                  })() ? 'text-green-600' : 'text-red-600'
                 }`}>
-                  {formatCurrency(layBets.reduce((sum, lb) => {
-                    const rischio = lb.stake * (lb.quotaBanca - 1);
-                    const tassePerStake = lb.stake * (lb.tassePercentuale / 100);
-                    let gm = 0;
-                    if (lb.stato === 'Vinto') gm = lb.stake - tassePerStake;
-                    else if (lb.stato === 'Perso') gm = -rischio; // Solo rischio, SENZA tasse
-                    return sum + gm;
-                  }, 0))}
+                  {formatCurrency((() => {
+                    // Se TUTTE le bancate sono perse, la multipla è vinta
+                    const tutteBancatePerso = layBets.length > 0 && layBets.every(lb => lb.stato === 'Perso');
+                    
+                    if (tutteBancatePerso) {
+                      // Calcola vincita multipla
+                      const quotaEffettiva = bet.quotaCombinata || bet.quota || 1;
+                      let vincitaMultipla = 0;
+                      if (bet.tipoBonus === 'Free Bet') {
+                        vincitaMultipla = bet.stake * (quotaEffettiva - 1);
+                      } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
+                        vincitaMultipla = (bet.stake + bet.bonus) * quotaEffettiva - bet.stake;
+                      } else {
+                        vincitaMultipla = bet.stake * quotaEffettiva - bet.stake;
+                      }
+                      
+                      // GM = vincita multipla - tutti i rischi
+                      const sommaRischi = layBets.reduce((sum, lb) => sum + lb.stake * (lb.quotaBanca - 1), 0);
+                      return vincitaMultipla - sommaRischi;
+                    }
+                    
+                    // Altrimenti, calcolo normale
+                    return layBets.reduce((sum, lb) => {
+                      const rischio = lb.stake * (lb.quotaBanca - 1);
+                      const tassePerStake = lb.stato === 'Vinto'
+                        ? lb.stake * (lb.tassePercentuale / 100)
+                        : 0;
+                      let gm = 0;
+                      if (lb.stato === 'Vinto') gm = lb.stake - tassePerStake;
+                      else if (lb.stato === 'Perso') gm = -rischio;
+                      return sum + gm;
+                    }, 0);
+                  })())}
                 </div>
               </div>
             </div>
