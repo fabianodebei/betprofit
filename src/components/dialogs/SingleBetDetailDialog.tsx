@@ -27,9 +27,9 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
 
   const layBets = bet ? getLayBetsByParentId(bet.id) : [];
 
-  // Calculate totals and GM per bancata (strategia sequenziale)
+  // Calculate totals - GM è lo stesso per tutte le bancate
   const calculations = useMemo(() => {
-    if (!bet) return { totalRisk: 0, guadagnoTotale: 0, scenarioVincita: 0, scenarioPerdita: 0, gmPerBancata: [] };
+    if (!bet) return { totalRisk: 0, guadagnoGarantito: 0, scenarioVincita: 0, scenarioPerdita: 0 };
 
     // Calcolo vincita/perdita puntata principale
     let puntaWin: number, puntaLoss: number;
@@ -45,50 +45,34 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
       puntaLoss = -bet.stake;
     }
 
-    // Calcolo liability e vincita per ogni bancata
-    const liability = (lb: any) => lb.stake * (lb.quotaBanca - 1);
-    const layWinNet = (lb: any) => {
+    // Somma tutte le liability
+    const sumLiability = layBets.reduce((sum, lb) => 
+      sum + lb.stake * (lb.quotaBanca - 1), 0
+    );
+
+    // Somma tutte le vincite nette delle bancate
+    const sumLayWins = layBets.reduce((sum, lb) => {
       const profitLordo = lb.stake;
       const tasse = profitLordo * ((lb.tassePercentuale || 0) / 100);
-      return profitLordo - tasse;
-    };
-
-    const sumLiability = layBets.reduce((sum, lb) => sum + liability(lb), 0);
+      return sum + (profitLordo - tasse);
+    }, 0);
 
     // Scenario 1: Puntata vince, tutte le bancate perdono
     const scenarioVincita = puntaWin - sumLiability;
     
-    // Scenario 2 per ogni bancata (STRATEGIA SEQUENZIALE)
-    // Ogni bancata ha un GM diverso: se vince la prima, non hai ancora piazzato le altre
-    const gmPerBancata = layBets.map((lb, index) => {
-      // Se questa bancata vince (puntata perde su questa):
-      // 1. Perdi la puntata: puntaLoss
-      // 2. Vinci questa bancata: +layWinNet(lb)
-      // 3. Perdi solo le liability PRECEDENTI (le successive non le hai ancora piazzate)
-      const liabilityPrecedenti = layBets
-        .slice(0, index)
-        .reduce((sum, prev) => sum + liability(prev), 0);
-      
-      return {
-        id: lb.id,
-        gm: puntaLoss + layWinNet(lb) - liabilityPrecedenti
-      };
-    });
+    // Scenario 2: Puntata perde, tutte le bancate vincono
+    const scenarioPerdita = puntaLoss + sumLayWins;
 
-    const scenarioPerdita = gmPerBancata.length > 0 
-      ? Math.max(...gmPerBancata.map(x => x.gm))
-      : puntaLoss;
-
-    const guadagnoTotale = Math.min(scenarioVincita, ...gmPerBancata.map(x => x.gm));
+    // GM = guadagno garantito (minimo tra i due scenari, uguale per tutte le bancate)
+    const guadagnoGarantito = Math.min(scenarioVincita, scenarioPerdita);
 
     const totalRisk = bet.stake + layBets.reduce((sum, lb) => sum + lb.stake, 0);
 
     return {
       totalRisk,
-      guadagnoTotale,
+      guadagnoGarantito,
       scenarioVincita,
       scenarioPerdita,
-      gmPerBancata,
     };
   }, [bet, layBets]);
 
@@ -191,13 +175,12 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                   </TableRow>
 
                   {/* Lay Bets Rows */}
-                  {layBets.map((layBet, index) => {
+                  {layBets.map((layBet) => {
                     const rischio = layBet.stake * (layBet.quotaBanca - 1) * (1 + layBet.tassePercentuale / 100);
                     const tassePerRischio = layBet.stake * (layBet.quotaBanca - 1) * (layBet.tassePercentuale / 100);
                     
-                    // GM specifico per questa bancata (strategia sequenziale)
-                    const gmData = calculations.gmPerBancata.find(g => g.id === layBet.id);
-                    const gm = gmData ? gmData.gm : 0;
+                    // GM è lo stesso per tutte le bancate (guadagno garantito)
+                    const gm = calculations.guadagnoGarantito;
                     
                     return (
                       <TableRow key={layBet.id} className="bg-accent/5 border-l-4 border-l-accent">
