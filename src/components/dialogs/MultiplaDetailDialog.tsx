@@ -178,8 +178,13 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                   {/* Lay Bets Rows */}
                   {layBets.map((layBet) => {
                     const rischio = layBet.stake * (layBet.quotaBanca - 1);
-                    const tassePerRischio = rischio * (layBet.tassePercentuale / 100);
-                    const tassePerStake = layBet.stake * (layBet.tassePercentuale / 100);
+                    // Tasse si pagano SOLO quando la bancata VINCE
+                    const tassePerRischio = layBet.stato === 'Vinto' 
+                      ? rischio * (layBet.tassePercentuale / 100)
+                      : 0;
+                    const tassePerStake = layBet.stato === 'Vinto'
+                      ? layBet.stake * (layBet.tassePercentuale / 100)
+                      : 0;
                     
                     // Calcolo GM in base allo stato della bancata
                     let gm = 0;
