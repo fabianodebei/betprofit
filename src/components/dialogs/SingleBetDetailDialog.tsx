@@ -165,7 +165,9 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                     <TableCell>{formatCurrency(bet.rimborso || 0)}</TableCell>
                     <TableCell>0,00</TableCell>
                     <TableCell>{formatCurrency(0)}</TableCell>
-                    <TableCell>-</TableCell>
+                    <TableCell className={`font-semibold ${calculations.guadagnoGarantito >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(calculations.guadagnoGarantito)}
+                    </TableCell>
                     <TableCell className="text-primary text-sm">{bet.tag || '(non impostato)'}</TableCell>
                     <TableCell>
                       <Button size="sm" variant="ghost">
