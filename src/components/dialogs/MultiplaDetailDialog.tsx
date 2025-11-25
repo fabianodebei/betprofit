@@ -178,16 +178,17 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                   {/* Lay Bets Rows */}
                   {layBets.map((layBet) => {
                     const rischio = layBet.stake * (layBet.quotaBanca - 1);
-                    const tasse = layBet.stake * (layBet.quotaBanca - 1) * (layBet.tassePercentuale / 100);
+                    const tassePerRischio = rischio * (layBet.tassePercentuale / 100);
+                    const tassePerStake = layBet.stake * (layBet.tassePercentuale / 100);
                     
                     // Calcolo GM in base allo stato della bancata
                     let gm = 0;
                     if (layBet.stato === 'Vinto') {
-                      // Bancata vinta = ho vinto lo stake meno le tasse
-                      gm = layBet.stake - tasse;
+                      // Bancata vinta = ho vinto lo stake meno le tasse sullo stake
+                      gm = layBet.stake - tassePerStake;
                     } else if (layBet.stato === 'Perso') {
-                      // Bancata persa = ho perso il rischio
-                      gm = -(rischio + tasse);
+                      // Bancata persa = ho perso il rischio più le tasse sul rischio
+                      gm = -(rischio + tassePerRischio);
                     } else if (layBet.stato === 'Annullato') {
                       gm = 0;
                     }
@@ -216,7 +217,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                         <TableCell className="text-red-600 font-semibold">{formatCurrency(rischio)}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
                          <TableCell>{formatCurrency(0)}</TableCell>
-                         <TableCell className="text-accent">{formatCurrency(tasse)}</TableCell>
+                          <TableCell className="text-accent">{formatCurrency(tassePerRischio)}</TableCell>
                          <TableCell>{formatCurrency(0)}</TableCell>
                          <TableCell className={`font-semibold ${gm > 0 ? 'text-green-600' : gm < 0 ? 'text-red-600' : ''}`}>
                            {formatCurrency(gm)}
@@ -380,20 +381,22 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                 <div className="text-xs text-muted-foreground mb-1">GM Totale</div>
                 <div className={`text-lg font-bold ${
                   layBets.reduce((sum, lb) => {
-                    const tasse = lb.stake * (lb.quotaBanca - 1) * (lb.tassePercentuale / 100);
                     const rischio = lb.stake * (lb.quotaBanca - 1);
+                    const tassePerRischio = rischio * (lb.tassePercentuale / 100);
+                    const tassePerStake = lb.stake * (lb.tassePercentuale / 100);
                     let gm = 0;
-                    if (lb.stato === 'Vinto') gm = lb.stake - tasse;
-                    else if (lb.stato === 'Perso') gm = -(rischio + tasse);
+                    if (lb.stato === 'Vinto') gm = lb.stake - tassePerStake;
+                    else if (lb.stato === 'Perso') gm = -(rischio + tassePerRischio);
                     return sum + gm;
                   }, 0) >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
                   {formatCurrency(layBets.reduce((sum, lb) => {
-                    const tasse = lb.stake * (lb.quotaBanca - 1) * (lb.tassePercentuale / 100);
                     const rischio = lb.stake * (lb.quotaBanca - 1);
+                    const tassePerRischio = rischio * (lb.tassePercentuale / 100);
+                    const tassePerStake = lb.stake * (lb.tassePercentuale / 100);
                     let gm = 0;
-                    if (lb.stato === 'Vinto') gm = lb.stake - tasse;
-                    else if (lb.stato === 'Perso') gm = -(rischio + tasse);
+                    if (lb.stato === 'Vinto') gm = lb.stake - tassePerStake;
+                    else if (lb.stato === 'Perso') gm = -(rischio + tassePerRischio);
                     return sum + gm;
                   }, 0))}
                 </div>
