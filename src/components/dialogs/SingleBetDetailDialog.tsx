@@ -177,10 +177,11 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                   {/* Lay Bets Rows */}
                   {layBets.map((layBet) => {
                     const liability = layBet.stake * (layBet.quotaBanca - 1);
-                    const rischio = liability * (1 + layBet.tassePercentuale / 100);
+                    
+                    // Il rischio è solo la liability (senza tasse)
+                    const rischio = liability;
                     
                     // Tasse si pagano solo quando la bancata VINCE (puntata perde)
-                    // Quando bancata PERDE (puntata vince), paghi solo la liability senza tasse
                     const tassePerRischio = layBet.stato === 'Vinto' 
                       ? liability * (layBet.tassePercentuale / 100)
                       : 0;
