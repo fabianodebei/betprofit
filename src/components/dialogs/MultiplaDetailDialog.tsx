@@ -371,17 +371,24 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                     );
                   })}
                   
-                  {/* Riga Totali */}
+                  {/* Riga Totale Rischio */}
                   <TableRow className="bg-muted/50 border-t-2 border-primary">
-                    <TableCell colSpan={9} className="text-right font-semibold">
+                    <TableCell colSpan={9} className="text-right font-semibold pr-2">
                       Rischio:
                     </TableCell>
                     <TableCell></TableCell>
                     <TableCell className="font-bold text-lg text-red-600">
                       {formatCurrency(calculations.totalRisk)}
                     </TableCell>
-                    <TableCell colSpan={3}></TableCell>
-                    <TableCell className="text-right font-semibold">Totale GM:</TableCell>
+                    <TableCell colSpan={9}></TableCell>
+                  </TableRow>
+                  
+                  {/* Riga Totale GM */}
+                  <TableRow className="bg-muted/50">
+                    <TableCell colSpan={14} className="text-right font-semibold pr-2">
+                      Totale GM:
+                    </TableCell>
+                    <TableCell></TableCell>
                     <TableCell className={`font-bold text-lg ${
                       (() => {
                         // Se TUTTE le bancate sono perse, la multipla è vinta
