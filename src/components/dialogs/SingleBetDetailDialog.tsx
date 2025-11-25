@@ -181,8 +181,16 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                   {/* Lay Bets Rows */}
                   {layBets.map((layBet) => {
                     const rischio = layBet.stake * (layBet.quotaBanca - 1) * (1 + layBet.tassePercentuale / 100);
-                    const tasse = layBet.stake * (layBet.quotaBanca - 1) * (layBet.tassePercentuale / 100);
-                    const gm = layBet.stake - tasse;
+                    const tassePerRischio = layBet.stake * (layBet.quotaBanca - 1) * (layBet.tassePercentuale / 100);
+                    const tassePerStake = layBet.stake * (layBet.tassePercentuale / 100);
+                    
+                    // Calcolo GM: quando vinta tasse sullo stake, quando persa tasse sul rischio
+                    let gm = 0;
+                    if (layBet.stato === 'Vinto') {
+                      gm = layBet.stake - tassePerStake;
+                    } else if (layBet.stato === 'Perso') {
+                      gm = -(layBet.stake * (layBet.quotaBanca - 1) + tassePerRischio);
+                    }
                     
                     return (
                       <TableRow key={layBet.id} className="bg-accent/5 border-l-4 border-l-accent">
@@ -207,7 +215,7 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                         <TableCell className="text-red-600 font-semibold">{formatCurrency(rischio)}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
-                        <TableCell className="text-accent">{formatCurrency(tasse)}</TableCell>
+                        <TableCell className="text-accent">{formatCurrency(tassePerRischio)}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
                         <TableCell className={`font-semibold ${gm >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {formatCurrency(gm)}
