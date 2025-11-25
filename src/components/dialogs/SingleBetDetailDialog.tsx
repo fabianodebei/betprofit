@@ -176,8 +176,14 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
 
                   {/* Lay Bets Rows */}
                   {layBets.map((layBet) => {
-                    const rischio = layBet.stake * (layBet.quotaBanca - 1) * (1 + layBet.tassePercentuale / 100);
-                    const tassePerRischio = layBet.stake * (layBet.quotaBanca - 1) * (layBet.tassePercentuale / 100);
+                    const liability = layBet.stake * (layBet.quotaBanca - 1);
+                    const rischio = liability * (1 + layBet.tassePercentuale / 100);
+                    
+                    // Tasse si pagano solo quando la bancata VINCE (puntata perde)
+                    // Quando bancata PERDE (puntata vince), paghi solo la liability senza tasse
+                    const tassePerRischio = layBet.stato === 'Vinto' 
+                      ? liability * (layBet.tassePercentuale / 100)
+                      : 0;
                     
                     // GM è lo stesso per tutte le bancate (guadagno garantito)
                     const gm = calculations.guadagnoGarantito;
