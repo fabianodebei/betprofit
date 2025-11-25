@@ -46,12 +46,22 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
     }
 
     // Somma tutte le liability
-    const sumLiability = layBets.reduce((sum, lb) => 
-      sum + lb.stake * (lb.quotaBanca - 1), 0
-    );
+    const sumLiability = layBets.reduce((sum, lb) => {
+      // Se la bancata ha vinto, non abbiamo pagato la liability
+      if (lb.stato === 'Vinto') {
+        return sum;
+      }
+      return sum + lb.stake * (lb.quotaBanca - 1);
+    }, 0);
 
     // Somma tutte le vincite nette delle bancate
     const sumLayWins = layBets.reduce((sum, lb) => {
+      // Se la bancata ha perso, non guadagniamo nulla da essa
+      if (lb.stato === 'Perso') {
+        return sum;
+      }
+      
+      // Se la bancata ha vinto o è in corso, calcoliamo il guadagno netto
       const profitLordo = lb.stake;
       const tasse = profitLordo * ((lb.tassePercentuale || 0) / 100);
       return sum + (profitLordo - tasse);
