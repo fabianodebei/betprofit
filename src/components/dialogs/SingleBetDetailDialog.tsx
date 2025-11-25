@@ -27,9 +27,9 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
 
   const layBets = bet ? getLayBetsByParentId(bet.id) : [];
 
-  // Calculate totals
+  // Calculate totals and GM
   const calculations = useMemo(() => {
-    if (!bet) return { totalRisk: 0, guadagnoTotale: 0, scenarioVincita: 0, scenarioPerdita: 0 };
+    if (!bet) return { totalRisk: 0, guadagnoTotale: 0, scenarioVincita: 0, scenarioPerdita: 0, gmPerBancata: 0 };
 
     // Calcolo vincita/perdita puntata principale
     let puntaWin: number, puntaLoss: number;
@@ -39,8 +39,8 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
       puntaWin = bet.stake * ((bet.quota || 1) - 1);
       puntaLoss = 0;
     } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
-      // Bonus: vincita = (stake + bonus) * quota, perdita = -stake
-      puntaWin = (bet.stake + bet.bonus) * (bet.quota || 1);
+      // Bonus: vincita = (stake + bonus) * quota - stake
+      puntaWin = (bet.stake + bet.bonus) * (bet.quota || 1) - bet.stake;
       puntaLoss = -bet.stake;
     } else {
       // Normale: solo profitto netto, perdita = -stake
@@ -57,7 +57,7 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
     }, 0);
 
     const layLosses = layBets.reduce((sum, lb) => {
-      // Perdita della bancata
+      // Perdita della bancata (liability)
       return sum + lb.stake * (lb.quotaBanca - 1);
     }, 0);
 
@@ -67,16 +67,17 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
     // Scenario 2: Puntata perde, bancate vincono
     const scenarioPerdita = puntaLoss + layWins;
 
-    // Guadagno garantito = scenario peggiore
-    const guadagnoTotale = Math.min(scenarioVincita, scenarioPerdita);
+    // Guadagno garantito = scenario peggiore (GM è lo stesso per tutte le bancate)
+    const gmPerBancata = Math.min(scenarioVincita, scenarioPerdita);
 
     const totalRisk = bet.stake + layBets.reduce((sum, lb) => sum + lb.stake, 0);
 
     return {
       totalRisk,
-      guadagnoTotale,
+      guadagnoTotale: gmPerBancata,
       scenarioVincita,
       scenarioPerdita,
+      gmPerBancata,
     };
   }, [bet, layBets]);
 
@@ -182,15 +183,9 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                   {layBets.map((layBet) => {
                     const rischio = layBet.stake * (layBet.quotaBanca - 1) * (1 + layBet.tassePercentuale / 100);
                     const tassePerRischio = layBet.stake * (layBet.quotaBanca - 1) * (layBet.tassePercentuale / 100);
-                    const tassePerStake = layBet.stake * (layBet.tassePercentuale / 100);
                     
-                    // Calcolo GM: quando vinta tasse sullo stake, quando persa tasse sul rischio
-                    let gm = 0;
-                    if (layBet.stato === 'Vinto') {
-                      gm = layBet.stake - tassePerStake;
-                    } else if (layBet.stato === 'Perso') {
-                      gm = -(layBet.stake * (layBet.quotaBanca - 1) + tassePerRischio);
-                    }
+                    // GM è lo stesso per tutte le bancate (guadagno garantito)
+                    const gm = calculations.gmPerBancata;
                     
                     return (
                       <TableRow key={layBet.id} className="bg-accent/5 border-l-4 border-l-accent">
