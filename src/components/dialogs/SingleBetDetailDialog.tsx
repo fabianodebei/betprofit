@@ -27,54 +27,65 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
 
   const layBets = bet ? getLayBetsByParentId(bet.id) : [];
 
-  // Calculate totals and GM
+  // Calculate totals and GM per bancata (strategia sequenziale)
   const calculations = useMemo(() => {
-    if (!bet) return { totalRisk: 0, guadagnoTotale: 0, scenarioVincita: 0, scenarioPerdita: 0, gmPerBancata: 0 };
+    if (!bet) return { totalRisk: 0, guadagnoTotale: 0, scenarioVincita: 0, scenarioPerdita: 0, gmPerBancata: [] };
 
     // Calcolo vincita/perdita puntata principale
     let puntaWin: number, puntaLoss: number;
     
     if (bet.tipoBonus === 'Free Bet') {
-      // Free Bet: vincita = stake * (quota - 1), perdita = 0
       puntaWin = bet.stake * ((bet.quota || 1) - 1);
       puntaLoss = 0;
     } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
-      // Bonus: vincita = (stake + bonus) * quota - stake
       puntaWin = (bet.stake + bet.bonus) * (bet.quota || 1) - bet.stake;
       puntaLoss = -bet.stake;
     } else {
-      // Normale: solo profitto netto, perdita = -stake
       puntaWin = bet.stake * (bet.quota || 1) - bet.stake;
       puntaLoss = -bet.stake;
     }
 
-    // Calcolo vincite/perdite dalle bancate
-    const layWins = layBets.reduce((sum, lb) => {
-      // Vincita netta della bancata (stake - tasse)
+    // Calcolo liability e vincita per ogni bancata
+    const liability = (lb: any) => lb.stake * (lb.quotaBanca - 1);
+    const layWinNet = (lb: any) => {
       const profitLordo = lb.stake;
       const tasse = profitLordo * ((lb.tassePercentuale || 0) / 100);
-      return sum + (profitLordo - tasse);
-    }, 0);
+      return profitLordo - tasse;
+    };
 
-    const layLosses = layBets.reduce((sum, lb) => {
-      // Perdita della bancata (liability)
-      return sum + lb.stake * (lb.quotaBanca - 1);
-    }, 0);
+    const sumLiability = layBets.reduce((sum, lb) => sum + liability(lb), 0);
 
-    // Scenario 1: Puntata vince, bancate perdono
-    const scenarioVincita = puntaWin - layLosses;
+    // Scenario 1: Puntata vince, tutte le bancate perdono
+    const scenarioVincita = puntaWin - sumLiability;
     
-    // Scenario 2: Puntata perde, bancate vincono
-    const scenarioPerdita = puntaLoss + layWins;
+    // Scenario 2 per ogni bancata (STRATEGIA SEQUENZIALE)
+    // Ogni bancata ha un GM diverso: se vince la prima, non hai ancora piazzato le altre
+    const gmPerBancata = layBets.map((lb, index) => {
+      // Se questa bancata vince (puntata perde su questa):
+      // 1. Perdi la puntata: puntaLoss
+      // 2. Vinci questa bancata: +layWinNet(lb)
+      // 3. Perdi solo le liability PRECEDENTI (le successive non le hai ancora piazzate)
+      const liabilityPrecedenti = layBets
+        .slice(0, index)
+        .reduce((sum, prev) => sum + liability(prev), 0);
+      
+      return {
+        id: lb.id,
+        gm: puntaLoss + layWinNet(lb) - liabilityPrecedenti
+      };
+    });
 
-    // Guadagno garantito = scenario peggiore (GM è lo stesso per tutte le bancate)
-    const gmPerBancata = Math.min(scenarioVincita, scenarioPerdita);
+    const scenarioPerdita = gmPerBancata.length > 0 
+      ? Math.max(...gmPerBancata.map(x => x.gm))
+      : puntaLoss;
+
+    const guadagnoTotale = Math.min(scenarioVincita, ...gmPerBancata.map(x => x.gm));
 
     const totalRisk = bet.stake + layBets.reduce((sum, lb) => sum + lb.stake, 0);
 
     return {
       totalRisk,
-      guadagnoTotale: gmPerBancata,
+      guadagnoTotale,
       scenarioVincita,
       scenarioPerdita,
       gmPerBancata,
@@ -180,12 +191,13 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                   </TableRow>
 
                   {/* Lay Bets Rows */}
-                  {layBets.map((layBet) => {
+                  {layBets.map((layBet, index) => {
                     const rischio = layBet.stake * (layBet.quotaBanca - 1) * (1 + layBet.tassePercentuale / 100);
                     const tassePerRischio = layBet.stake * (layBet.quotaBanca - 1) * (layBet.tassePercentuale / 100);
                     
-                    // GM è lo stesso per tutte le bancate (guadagno garantito)
-                    const gm = calculations.gmPerBancata;
+                    // GM specifico per questa bancata (strategia sequenziale)
+                    const gmData = calculations.gmPerBancata.find(g => g.id === layBet.id);
+                    const gm = gmData ? gmData.gm : 0;
                     
                     return (
                       <TableRow key={layBet.id} className="bg-accent/5 border-l-4 border-l-accent">
