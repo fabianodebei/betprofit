@@ -29,6 +29,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
   const { archiveBet } = useBets();
   const [showLayBetForm, setShowLayBetForm] = useState(false);
   const [editingLayBet, setEditingLayBet] = useState<any>(null);
+  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
 
   const layBets = bet ? getLayBetsByParentId(bet.id) : [];
   const betLegs = bet ? getBetLegsByBetId(bet.id) : [];
@@ -41,8 +42,15 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
 
   if (!bet) return null;
 
-  const handleEditLayBet = (layBet: any) => {
+  const handleCloneLayBet = (layBet: any) => {
     setEditingLayBet(layBet);
+    setFormMode('create');
+    setShowLayBetForm(true);
+  };
+
+  const handleModifyLayBet = (layBet: any) => {
+    setEditingLayBet(layBet);
+    setFormMode('edit');
     setShowLayBetForm(true);
   };
 
@@ -99,6 +107,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                 variant="outline"
                 onClick={() => {
                   setEditingLayBet(null);
+                  setFormMode('create');
                   setShowLayBetForm(true);
                 }}
               >
@@ -342,31 +351,31 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                            })()}
                          </TableCell>
                          <TableCell>
-                          <div className="flex gap-1">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleEditLayBet(layBet)}
-                            >
-                              Clona
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleEditLayBet(layBet)}
-                            >
-                              Punta
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="text-destructive"
-                              onClick={() => handleDeleteLayBet(layBet.id)}
-                            >
-                              Elimina
-                            </Button>
-                          </div>
-                        </TableCell>
+                           <div className="flex gap-1">
+                             <Button
+                               size="sm"
+                               variant="ghost"
+                               onClick={() => handleModifyLayBet(layBet)}
+                             >
+                               Modifica
+                             </Button>
+                             <Button
+                               size="sm"
+                               variant="ghost"
+                               onClick={() => handleCloneLayBet(layBet)}
+                             >
+                               Clona
+                             </Button>
+                             <Button
+                               size="sm"
+                               variant="ghost"
+                               className="text-destructive"
+                               onClick={() => handleDeleteLayBet(layBet.id)}
+                             >
+                               Elimina
+                             </Button>
+                           </div>
+                         </TableCell>
                       </TableRow>
                     );
                   })}
@@ -467,6 +476,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
           parentBet={bet}
           parentBetId={bet?.id}
           editingLayBet={editingLayBet}
+          mode={formMode}
           betLegs={betLegs}
         />
       )}
