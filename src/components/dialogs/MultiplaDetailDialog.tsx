@@ -374,12 +374,12 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                   {/* Riga Totali */}
                   <TableRow className="bg-muted/50 border-t-2 border-primary">
                     <TableCell colSpan={9}></TableCell>
-                    <TableCell className="text-right font-semibold pr-1">Rischio:</TableCell>
+                    <TableCell className="text-right font-semibold pr-1 whitespace-nowrap">Rischio:</TableCell>
                     <TableCell className="font-bold text-lg text-red-600">
                       {formatCurrency(calculations.totalRisk)}
                     </TableCell>
                     <TableCell colSpan={3}></TableCell>
-                    <TableCell className="text-right font-semibold pr-1">Totale GM:</TableCell>
+                    <TableCell className="text-right font-semibold pr-1 whitespace-nowrap">Totale GM:</TableCell>
                     <TableCell className={`font-bold text-lg ${
                       (() => {
                         // Se TUTTE le bancate sono perse, la multipla è vinta
