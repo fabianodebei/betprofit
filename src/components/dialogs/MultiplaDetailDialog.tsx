@@ -371,11 +371,15 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                     );
                   })}
                   
-                  {/* Riga Totale GM */}
+                  {/* Riga Totali */}
                   <TableRow className="bg-muted/50 border-t-2 border-primary">
-                    <TableCell colSpan={15} className="text-right font-semibold">
-                      GM Totale:
+                    <TableCell colSpan={10} className="text-right font-semibold">
+                      Totali:
                     </TableCell>
+                    <TableCell className="font-bold text-lg text-red-600">
+                      {formatCurrency(calculations.totalRisk)}
+                    </TableCell>
+                    <TableCell colSpan={4}></TableCell>
                     <TableCell className={`font-bold text-lg ${
                       (() => {
                         // Se TUTTE le bancate sono perse, la multipla è vinta
@@ -450,16 +454,6 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                   </TableRow>
                 </TableBody>
               </Table>
-            </div>
-
-            {/* Summary */}
-            <div className="flex justify-center gap-8 px-4 py-3 bg-muted/30 rounded-lg border border-border">
-              <div className="text-center">
-                <div className="text-xs text-muted-foreground mb-1">Totale Rischio</div>
-                <div className="text-lg font-bold text-red-600">
-                  {formatCurrency(calculations.totalRisk)}
-                </div>
-              </div>
             </div>
           </div>
         </DialogContent>
