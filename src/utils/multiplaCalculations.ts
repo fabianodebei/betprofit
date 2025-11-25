@@ -49,16 +49,26 @@ export function getMultiplaCalculations(
   // Calcola la liability per ogni lay bet (responsabilità se la bancata perde)
   const liability = (lb: LayBet) => lb.stake * (lb.quotaBanca - 1);
 
-  // Calcola la vincita netta del lay (vincita - tasse)
-  // La vincita lorda è lo stake bancato, le tasse si applicano solo sul profitto
+  // Calcola la vincita netta del lay (vincita - tasse) in base allo stato
   const layWinNet = (lb: LayBet) => {
+    // Se la bancata ha perso, non guadagniamo nulla
+    if (lb.stato === 'Perso') {
+      return 0;
+    }
+    // Se la bancata ha vinto o è in corso, calcoliamo il guadagno netto
     const profitLordo = lb.stake;
     const tasse = profitLordo * ((lb.tassePercentuale || 0) / 100);
     return profitLordo - tasse;
   };
 
-  // Somma di tutte le liability delle bancate attive
-  const sumLiability = activeBets.reduce((sum, lb) => sum + liability(lb), 0);
+  // Somma di tutte le liability delle bancate attive (escludendo quelle vinte)
+  const sumLiability = activeBets.reduce((sum, lb) => {
+    // Se la bancata ha vinto, non abbiamo pagato la liability
+    if (lb.stato === 'Vinto') {
+      return sum;
+    }
+    return sum + liability(lb);
+  }, 0);
 
   // Quota effettiva della multipla: usa quotaCombinata se presente, altrimenti calcola dal prodotto delle quote delle gambe, fallback 1
   const quotaEffettiva =
@@ -123,8 +133,14 @@ export function getMultiplaCalculations(
     ? Math.min(...perGamba.map((x) => x.risultato)) 
     : puntaLoss;
 
-  // Rischio totale = somma di tutte le liability (di tutte le bancate, non solo quelle attive)
-  const totalRisk = allBets.reduce((sum, lb) => sum + liability(lb), 0);
+  // Rischio totale = somma di tutte le liability (escludendo quelle già vinte)
+  const totalRisk = allBets.reduce((sum, lb) => {
+    // Se la bancata ha vinto, non abbiamo pagato la liability
+    if (lb.stato === 'Vinto') {
+      return sum;
+    }
+    return sum + liability(lb);
+  }, 0);
 
   // Guadagno totale = scenario peggiore tra vincita e perdita worst
   const guadagnoTotale = Math.min(scenarioVincita, scenarioPerditaWorst);

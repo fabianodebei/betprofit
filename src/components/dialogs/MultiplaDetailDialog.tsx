@@ -382,21 +382,19 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                 <div className={`text-lg font-bold ${
                   layBets.reduce((sum, lb) => {
                     const rischio = lb.stake * (lb.quotaBanca - 1);
-                    const tassePerRischio = rischio * (lb.tassePercentuale / 100);
                     const tassePerStake = lb.stake * (lb.tassePercentuale / 100);
                     let gm = 0;
                     if (lb.stato === 'Vinto') gm = lb.stake - tassePerStake;
-                    else if (lb.stato === 'Perso') gm = -(rischio + tassePerRischio);
+                    else if (lb.stato === 'Perso') gm = -rischio; // Solo rischio, SENZA tasse
                     return sum + gm;
                   }, 0) >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
                   {formatCurrency(layBets.reduce((sum, lb) => {
                     const rischio = lb.stake * (lb.quotaBanca - 1);
-                    const tassePerRischio = rischio * (lb.tassePercentuale / 100);
                     const tassePerStake = lb.stake * (lb.tassePercentuale / 100);
                     let gm = 0;
                     if (lb.stato === 'Vinto') gm = lb.stake - tassePerStake;
-                    else if (lb.stato === 'Perso') gm = -(rischio + tassePerRischio);
+                    else if (lb.stato === 'Perso') gm = -rischio; // Solo rischio, SENZA tasse
                     return sum + gm;
                   }, 0))}
                 </div>
