@@ -6,9 +6,6 @@ verify_jwt = false
 [functions.check-notifications]
 verify_jwt = true
 
-[functions.check-notifications.env]
-NOTIFICATION_HMAC_SECRET = "env:NOTIFICATION_HMAC_SECRET"
-
 [functions.admin-delete-user]
 verify_jwt = true
 
