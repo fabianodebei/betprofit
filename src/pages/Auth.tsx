@@ -15,7 +15,7 @@ import logo from "@/assets/logo_centurion_new.png";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { authStorage } from "@/utils/authStorage";
 import { cn } from "@/lib/utils";
-// Email validation schema with essential requirements
+
 const emailSchema = z
   .string()
   .trim()
@@ -24,11 +24,9 @@ const emailSchema = z
   .email("Formato email non valido")
   .toLowerCase()
   .refine((email) => {
-    // Verifica formato base email
     const parts = email.split('@');
     if (parts.length !== 2) return false;
     const [local, domain] = parts;
-    // Verifica che ci sia un dominio con estensione
     return local.length > 0 && domain.includes('.') && domain.length > 3;
   }, "Email non valida");
 
@@ -55,14 +53,17 @@ const signupSchema = z.object({
   message: "Le password non coincidono",
   path: ["confirmPassword"]
 });
+
 type LoginFormData = z.infer<typeof loginSchema>;
 type SignupFormData = z.infer<typeof signupSchema>;
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
+
 const Auth = () => {
   const {
     signIn,
     signUp,
-    resetPassword
+    resetPassword,
+    signInWithGoogle
   } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -71,28 +72,22 @@ const Auth = () => {
   const [activeTab, setActiveTab] = useState("login");
   const [loginError, setLoginError] = useState<string | null>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
+
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     mode: "onChange",
-    defaultValues: {
-      email: "",
-      password: ""
-    }
+    defaultValues: { email: "", password: "" }
   });
+
   const signupForm = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
     mode: "onChange",
-    defaultValues: {
-      fullName: "",
-      email: "",
-      password: "",
-      confirmPassword: ""
-    }
+    defaultValues: { fullName: "", email: "", password: "", confirmPassword: "" }
   });
 
-  // Sync validation: show immediate hint when passwords don't match
   const password = signupForm.watch("password");
   const confirmPassword = signupForm.watch("confirmPassword");
+
   useEffect(() => {
     if (confirmPassword && password !== confirmPassword) {
       signupForm.setError("confirmPassword", {
@@ -107,12 +102,9 @@ const Auth = () => {
   const resetPasswordForm = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
     mode: "onChange",
-    defaultValues: {
-      email: ""
-    }
+    defaultValues: { email: "" }
   });
 
-  // Carica email salvata al mount
   useEffect(() => {
     const savedEmail = authStorage.getSavedEmail();
     if (savedEmail) {
@@ -121,12 +113,12 @@ const Auth = () => {
     }
   }, []);
 
-  // Autofocus sul primo campo quando cambia tab
   useEffect(() => {
     setTimeout(() => {
       emailInputRef.current?.focus();
     }, 100);
   }, [activeTab]);
+
   const handleLogin = async (data: LoginFormData) => {
     setIsLoading(true);
     setLoginError(null);
@@ -144,10 +136,9 @@ const Auth = () => {
       setIsLoading(false);
     }
   };
+
   const handleSignup = async (data: SignupFormData) => {
     setIsLoading(true);
-
-    // Blocco immediato se le password non combaciano
     if (data.password !== data.confirmPassword) {
       signupForm.setError("confirmPassword", {
         type: "validate",
@@ -156,17 +147,10 @@ const Auth = () => {
       setIsLoading(false);
       return;
     }
-
     try {
       const result = await signUp(data.email.toLowerCase().trim(), data.password, data.fullName.trim());
-      
-      if (result.error) {
-        // Gestione errori specifici da Supabase
-        const errorMessage = result.error.message || "";
-        // Errors are already handled, just log them
-      } else {
+      if (!result.error) {
         authStorage.saveEmail(data.email.toLowerCase(), false);
-        // Porta l'utente al login dopo la registrazione
         setActiveTab("login");
         signupForm.reset();
       }
@@ -176,12 +160,11 @@ const Auth = () => {
       setIsLoading(false);
     }
   };
+
   const handleResetPassword = async (data: ResetPasswordFormData) => {
     setIsLoading(true);
     try {
-      const {
-        error
-      } = await resetPassword(data.email);
+      const { error } = await resetPassword(data.email);
       if (!error) {
         setShowResetPassword(false);
         resetPasswordForm.reset();
@@ -193,7 +176,6 @@ const Auth = () => {
     }
   };
 
-  // Helper per mostrare lo stato di validazione
   const getFieldValidationIcon = (fieldName: keyof LoginFormData | keyof SignupFormData) => {
     const form = activeTab === "login" ? loginForm : signupForm;
     const value = form.watch(fieldName as any);
@@ -201,15 +183,15 @@ const Auth = () => {
     if (!value) return null;
     return error ? <X className="h-4 w-4 text-destructive" /> : <Check className="h-4 w-4 text-green-500" />;
   };
-  return <div className="min-h-screen flex items-center justify-center bg-background p-4">
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <img src={logo} alt="Centurion Club" className="h-48 w-auto " />
+            <img src={logo} alt="Centurion Club" className="h-48 w-auto" />
           </div>
           <CardDescription>Gestisci le tue scommesse in modo professionale</CardDescription>
-
-          
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -227,30 +209,31 @@ const Auth = () => {
 
               <Form {...loginForm}>
                 <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
-                  <FormField control={loginForm.control} name="email" render={({
-                  field
-                }) => <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Input type="email" placeholder="tua@email.com" autoFocus {...field} ref={emailInputRef} className={cn(loginForm.watch("email") && !loginForm.formState.errors.email && "border-green-500")} />
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                              {getFieldValidationIcon("email")}
-                            </div>
+                  <FormField control={loginForm.control} name="email" render={({ field }) =>
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input type="email" placeholder="tua@email.com" autoFocus {...field} ref={emailInputRef}
+                            className={cn(loginForm.watch("email") && !loginForm.formState.errors.email && "border-green-500")} />
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            {getFieldValidationIcon("email")}
                           </div>
-                        </FormControl>
-                        <FormMessage className="animate-fade-in" />
-                      </FormItem>} />
+                        </div>
+                      </FormControl>
+                      <FormMessage className="animate-fade-in" />
+                    </FormItem>}
+                  />
 
-                  <FormField control={loginForm.control} name="password" render={({
-                  field
-                }) => <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <PasswordInput placeholder="••••••" {...field} />
-                        </FormControl>
-                        <FormMessage className="animate-fade-in" />
-                      </FormItem>} />
+                  <FormField control={loginForm.control} name="password" render={({ field }) =>
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <PasswordInput placeholder="••••••" {...field} />
+                      </FormControl>
+                      <FormMessage className="animate-fade-in" />
+                    </FormItem>}
+                  />
 
                   <div className="flex items-center space-x-2">
                     <Checkbox id="remember" checked={rememberMe} onCheckedChange={checked => setRememberMe(checked as boolean)} />
@@ -263,108 +246,155 @@ const Auth = () => {
                     {isLoading ? "Accesso..." : "Accedi"}
                   </Button>
 
+                  {/* Divisore */}
+                  <div className="relative my-2">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">oppure</span>
+                    </div>
+                  </div>
+
+                  {/* Bottone Google */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={signInWithGoogle}
+                    disabled={isLoading}
+                  >
+                    <img src="https://www.google.com/favicon.ico" className="w-4 h-4 mr-2" alt="Google" />
+                    Continua con Google
+                  </Button>
+
                   <button type="button" onClick={() => {
-                  setShowResetPassword(true);
-                  const lastEmail = authStorage.getLastEmail();
-                  if (lastEmail) {
-                    resetPasswordForm.setValue("email", lastEmail);
-                  }
-                }} className="text-sm text-primary hover:underline mt-2">
+                    setShowResetPassword(true);
+                    const lastEmail = authStorage.getLastEmail();
+                    if (lastEmail) resetPasswordForm.setValue("email", lastEmail);
+                  }} className="text-sm text-primary hover:underline mt-2">
                     Password dimenticata?
                   </button>
                 </form>
               </Form>
 
-              {showResetPassword && <div className="mt-4 p-4 border rounded-md bg-muted/50 animate-fade-in">
+              {showResetPassword && (
+                <div className="mt-4 p-4 border rounded-md bg-muted/50 animate-fade-in">
                   <h3 className="text-sm font-medium mb-3">Recupera Password</h3>
                   <Form {...resetPasswordForm}>
                     <form onSubmit={resetPasswordForm.handleSubmit(handleResetPassword)} className="space-y-3">
-                      <FormField control={resetPasswordForm.control} name="email" render={({
-                    field
-                  }) => <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <Input type="email" placeholder="tua@email.com" autoFocus {...field} className={cn(resetPasswordForm.watch("email") && !resetPasswordForm.formState.errors.email && "border-green-500")} />
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                  {resetPasswordForm.watch("email") && !resetPasswordForm.formState.errors.email && <Check className="h-4 w-4 text-green-500" />}
-                                  {resetPasswordForm.formState.errors.email && <X className="h-4 w-4 text-destructive" />}
-                                </div>
+                      <FormField control={resetPasswordForm.control} name="email" render={({ field }) =>
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input type="email" placeholder="tua@email.com" autoFocus {...field}
+                                className={cn(resetPasswordForm.watch("email") && !resetPasswordForm.formState.errors.email && "border-green-500")} />
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                {resetPasswordForm.watch("email") && !resetPasswordForm.formState.errors.email && <Check className="h-4 w-4 text-green-500" />}
+                                {resetPasswordForm.formState.errors.email && <X className="h-4 w-4 text-destructive" />}
                               </div>
-                            </FormControl>
-                            <FormMessage className="animate-fade-in" />
-                          </FormItem>} />
+                            </div>
+                          </FormControl>
+                          <FormMessage className="animate-fade-in" />
+                        </FormItem>}
+                      />
                       <div className="flex gap-2">
                         <Button type="submit" disabled={isLoading} className="flex-1">
                           {isLoading ? "Invio..." : "Invia Email"}
                         </Button>
                         <Button type="button" variant="outline" onClick={() => {
-                      setShowResetPassword(false);
-                      resetPasswordForm.reset();
-                    }}>
+                          setShowResetPassword(false);
+                          resetPasswordForm.reset();
+                        }}>
                           Annulla
                         </Button>
                       </div>
                     </form>
                   </Form>
-                </div>}
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="signup" className="animate-fade-in">
               <Form {...signupForm}>
                 <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-4">
-                  <FormField control={signupForm.control} name="fullName" render={({
-                  field
-                }) => <FormItem>
-                        <FormLabel>Nome Completo</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Input placeholder="Mario Rossi" autoFocus {...field} className={cn(signupForm.watch("fullName") && !signupForm.formState.errors.fullName && "border-green-500")} />
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                              {getFieldValidationIcon("fullName")}
-                            </div>
+                  <FormField control={signupForm.control} name="fullName" render={({ field }) =>
+                    <FormItem>
+                      <FormLabel>Nome Completo</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input placeholder="Mario Rossi" autoFocus {...field}
+                            className={cn(signupForm.watch("fullName") && !signupForm.formState.errors.fullName && "border-green-500")} />
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            {getFieldValidationIcon("fullName")}
                           </div>
-                        </FormControl>
-                        <FormMessage className="animate-fade-in" />
-                      </FormItem>} />
+                        </div>
+                      </FormControl>
+                      <FormMessage className="animate-fade-in" />
+                    </FormItem>}
+                  />
 
-                  <FormField control={signupForm.control} name="email" render={({
-                  field
-                }) => <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Input type="email" placeholder="tua@email.com" {...field} className={cn(signupForm.watch("email") && !signupForm.formState.errors.email && "border-green-500")} />
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                              {getFieldValidationIcon("email")}
-                            </div>
+                  <FormField control={signupForm.control} name="email" render={({ field }) =>
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input type="email" placeholder="tua@email.com" {...field}
+                            className={cn(signupForm.watch("email") && !signupForm.formState.errors.email && "border-green-500")} />
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            {getFieldValidationIcon("email")}
                           </div>
-                        </FormControl>
-                        <FormMessage className="animate-fade-in" />
-                      </FormItem>} />
+                        </div>
+                      </FormControl>
+                      <FormMessage className="animate-fade-in" />
+                    </FormItem>}
+                  />
 
-                  <FormField control={signupForm.control} name="password" render={({
-                  field
-                }) => <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <PasswordInput placeholder="••••••" showStrengthIndicator {...field} />
-                        </FormControl>
-                        <FormMessage className="animate-fade-in" />
-                      </FormItem>} />
+                  <FormField control={signupForm.control} name="password" render={({ field }) =>
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <PasswordInput placeholder="••••••" showStrengthIndicator {...field} />
+                      </FormControl>
+                      <FormMessage className="animate-fade-in" />
+                    </FormItem>}
+                  />
 
-                  <FormField control={signupForm.control} name="confirmPassword" render={({
-                  field
-                }) => <FormItem>
-                        <FormLabel>Conferma Password</FormLabel>
-                        <FormControl>
-                          <PasswordInput placeholder="••••••" {...field} />
-                        </FormControl>
-                        <FormMessage className="animate-fade-in" />
-                      </FormItem>} />
+                  <FormField control={signupForm.control} name="confirmPassword" render={({ field }) =>
+                    <FormItem>
+                      <FormLabel>Conferma Password</FormLabel>
+                      <FormControl>
+                        <PasswordInput placeholder="••••••" {...field} />
+                      </FormControl>
+                      <FormMessage className="animate-fade-in" />
+                    </FormItem>}
+                  />
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Creazione account..." : "Crea Account"}
+                  </Button>
+
+                  {/* Divisore */}
+                  <div className="relative my-2">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">oppure</span>
+                    </div>
+                  </div>
+
+                  {/* Bottone Google anche nel signup */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={signInWithGoogle}
+                    disabled={isLoading}
+                  >
+                    <img src="https://www.google.com/favicon.ico" className="w-4 h-4 mr-2" alt="Google" />
+                    Registrati con Google
                   </Button>
                 </form>
               </Form>
@@ -372,6 +402,8 @@ const Auth = () => {
           </Tabs>
         </CardContent>
       </Card>
-    </div>;
+    </div>
+  );
 };
+
 export default Auth;
