@@ -153,8 +153,9 @@ export default function Admin() {
 
       if (error) throw error;
 
-      setUsers(data || []);
-      setFilteredUsers(data || []);
+      const parsed = (data || []) as unknown as UserProfile[];
+      setUsers(parsed);
+      setFilteredUsers(parsed);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Errore nel caricamento degli utenti');
