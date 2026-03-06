@@ -70,13 +70,12 @@ export default function Books() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Book Personali</h1>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => navigate('/impostazioni')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Torna alle Impostazioni
-          </Button>
-          <AddPublicBookDialog />
-          <Button onClick={handleNewBook}>Nuovo Book</Button>
-        </div>
+           <Button variant="outline" onClick={() => navigate('/impostazioni')}>
+             <ArrowLeft className="h-4 w-4 mr-2" />
+             Torna alle Impostazioni
+           </Button>
+           <Button onClick={handleNewBook}>Nuovo Book</Button>
+         </div>
       </div>
 
       
