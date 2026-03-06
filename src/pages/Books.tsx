@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info, ArrowLeft, Globe } from 'lucide-react';
 import { AddPublicBookDialog } from '@/components/forms/AddPublicBookDialog';
 export default function Books() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const {
     books,
