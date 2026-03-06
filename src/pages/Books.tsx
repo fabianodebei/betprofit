@@ -133,24 +133,41 @@ export default function Books() {
                 <TableCell colSpan={5} className="text-center">
                   Nessun book trovato
                 </TableCell>
-              </TableRow> : filteredBooks.map((book, index) => <TableRow key={book.id}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell className="font-medium">{book.nome}</TableCell>
-                  <TableCell>{book.metodo}</TableCell>
-                  <TableCell>
-                    <Badge variant={book.stato === 'Abilitato' ? 'success' : 'default'}>
-                      {book.stato.toUpperCase()}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button variant="link" size="sm" onClick={() => handleEdit(book)} className="text-primary">
-                      Modifica
-                    </Button>
-                    <Button variant="link" size="sm" onClick={() => handleDeleteClick(book)} className="text-destructive">
-                      Elimina
-                    </Button>
-                  </TableCell>
-                </TableRow>)}
+              </TableRow> : filteredBooks.map((book, index) => {
+                  const isPublic = book.is_public && book.user_id !== user?.id;
+                  return <TableRow key={book.id}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        {book.nome}
+                        {isPublic && (
+                          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                            <Globe className="h-3 w-3" />
+                            Pubblico
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>{book.metodo}</TableCell>
+                    <TableCell>
+                      <Badge variant={book.stato === 'Abilitato' ? 'success' : 'default'}>
+                        {book.stato.toUpperCase()}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right space-x-2">
+                      {!isPublic && (
+                        <>
+                          <Button variant="link" size="sm" onClick={() => handleEdit(book)} className="text-primary">
+                            Modifica
+                          </Button>
+                          <Button variant="link" size="sm" onClick={() => handleDeleteClick(book)} className="text-destructive">
+                            Elimina
+                          </Button>
+                        </>
+                      )}
+                    </TableCell>
+                  </TableRow>;
+                })}
           </TableBody>
         </Table>
       </div>
