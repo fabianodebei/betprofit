@@ -7,10 +7,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useBooks, Book } from '@/contexts/BookContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { BookForm } from '@/components/forms/BookForm';
 import { Badge } from '@/components/common/Badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info, ArrowLeft } from 'lucide-react';
+import { Info, ArrowLeft, Globe } from 'lucide-react';
 import { AddPublicBookDialog } from '@/components/forms/AddPublicBookDialog';
 export default function Books() {
   const navigate = useNavigate();

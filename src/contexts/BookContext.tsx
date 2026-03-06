@@ -51,10 +51,11 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
+      // Fetch user's own books AND public books
       const { data, error } = await supabase
         .from('books')
         .select('*')
-        .eq('user_id', user.id)
+        .or(`user_id.eq.${user.id},is_public.eq.true`)
         .order('nome', { ascending: true });
 
       if (error) throw error;
