@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
@@ -187,7 +187,6 @@ export type Database = {
           risultato: number | null
           stake: number
           stato: string
-          stato_evento: string | null
           tag: string | null
           tipo: string
           tipo_bonus: string | null
@@ -219,7 +218,6 @@ export type Database = {
           risultato?: number | null
           stake: number
           stato: string
-          stato_evento?: string | null
           tag?: string | null
           tipo: string
           tipo_bonus?: string | null
@@ -251,7 +249,6 @@ export type Database = {
           risultato?: number | null
           stake?: number
           stato?: string
-          stato_evento?: string | null
           tag?: string | null
           tipo?: string
           tipo_bonus?: string | null
@@ -580,21 +577,18 @@ export type Database = {
       }
       user_roles: {
         Row: {
-          created_at: string
           id: string
-          role: Database["public"]["Enums"]["app_role"]
+          role: string
           user_id: string
         }
         Insert: {
-          created_at?: string
           id?: string
-          role?: Database["public"]["Enums"]["app_role"]
+          role?: string
           user_id: string
         }
         Update: {
-          created_at?: string
           id?: string
-          role?: Database["public"]["Enums"]["app_role"]
+          role?: string
           user_id?: string
         }
         Relationships: []
@@ -710,16 +704,7 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: undefined
       }
-      admin_get_all_users: {
-        Args: never
-        Returns: {
-          created_at: string
-          email: string
-          full_name: string
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-        }[]
-      }
+      admin_get_all_users: { Args: never; Returns: Json }
       admin_get_registration_data: {
         Args: never
         Returns: {
@@ -751,10 +736,7 @@ export type Database = {
         }[]
       }
       admin_update_user_role: {
-        Args: {
-          new_role: Database["public"]["Enums"]["app_role"]
-          target_user_id: string
-        }
+        Args: { new_role: string; target_user_id: string }
         Returns: undefined
       }
       decrypt_telegram_credential: {
