@@ -36,8 +36,12 @@ const KPIItem = ({ label, value, icon: Icon, accentColor, subtext }: KPIItemProp
 );
 
 export const PlatformKPICards = ({ totalUsers, activeUsers, totalBets, totalEarnings, newUsersMonth }: PlatformKPICardsProps) => {
+  const annualRevenue = totalUsers * 899;
+  const mrr = annualRevenue / 12;
+  const newMRR = newUsersMonth * (899 / 12);
+
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 md:gap-4">
       <KPIItem
         label="Utenti Totali"
         value={String(totalUsers)}
@@ -53,17 +57,24 @@ export const PlatformKPICards = ({ totalUsers, activeUsers, totalBets, totalEarn
         subtext="Ultimi 30 giorni"
       />
       <KPIItem
+        label="Revenue Totale"
+        value={formatCurrency(annualRevenue)}
+        icon={DollarSign}
+        accentColor="bg-success/15 text-success"
+        subtext={`${totalUsers} × €899/anno`}
+      />
+      <KPIItem
+        label="MRR"
+        value={formatCurrency(mrr)}
+        icon={TrendingUp}
+        accentColor="bg-accent/15 text-accent"
+        subtext={`+${formatCurrency(newMRR)} nuovo`}
+      />
+      <KPIItem
         label="Bets Totali"
         value={totalBets.toLocaleString('it-IT')}
         icon={BarChart3}
-        accentColor="bg-accent/15 text-accent"
-      />
-      <KPIItem
-        label="Revenue Totale"
-        value={formatCurrency(totalUsers * 899)}
-        icon={DollarSign}
-        accentColor="bg-success/15 text-success"
-        subtext={`${totalUsers} utenti × €899/anno`}
+        accentColor="bg-chart-3/15 text-info"
       />
       <KPIItem
         label="Churn Rate"
