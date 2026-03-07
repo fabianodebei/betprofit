@@ -153,7 +153,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                         <div className="flex items-center gap-2">
                           <Copy className="h-4 w-4" />
                           {betLegs.length > 0 
-                            ? betLegs.map(leg => leg.evento).join(', ')
+                            ? [...betLegs].sort((a, b) => new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime())[0].evento
                             : bet.evento || 'MULTIPLA'}
                         </div>
                       </TableCell>
