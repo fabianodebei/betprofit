@@ -8,6 +8,7 @@ export interface FilterState {
   bookmakers: string[];
   tags: string[];
   betTypes: string[];
+  intestatari: string[];
   stakeMin: number | null;
   stakeMax: number | null;
 }
