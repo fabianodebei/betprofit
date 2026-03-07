@@ -80,9 +80,6 @@ export function Header() {
                   {item.name}
                 </Link>;
           })}
-            <Button variant="ghost" size="sm" onClick={() => setSearchOpen(true)} className="ml-2 text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground">
-              <Search className="h-4 w-4" />
-            </Button>
             <Button variant="ghost" size="sm" onClick={toggleTheme} className="text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground">
               {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
