@@ -88,7 +88,6 @@ export function ROIByBookmakerChart({
                 <Cell 
                   key={`cell-${index}`} 
                   fill={entry.roi >= 0 ? 'hsl(var(--success))' : 'hsl(var(--destructive))'} 
-                  radius={entry.roi >= 0 ? [4, 4, 0, 0] : [0, 0, 4, 4]}
                 />
               ))}
             </Bar>
