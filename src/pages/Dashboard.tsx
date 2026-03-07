@@ -276,20 +276,73 @@ export default function Dashboard() {
 
 
 
-  const chartData = [
-    { month: 'Gen', earnings: monthlyEarnings[0] },
-    { month: 'Feb', earnings: monthlyEarnings[1] },
-    { month: 'Mar', earnings: monthlyEarnings[2] },
-    { month: 'Apr', earnings: monthlyEarnings[3] },
-    { month: 'Mag', earnings: monthlyEarnings[4] },
-    { month: 'Giu', earnings: monthlyEarnings[5] },
-    { month: 'Lug', earnings: monthlyEarnings[6] },
-    { month: 'Ago', earnings: monthlyEarnings[7] },
-    { month: 'Set', earnings: monthlyEarnings[8] },
-    { month: 'Ott', earnings: monthlyEarnings[9] },
-    { month: 'Nov', earnings: monthlyEarnings[10] },
-    { month: 'Dic', earnings: monthlyEarnings[11] },
-  ];
+  // Helper: get bet earning (archived result + lay results, or quick stake)
+  const getBetEarning = (bet: typeof bets[0]) => {
+    if (bet.tipo === 'Rapida') return bet.stake;
+    if (bet.stato !== 'Archiviata') return 0;
+    const betResult = bet.risultato || 0;
+    const layResult = calculateLayBetResults(bet.id, bet.esito || 'refund', bet.esitoDettaglio);
+    return betResult + layResult;
+  };
+
+  const chartData = useMemo(() => {
+    const now = new Date();
+    
+    if (trendPeriod === 'day') {
+      // 24 hours of today
+      const dayStart = startOfDay(now);
+      const hours = Array.from({ length: 24 }, (_, i) => addHours(dayStart, i));
+      return hours.map(hour => {
+        const nextHour = addHours(hour, 1);
+        const earnings = bets
+          .filter(b => b.createdAt >= hour && b.createdAt < nextHour)
+          .reduce((sum, b) => sum + getBetEarning(b), 0);
+        return { label: format(hour, 'HH:mm'), earnings };
+      });
+    }
+    
+    if (trendPeriod === 'week') {
+      const weekStart = startOfWeek(now, { locale: it, weekStartsOn: 1 });
+      const weekEnd = endOfWeek(now, { locale: it, weekStartsOn: 1 });
+      const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
+      return days.map(day => {
+        const dayEnd = endOfDay(day);
+        const earnings = bets
+          .filter(b => b.createdAt >= day && b.createdAt <= dayEnd)
+          .reduce((sum, b) => sum + getBetEarning(b), 0);
+        return { label: format(day, 'EEE', { locale: it }), earnings };
+      });
+    }
+    
+    if (trendPeriod === 'month') {
+      const monthStart = startOfMonth(now);
+      const monthEnd = endOfMonth(now);
+      const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+      return days.map(day => {
+        const dayEnd = endOfDay(day);
+        const earnings = bets
+          .filter(b => b.createdAt >= day && b.createdAt <= dayEnd)
+          .reduce((sum, b) => sum + getBetEarning(b), 0);
+        return { label: format(day, 'd'), earnings };
+      });
+    }
+    
+    // year (default)
+    return [
+      { label: 'Gen', earnings: monthlyEarnings[0] },
+      { label: 'Feb', earnings: monthlyEarnings[1] },
+      { label: 'Mar', earnings: monthlyEarnings[2] },
+      { label: 'Apr', earnings: monthlyEarnings[3] },
+      { label: 'Mag', earnings: monthlyEarnings[4] },
+      { label: 'Giu', earnings: monthlyEarnings[5] },
+      { label: 'Lug', earnings: monthlyEarnings[6] },
+      { label: 'Ago', earnings: monthlyEarnings[7] },
+      { label: 'Set', earnings: monthlyEarnings[8] },
+      { label: 'Ott', earnings: monthlyEarnings[9] },
+      { label: 'Nov', earnings: monthlyEarnings[10] },
+      { label: 'Dic', earnings: monthlyEarnings[11] },
+    ];
+  }, [trendPeriod, bets, monthlyEarnings]);
 
   const newReminders = reminders.filter(r => r.stato === 'Nuovo');
   const readReminders = reminders.filter(r => r.stato === 'Letto');
