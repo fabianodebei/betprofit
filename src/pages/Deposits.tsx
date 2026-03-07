@@ -366,17 +366,21 @@ export default function Deposits() {
                 </thead>
                 <tbody>
                   {filteredTransactions.map((transaction, idx) => {
-                    const account = accounts.find(acc => acc.conto === transaction.conto);
-                    const wallet = wallets.find(w => 
-                      w.nome === transaction.wallet && 
-                      w.intestatario === transaction.intestatario
+                    const txIntestatario = getTransactionIntestatario(transaction);
+                    const account = accounts.find(acc =>
+                      acc.conto === transaction.conto && acc.intestatario === txIntestatario
                     );
+                    const wallet = wallets.find(w =>
+                      w.nome === transaction.wallet &&
+                      w.intestatario === txIntestatario
+                    );
+
                     return (
                       <tr key={transaction.id} className="border-b hover:bg-muted/20">
                         <td className="p-3 text-sm">{idx + 1}</td>
                         <td className="p-3 text-sm">{transaction.metodo}</td>
                         <td className="p-3 text-sm">{formatDateTime(transaction.registrato)}</td>
-                        <td className="p-3 text-sm">{transaction.conto}{account && ` - ${account.intestatario}`}</td>
+                        <td className="p-3 text-sm">{transaction.conto}{txIntestatario && ` - ${txIntestatario}`}</td>
                         <td className="p-3 text-sm font-semibold text-destructive">
                           {transaction.addebito && transaction.addebito > 0 ? formatCurrency(-transaction.addebito) : ''}
                         </td>
