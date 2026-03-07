@@ -245,7 +245,21 @@ const TelegramSettings = () => {
                         const payload = await response.json().catch(() => null);
 
                         if (!response.ok || !payload?.success) {
-                          throw new Error(payload?.error || 'Invio test fallito. Controlla token e chat ID.');
+                          const errorMessage = payload?.error || 'Invio test fallito. Controlla token e chat ID.';
+
+                          if (errorMessage.includes('non decifrabili')) {
+                            setHasCredentials(false);
+                            form.setError('telegram_bot_token', {
+                              type: 'manual',
+                              message: 'Reinserisci il BOT Token e salva per rigenerare le credenziali.',
+                            });
+                            form.setError('telegram_chat_id', {
+                              type: 'manual',
+                              message: 'Reinserisci il Chat ID e salva per rigenerare le credenziali.',
+                            });
+                          }
+
+                          throw new Error(errorMessage);
                         }
 
                         toast.success('Messaggio di test inviato su Telegram');
