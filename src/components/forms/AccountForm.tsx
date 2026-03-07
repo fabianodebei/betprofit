@@ -89,9 +89,28 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
         stato: data.stato,
       });
     } else {
+      // Se esiste già un conto con lo stesso book ma intestatario diverso, disambigua il nome
+      const existingWithSameBook = accounts.filter(a => a.conto === data.conto || a.conto.startsWith(data.conto + ' - '));
+      const hasDifferentIntestatario = existingWithSameBook.some(a => a.intestatario !== data.intestatario);
+      const hasSameIntestatario = existingWithSameBook.some(a => a.intestatario === data.intestatario);
+      
+      let contoName = data.conto;
+      if (hasDifferentIntestatario || hasSameIntestatario) {
+        // Sempre disambigua se ci sono già conti con lo stesso book
+        contoName = `${data.conto} - ${data.intestatario}`;
+        
+        // Rinomina anche i conti esistenti con lo stesso book che non hanno ancora il suffisso
+        for (const existing of existingWithSameBook) {
+          if (existing.conto === data.conto) {
+            const newName = `${data.conto} - ${existing.intestatario}`;
+            await updateAccount(existing.id, { conto: newName });
+          }
+        }
+      }
+      
       await addAccount({
         intestatario: data.intestatario,
-        conto: data.conto,
+        conto: contoName,
         descrizione: data.descrizione,
         stato: data.stato,
       });
