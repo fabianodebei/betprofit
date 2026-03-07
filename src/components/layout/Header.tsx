@@ -92,6 +92,9 @@ export function Header() {
             <Button variant="ghost" size="sm" onClick={() => setSearchOpen(true)} className="ml-2 text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground">
               <Search className="h-4 w-4" />
             </Button>
+            <Button variant="ghost" size="sm" onClick={toggleTheme} className="text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground">
+              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
             <Link to="/impostazioni" className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${isActive('/impostazioni') ? 'bg-primary-foreground/20 text-primary-foreground' : 'text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground'}`}>
               <Settings className="h-5 w-5" />
             </Link>
