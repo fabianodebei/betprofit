@@ -472,30 +472,6 @@ export default function Admin() {
             </div>
           )}
 
-          {/* ============ STATISTICS TAB ============ */}
-          {activeTab === 'statistics' && (
-            <div className="space-y-6">
-              {/* KPI recap */}
-              <PlatformKPICards
-                totalUsers={systemStats?.totalUsers || 0}
-                activeUsers={systemStats?.activeUsers || 0}
-                totalEarnings={totalEarnings}
-                newUsersMonth={systemStats?.newUsersThisMonth || 0}
-              />
-
-              {/* Charts */}
-              <div className="grid gap-4 lg:grid-cols-2">
-                <UserRegistrationChart data={registrationData} height={350} />
-                <UserEarningsChart data={userEarnings} height={350} />
-              </div>
-
-              {/* Revenue users table */}
-              <RevenueUsersTable users={userEarnings} />
-
-              {/* Earnings chart */}
-              <UserEarningsChart data={userEarnings} height={400} />
-            </div>
-          )}
         </div>
       </div>
 
