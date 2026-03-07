@@ -1,0 +1,1 @@
+DELETE FROM notification_logs WHERE reference_id = 'c9423dc9-40ae-419e-805c-7608e4d6e8fd' AND type = 'bet';
