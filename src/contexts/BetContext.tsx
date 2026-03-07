@@ -70,6 +70,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
         id: b.id,
         tipo: b.tipo as 'Singola' | 'Multipla' | 'Casino' | 'Rapida',
         conto: b.conto,
+        intestatario: b.intestatario || undefined,
         stake: Number(b.stake),
         quota: b.quota ? Number(b.quota) : undefined,
         evento: b.evento || undefined,
