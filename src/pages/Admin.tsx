@@ -483,7 +483,7 @@ export default function Admin() {
               {/* Charts */}
               <div className="grid gap-4 lg:grid-cols-2">
                 <UserRegistrationChart data={registrationData} height={350} />
-                <BookmakerDistributionChart data={bookmakerData} height={350} />
+                <UserEarningsChart data={userEarnings} height={350} />
               </div>
 
               {/* Revenue users table */}
