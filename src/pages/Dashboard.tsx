@@ -165,11 +165,21 @@ export default function Dashboard() {
   const bestMonthName = monthNames[bestMonthIndex];
 
   // Analytics calculations - include archived bets AND quick bets AND lay bets
+  // Filtrate per intestatario selezionato
   const bookmakerStats = useMemo(() => {
     const stats = new Map();
     
+    // Se c'è un filtro intestatario, filtra le bet per i conti di quell'intestatario
+    const allowedConti = selectedIntestatario 
+      ? new Set(filteredAccounts.map(a => a.conto))
+      : null;
+    
+    const filteredBets = allowedConti 
+      ? bets.filter(bet => allowedConti.has(bet.conto))
+      : bets;
+    
     // Add ALL bets (archived + ongoing)
-    bets.forEach(bet => {
+    filteredBets.forEach(bet => {
       if (!stats.has(bet.conto)) {
         stats.set(bet.conto, { stake: 0, profitto: 0, count: 0 });
       }
@@ -187,33 +197,30 @@ export default function Dashboard() {
     });
 
   // Add lay bets results for archived bets
-  bets.filter(b => b.stato === 'Archiviata' && b.esito).forEach(bet => {
+  filteredBets.filter(b => b.stato === 'Archiviata' && b.esito).forEach(bet => {
     const layBetsForBet = layBets.filter(lb => 
       lb.parentBetId === bet.id && 
       lb.metodo === 'Banca' && 
-      ['Vinto', 'Perso', 'In Corso'].includes(lb.stato) // Solo bancate effettivamente giocate
+      ['Vinto', 'Perso', 'In Corso'].includes(lb.stato)
     );
     
     layBetsForBet.forEach(lb => {
+      if (allowedConti && !allowedConti.has(lb.conto)) return;
+      
       if (!stats.has(lb.conto)) {
         stats.set(lb.conto, { stake: 0, profitto: 0, count: 0 });
       }
       const s = stats.get(lb.conto);
-      // Add lay bet stake to total stake
       s.stake += lb.stake;
       s.count += 1;
       
-      // Calcola la quota parte di questo lay
       if (bet.esito === 'win') {
-        // Punta vinta -> bancata perde (liability)
         s.profitto -= lb.stake * (lb.quotaBanca - 1);
       } else if (bet.esito === 'loss' && bet.esitoDettaglio === lb.id) {
-        // Questo lay ha vinto
         const profittoLordo = lb.stake;
         const tasse = profittoLordo * (lb.tassePercentuale / 100);
         s.profitto += profittoLordo - tasse;
       } else if (bet.esito === 'loss' && bet.esitoDettaglio && lb.stato === 'Perso') {
-        // Lay precedenti a quello vincente perdono (solo se erano stati attivati)
         s.profitto -= lb.stake * (lb.quotaBanca - 1);
       }
     });
@@ -224,7 +231,7 @@ export default function Dashboard() {
       ...data,
       roi: data.stake > 0 ? (data.profitto / data.stake) * 100 : 0
     }));
-  }, [bets, layBets]);
+  }, [bets, layBets, selectedIntestatario, filteredAccounts]);
 
   const winRateRegular = useMemo(() => {
     const regularBets = archivedBets.filter(b => b.tipo !== 'Rapida');
