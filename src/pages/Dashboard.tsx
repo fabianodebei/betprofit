@@ -127,7 +127,7 @@ export default function Dashboard() {
            bet.createdAt.getFullYear() === selectedYear
   );
   
-  const currentMonthQuickEarnings = currentMonthQuickBets.reduce((sum, bet) => sum + bet.stake, 0);
+  const currentMonthQuickEarnings = currentMonthQuickBets.reduce((sum, bet) => sum + (bet.risultato || 0), 0);
   
   // Total current month earnings (archived + quick)
   const currentMonthEarnings = isCurrentYear ? currentMonthArchivedEarnings + currentMonthQuickEarnings : 0;
@@ -141,7 +141,7 @@ export default function Dashboard() {
     const layResult = calculateLayBetResults(bet.id, bet.esito || 'refund', bet.esitoDettaglio);
     return sum + betResult + layResult;
   }, 0);
-  const totalYearQuick = yearQuickBets.reduce((sum, bet) => sum + bet.stake, 0);
+  const totalYearQuick = yearQuickBets.reduce((sum, bet) => sum + (bet.risultato || 0), 0);
   const totalYear = totalYearArchived + totalYearQuick;
   
   // Calculate monthly earnings for the chart (archived + quick)
@@ -155,7 +155,7 @@ export default function Dashboard() {
   });
   yearQuickBets.forEach(bet => {
     const month = bet.createdAt.getMonth();
-    monthlyEarnings[month] += bet.stake;
+    monthlyEarnings[month] += bet.risultato || 0;
   });
   
   const monthlyAverage = totalYear / 12;
@@ -185,7 +185,7 @@ export default function Dashboard() {
         stats.set(bet.conto, { stake: 0, profitto: 0, count: 0 });
       }
       const s = stats.get(bet.conto);
-      s.stake += bet.stake;
+      s.stake += Math.abs(bet.stake);
       
       // profitto is always the risultato (net result)
       s.profitto += bet.risultato || 0;
@@ -207,7 +207,7 @@ export default function Dashboard() {
         stats.set(lb.conto, { stake: 0, profitto: 0, count: 0 });
       }
       const s = stats.get(lb.conto);
-      s.stake += lb.stake;
+      s.stake += Math.abs(lb.stake);
       s.count += 1;
       
       if (bet.esito === 'win') {
@@ -296,7 +296,7 @@ export default function Dashboard() {
 
   // Helper: get bet earning (archived result + lay results, or quick stake)
   const getBetEarning = (bet: typeof bets[0]) => {
-    if (bet.tipo === 'Rapida') return bet.stake;
+    if (bet.tipo === 'Rapida') return bet.risultato || 0;
     if (bet.stato !== 'Archiviata') return 0;
     const betResult = bet.risultato || 0;
     const layResult = calculateLayBetResults(bet.id, bet.esito || 'refund', bet.esitoDettaglio);
