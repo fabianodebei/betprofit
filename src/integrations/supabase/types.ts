@@ -530,6 +530,7 @@ export type Database = {
           conto: string
           descrizione: string | null
           id: string
+          intestatario: string | null
           metodo: string
           registrato: string
           user_id: string
@@ -543,6 +544,7 @@ export type Database = {
           conto: string
           descrizione?: string | null
           id?: string
+          intestatario?: string | null
           metodo: string
           registrato?: string
           user_id: string
@@ -556,6 +558,7 @@ export type Database = {
           conto?: string
           descrizione?: string | null
           id?: string
+          intestatario?: string | null
           metodo?: string
           registrato?: string
           user_id?: string

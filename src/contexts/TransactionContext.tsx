@@ -47,11 +47,11 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         (accountsData || []).map(acc => [acc.conto, acc.intestatario])
       );
 
-      const mappedTransactions: Transaction[] = (data || []).map((t) => ({
+      const mappedTransactions: Transaction[] = (data || []).map((t: any) => ({
         id: t.id,
         metodo: t.metodo as 'Deposito' | 'Spesa' | 'Prelievo',
         conto: t.conto,
-        intestatario: accountsMap.get(t.conto),
+        intestatario: t.intestatario || accountsMap.get(t.conto),
         wallet: t.wallet || undefined,
         addebito: t.addebito ? Number(t.addebito) : undefined,
         accredito: t.accredito ? Number(t.accredito) : undefined,
@@ -76,34 +76,24 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         .insert({
           metodo: transaction.metodo,
           conto: transaction.conto,
+          intestatario: transaction.intestatario || null,
           wallet: transaction.wallet || null,
           addebito: transaction.addebito || null,
           accredito: transaction.accredito || null,
           descrizione: transaction.descrizione || null,
           registrato: transaction.registrato.toISOString(),
           user_id: user.id,
-        })
+        } as any)
         .select()
         .single();
 
       if (error) throw error;
 
-      // Fetch intestatario for this conto to enrich local state
-      let txIntestatario: string | undefined = undefined;
-      try {
-        const { data: acc } = await supabase
-          .from('accounts')
-          .select('intestatario')
-          .eq('conto', data.conto)
-          .single();
-        txIntestatario = acc?.intestatario;
-      } catch {}
-
       const newTransaction: Transaction = {
         id: data.id,
         metodo: data.metodo as 'Deposito' | 'Spesa' | 'Prelievo',
         conto: data.conto,
-        intestatario: txIntestatario,
+        intestatario: transaction.intestatario,
         wallet: data.wallet || undefined,
         addebito: data.addebito ? Number(data.addebito) : undefined,
         accredito: data.accredito ? Number(data.accredito) : undefined,
@@ -122,6 +112,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       const dbUpdates: any = {};
       if (updates.metodo !== undefined) dbUpdates.metodo = updates.metodo;
       if (updates.conto !== undefined) dbUpdates.conto = updates.conto;
+      if (updates.intestatario !== undefined) dbUpdates.intestatario = updates.intestatario;
       if (updates.wallet !== undefined) dbUpdates.wallet = updates.wallet;
       if (updates.addebito !== undefined) dbUpdates.addebito = updates.addebito;
       if (updates.accredito !== undefined) dbUpdates.accredito = updates.accredito;

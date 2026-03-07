@@ -163,6 +163,7 @@ export function TransactionForm({ open, onOpenChange, preselectedAccount }: Tran
     await addTransaction({
       metodo: data.metodo,
       conto: data.conto,
+      intestatario: selectedIntestatario || undefined,
       wallet: metodo === 'Riconciliazione' ? undefined : data.wallet,
       addebito,
       accredito,

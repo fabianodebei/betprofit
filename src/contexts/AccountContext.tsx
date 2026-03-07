@@ -241,15 +241,15 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       });
 
       // Ricalcola saldo_attuale dalle transazioni (depositi/prelievi)
-      // Transactions use conto name only (no intestatario yet)
       const { data: transactionsData } = await supabase
         .from('transactions')
-        .select('conto, metodo, accredito, addebito')
+        .select('conto, metodo, accredito, addebito, intestatario')
         .eq('user_id', user.id);
 
       const saldoDisponibileMap: Record<string, number> = {};
       (transactionsData || []).forEach((t: any) => {
-        const conto = t.conto as string;
+        const intestatario = t.intestatario as string | null;
+        const conto = intestatario ? getAccountKey(t.conto, intestatario) : t.conto as string;
         if (!saldoDisponibileMap[conto]) saldoDisponibileMap[conto] = 0;
         
         if (t.metodo === 'Deposito') {
@@ -269,7 +269,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         // Prova prima la chiave composita, poi fallback a solo conto (per bet/transazioni vecchie senza intestatario)
         const newBG = Number(((giocateMap[accKey] ?? giocateMap[acc.conto]) ?? 0).toFixed(4));
         const newBR = Number(((rapideMap[accKey] ?? rapideMap[acc.conto]) ?? 0).toFixed(4));
-        const saldoBase = saldoDisponibileMap[acc.conto] ?? 0;
+        const saldoBase = saldoDisponibileMap[accKey] ?? saldoDisponibileMap[acc.conto] ?? 0;
         const newSaldo = Number((saldoBase + newBG + newBR).toFixed(4));
         
         const bgDiff = Math.abs(newBG - acc.bilancioGiocate);
