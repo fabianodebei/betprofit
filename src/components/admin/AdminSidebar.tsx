@@ -12,7 +12,6 @@ interface AdminSidebarProps {
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'users', label: 'Utenti', icon: Users },
-  { id: 'statistics', label: 'Statistiche', icon: BarChart3 },
 ];
 
 export const AdminSidebar = ({ activeTab, onTabChange, collapsed, onToggleCollapse }: AdminSidebarProps) => {
