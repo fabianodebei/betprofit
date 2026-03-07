@@ -404,13 +404,24 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       if (!accountToDelete) throw new Error('Account non trovato');
 
       // Elimina prima i movimenti collegati al conto per evitare vincoli FK su transactions.account_id
-      const { error: txError } = await supabase
+      const { error: txByAccountIdError } = await supabase
         .from('transactions')
         .delete()
         .eq('user_id', user.id)
-        .or(`account_id.eq.${id},and(conto.eq.${accountToDelete.conto},intestatario.eq.${accountToDelete.intestatario})`);
+        .eq('account_id', id);
 
-      if (txError) throw txError;
+      if (txByAccountIdError) throw txByAccountIdError;
+
+      // Cleanup legacy movimenti senza account_id ma legati a conto + intestatario
+      const { error: txLegacyError } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('user_id', user.id)
+        .is('account_id', null)
+        .eq('conto', accountToDelete.conto)
+        .eq('intestatario', accountToDelete.intestatario);
+
+      if (txLegacyError) throw txLegacyError;
 
       const { error } = await supabase
         .from('accounts')
