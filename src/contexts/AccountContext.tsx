@@ -124,19 +124,18 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         createdAt: new Date(a.created_at),
       }));
 
-      const legacyOwnerIdByConto = mappedAccounts.reduce<Record<string, string>>((acc, account) => {
+      const oldestAccountByConto = mappedAccounts.reduce<Record<string, { id: string; createdAtMs: number }>>((acc, account) => {
+        const createdAtMs = account.createdAt.getTime();
         const existing = acc[account.conto];
-        if (!existing) {
-          acc[account.conto] = account.id;
-          return acc;
-        }
-
-        const existingAccount = mappedAccounts.find(a => a.id === existing);
-        if (!existingAccount || account.createdAt < existingAccount.createdAt) {
-          acc[account.conto] = account.id;
+        if (!existing || createdAtMs < existing.createdAtMs) {
+          acc[account.conto] = { id: account.id, createdAtMs };
         }
         return acc;
       }, {});
+
+      const legacyOwnerIdByConto = Object.fromEntries(
+        Object.entries(oldestAccountByConto).map(([conto, value]) => [conto, value.id])
+      );
 
       // Recalcolo bilanci dalle puntate per correggere eventuali inconsistenze
       const { data: betsData, error: betsError } = await supabase
