@@ -155,7 +155,7 @@ export default function Dashboard() {
   });
   yearQuickBets.forEach(bet => {
     const month = bet.createdAt.getMonth();
-    monthlyEarnings[month] += bet.stake;
+    monthlyEarnings[month] += bet.risultato || 0;
   });
   
   const monthlyAverage = totalYear / 12;
