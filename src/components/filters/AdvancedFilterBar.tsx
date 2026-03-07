@@ -188,7 +188,25 @@ export function AdvancedFilterBar({
                 </div>
               )}
 
-              {/* Bet Types */}
+              {/* Intestatari */}
+              {availableIntestatari.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-xs">Intestatario</Label>
+                  <div className="flex flex-wrap gap-1">
+                    {availableIntestatari.map(int => (
+                      <Badge
+                        key={int}
+                        variant={filters.intestatari.includes(int) ? "default" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => toggleArrayFilter('intestatari', int)}
+                      >
+                        {int}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label className="text-xs">Tipo Scommessa</Label>
                 <div className="flex flex-wrap gap-1">
