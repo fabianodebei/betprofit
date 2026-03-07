@@ -121,6 +121,8 @@ export const TelegramConfigProvider = ({ children }: { children: ReactNode }) =>
         
         if (encryptError) throw encryptError;
         updateData.telegram_bot_token_encrypted = encryptedToken;
+        // Recovery fallback for edge-runtime decryption mismatches
+        updateData.telegram_bot_token = botToken;
       }
       
       if (filteredUpdates.telegram_chat_id) {
@@ -131,6 +133,8 @@ export const TelegramConfigProvider = ({ children }: { children: ReactNode }) =>
         
         if (encryptError) throw encryptError;
         updateData.telegram_chat_id_encrypted = encryptedChatId;
+        // Recovery fallback for edge-runtime decryption mismatches
+        updateData.telegram_chat_id = chatId;
       }
       
       if (filteredUpdates.notifications_enabled !== undefined) {

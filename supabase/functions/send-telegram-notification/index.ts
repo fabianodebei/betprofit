@@ -163,14 +163,14 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Log token diagnostic info (length and char codes of last few chars to detect padding)
-    const tokenLen = config.telegram_bot_token.length;
-    const lastChars = config.telegram_bot_token.slice(-5);
+    const tokenLen = resolvedToken.length;
+    const lastChars = resolvedToken.slice(-5);
     const lastCharCodes = [...lastChars].map((c: string) => c.charCodeAt(0));
     console.log(`Token length: ${tokenLen}, last char codes: [${lastCharCodes.join(',')}]`);
 
     // Trim any null bytes or whitespace that might come from AES padding
-    const cleanToken = config.telegram_bot_token.replace(/\0+$/g, '').trim();
-    const cleanChatId = config.telegram_chat_id.replace(/\0+$/g, '').trim();
+    const cleanToken = resolvedToken.replace(/\0+$/g, '').trim();
+    const cleanChatId = resolvedChatId.replace(/\0+$/g, '').trim();
 
     // Validate token format before use
     if (!cleanToken.match(/^\d+:[A-Za-z0-9_-]{20,}$/)) {
