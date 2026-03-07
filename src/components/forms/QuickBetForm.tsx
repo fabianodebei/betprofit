@@ -158,6 +158,7 @@ export function QuickBetForm({
       await addBet({
         tipo: 'Rapida',
         conto: data.conto,
+        intestatario: data.intestatario,
         stake: data.movimento,
         metodo: data.metodo,
         stato: 'Archiviata',
