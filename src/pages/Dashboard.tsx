@@ -270,26 +270,8 @@ export default function Dashboard() {
     return totalStake > 0 ? (totalProfitto / totalStake) * 100 : 0;
   }, [archivedBets, layBets]);
 
-  const betTypeDistribution = useMemo(() => {
-    const types = new Map();
-    bets.forEach(bet => {
-      if (!types.has(bet.tipo)) {
-        types.set(bet.tipo, { value: 0, count: 0 });
-      }
-      const t = types.get(bet.tipo);
-      t.value += bet.stake;
-      t.count += 1;
-    });
-    
-    const total = Array.from(types.values()).reduce((sum, t) => sum + t.value, 0);
-    return Array.from(types.entries()).map(([name, data]) => ({
-      name,
-      ...data,
-      percentage: total > 0 ? (data.value / total) * 100 : 0
-    }));
-  }, [bets]);
 
-  const insights = useMemo(() => generateInsights(bets, selectedYear), [bets, selectedYear]);
+
 
   const chartData = [
     { month: 'Gen', earnings: monthlyEarnings[0] },
