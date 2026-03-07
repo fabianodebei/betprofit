@@ -326,6 +326,9 @@ export default function Admin() {
                 <UserEarningsChart data={userEarnings} height={300} />
               </div>
 
+              {/* Revenue Users */}
+              <RevenueUsersTable users={userEarnings} />
+
             </>
           )}
 
