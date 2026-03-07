@@ -153,7 +153,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Validate chat ID format
-    if (!config.telegram_chat_id.match(/^-?\d+$/)) {
+    if (!cleanChatId.match(/^-?\d+$/)) {
       console.error('Invalid chat ID format in database');
       return new Response(
         JSON.stringify({ success: false, error: 'Invalid Telegram configuration' }),
@@ -161,7 +161,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const telegramUrl = `https://api.telegram.org/bot${config.telegram_bot_token}/sendMessage`;
+    const telegramUrl = `https://api.telegram.org/bot${cleanToken}/sendMessage`;
 
     console.log('Sending notification');
 
@@ -171,7 +171,7 @@ const handler = async (req: Request): Promise<Response> => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        chat_id: config.telegram_chat_id,
+        chat_id: cleanChatId,
         text: message,
         parse_mode: 'HTML',
       }),
