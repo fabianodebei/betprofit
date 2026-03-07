@@ -157,7 +157,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                             : bet.evento || 'MULTIPLA'}
                         </div>
                       </TableCell>
-                      <TableCell>{betLegs.length > 0 ? betLegs[0].competizione : '-'}</TableCell>
+                      <TableCell>{betLegs.length > 0 ? [...betLegs].sort((a, b) => new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime())[0].competizione || '-' : '-'}</TableCell>
                       <TableCell>Multipla</TableCell>
                       <TableCell>
                         <Badge>Punta</Badge>
