@@ -50,7 +50,6 @@ const navigation = [{
 }];
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const {
     selectedYear,
     setSelectedYear
