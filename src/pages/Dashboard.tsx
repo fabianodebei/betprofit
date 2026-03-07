@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { startOfDay, startOfWeek, startOfMonth, endOfDay, endOfWeek, endOfMonth, format, eachDayOfInterval, eachHourOfInterval, addHours } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { TrendingUp, Calendar, Trophy, Wallet, BarChart3 } from 'lucide-react';
+import { TrendingUp, Calendar, Trophy, Wallet, BarChart3, CreditCard } from 'lucide-react';
 import { AdvancedKPICard } from '@/components/dashboard/AdvancedKPICard';
 import { ROIByBookmakerChart } from '@/components/dashboard/ROIByBookmakerChart';
 import { TrendChart, TrendPeriod } from '@/components/dashboard/TrendChart';
@@ -513,17 +513,32 @@ export default function Dashboard() {
               </p>
             ) : (
               <div className="space-y-3">
-                {wallets.map(wallet => (
-                  <div key={wallet.id} className="flex items-center justify-between rounded-lg border p-3">
-                    <div>
-                      <div className="font-semibold text-sm">{wallet.nome}</div>
-                      <div className="text-xs text-muted-foreground">{wallet.intestatario}</div>
+                {wallets.map(wallet => {
+                  const isPaypal = wallet.nome.toLowerCase().includes('paypal');
+                  return (
+                    <div key={wallet.id} className="flex items-center gap-3 justify-between rounded-lg border p-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${isPaypal ? 'bg-blue-100 dark:bg-blue-900/40' : 'bg-muted'}`}>
+                          {isPaypal ? (
+                            <svg viewBox="0 0 24 24" className="h-5 w-5 text-blue-600 dark:text-blue-400" fill="currentColor">
+                              <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 2.23A.773.773 0 0 1 5.707 1.6h6.153c2.036 0 3.632.567 4.746 1.687 1.078 1.084 1.49 2.59 1.223 4.476-.018.129-.04.263-.066.4a7.09 7.09 0 0 1-.253 1.046c-.86 2.737-3.168 4.085-6.39 4.085H9.405a.773.773 0 0 0-.763.658l-.862 5.455a.641.641 0 0 1-.633.54l-.07-.01z"/>
+                              <path d="M18.813 7.37c-.064.397-.144.803-.244 1.22-1.103 4.213-4.158 5.66-8.262 5.66h-1.15a1.01 1.01 0 0 0-.998.858l-.588 3.724-.334 2.12a.531.531 0 0 0 .525.615h3.676a.885.885 0 0 0 .874-.747l.036-.186.691-4.383.045-.242a.885.885 0 0 1 .874-.748h.55c3.562 0 6.348-1.447 7.163-5.632.34-1.75.164-3.21-.735-4.235a3.532 3.532 0 0 0-1.013-.805c-.12.197-.232.389-.36.58z" opacity=".7"/>
+                            </svg>
+                          ) : (
+                            <CreditCard className="h-5 w-5 text-muted-foreground" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-sm">{wallet.nome}</div>
+                          <div className="text-xs text-muted-foreground">{wallet.intestatario}</div>
+                        </div>
+                      </div>
+                      <div className={`font-bold text-sm ${wallet.saldoAttuale >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(wallet.saldoAttuale)}
+                      </div>
                     </div>
-                    <div className={`font-bold text-sm ${wallet.saldoAttuale >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                      {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(wallet.saldoAttuale)}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
                 <div className="flex items-center justify-between rounded-lg bg-muted p-3 mt-2">
                   <span className="font-semibold text-sm">Totale Wallet</span>
                   <span className={`font-bold ${wallets.reduce((s, w) => s + (w.stato === 'Abilitato' ? w.saldoAttuale : 0), 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
