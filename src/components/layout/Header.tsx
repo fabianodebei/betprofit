@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Zap, FileText, ArrowRightLeft, Scale, Archive, Wallet, Clock, Settings, Menu, X, ChevronLeft, ChevronRight, LogOut, Search } from 'lucide-react';
+import { Home, Zap, FileText, ArrowRightLeft, Scale, Archive, Wallet, Clock, Settings, Menu, X, ChevronLeft, ChevronRight, LogOut, Search, Sun, Moon } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { GlobalSearchDialog } from '@/components/layout/GlobalSearchDialog';
 import { useYear } from '@/contexts/YearContext';
