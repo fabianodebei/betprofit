@@ -38,20 +38,11 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
-      const { data: accountsData } = await supabase
-        .from('accounts')
-        .select('conto, intestatario')
-        .eq('user_id', user.id);
-
-      const accountsMap = new Map(
-        (accountsData || []).map(acc => [acc.conto, acc.intestatario])
-      );
-
       const mappedTransactions: Transaction[] = (data || []).map((t: any) => ({
         id: t.id,
-        metodo: t.metodo as 'Deposito' | 'Spesa' | 'Prelievo',
+        metodo: t.metodo as 'Deposito' | 'Spesa' | 'Prelievo' | 'Riconciliazione',
         conto: t.conto,
-        intestatario: t.intestatario || accountsMap.get(t.conto),
+        intestatario: t.intestatario || undefined,
         wallet: t.wallet || undefined,
         addebito: t.addebito ? Number(t.addebito) : undefined,
         accredito: t.accredito ? Number(t.accredito) : undefined,
@@ -91,7 +82,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
       const newTransaction: Transaction = {
         id: data.id,
-        metodo: data.metodo as 'Deposito' | 'Spesa' | 'Prelievo',
+        metodo: data.metodo as 'Deposito' | 'Spesa' | 'Prelievo' | 'Riconciliazione',
         conto: data.conto,
         intestatario: transaction.intestatario,
         wallet: data.wallet || undefined,
@@ -154,16 +145,25 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       const { supabase: supabaseClient } = await import('@/integrations/supabase/client');
       
       // Fetch account
-      let accountQuery = supabaseClient
-        .from('accounts')
-        .select('*')
-        .eq('conto', transaction.conto);
-
+      let accountData: any = null;
       if (transaction.intestatario) {
-        accountQuery = accountQuery.eq('intestatario', transaction.intestatario as any);
+        const { data } = await supabaseClient
+          .from('accounts')
+          .select('*')
+          .eq('conto', transaction.conto)
+          .eq('intestatario', transaction.intestatario as any)
+          .maybeSingle();
+        accountData = data;
+      } else {
+        const { data } = await supabaseClient
+          .from('accounts')
+          .select('*')
+          .eq('conto', transaction.conto)
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        accountData = data;
       }
-
-      const { data: accountData } = await accountQuery.single();
 
       if (accountData) {
         let balanceAdjustment = 0;
@@ -190,7 +190,9 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
             .from('accounts')
             .select('intestatario')
             .eq('conto', transaction.conto)
-            .single();
+            .order('created_at', { ascending: true })
+            .limit(1)
+            .maybeSingle();
           txIntestatario = acc?.intestatario as string | undefined;
         }
 
