@@ -98,7 +98,7 @@ export function AdvancedFilterBar({
               Filtri
               {hasActiveFilters && (
                 <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 flex items-center justify-center rounded-full">
-                  {[filters.dateFrom, filters.dateTo, ...filters.bookmakers, ...filters.tags, ...filters.betTypes]
+                  {[filters.dateFrom, filters.dateTo, ...filters.bookmakers, ...filters.tags, ...filters.betTypes, ...filters.intestatari]
                     .filter(Boolean).length}
                 </Badge>
               )}
