@@ -97,6 +97,13 @@ export function useAdvancedFilters<T extends Record<string, any>>(
       );
     }
 
+    // Intestatario filter
+    if (filters.intestatari.length > 0) {
+      result = result.filter(item => 
+        item.intestatario && filters.intestatari.includes(item.intestatario as string)
+      );
+    }
+
     // Stake range filter
     if (filters.stakeMin !== null) {
       result = result.filter(item => item.stake >= filters.stakeMin!);
