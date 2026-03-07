@@ -43,6 +43,10 @@ const navigation = [{
   name: 'Promemoria',
   href: '/promemoria',
   icon: Clock
+}, {
+  name: 'Proxy',
+  href: '/proxy',
+  icon: Globe
 }];
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
