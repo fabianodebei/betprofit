@@ -133,9 +133,19 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Log token diagnostic info (length and char codes of last few chars to detect padding)
+    const tokenLen = config.telegram_bot_token.length;
+    const lastChars = config.telegram_bot_token.slice(-5);
+    const lastCharCodes = [...lastChars].map((c: string) => c.charCodeAt(0));
+    console.log(`Token length: ${tokenLen}, last char codes: [${lastCharCodes.join(',')}]`);
+
+    // Trim any null bytes or whitespace that might come from AES padding
+    const cleanToken = config.telegram_bot_token.replace(/\0+$/g, '').trim();
+    const cleanChatId = config.telegram_chat_id.replace(/\0+$/g, '').trim();
+
     // Validate token format before use
-    if (!config.telegram_bot_token.match(/^\d+:[A-Za-z0-9_-]{35,}$/)) {
-      console.error('Invalid bot token format in database:', config.telegram_bot_token.substring(0, 10) + '...');
+    if (!cleanToken.match(/^\d+:[A-Za-z0-9_-]{35,}$/)) {
+      console.error('Invalid bot token format in database, clean length:', cleanToken.length);
       return new Response(
         JSON.stringify({ success: false, error: 'Invalid Telegram configuration' }),
         { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
@@ -143,7 +153,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Validate chat ID format
-    if (!config.telegram_chat_id.match(/^-?\d+$/)) {
+    if (!cleanChatId.match(/^-?\d+$/)) {
       console.error('Invalid chat ID format in database');
       return new Response(
         JSON.stringify({ success: false, error: 'Invalid Telegram configuration' }),
@@ -151,7 +161,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const telegramUrl = `https://api.telegram.org/bot${config.telegram_bot_token}/sendMessage`;
+    const telegramUrl = `https://api.telegram.org/bot${cleanToken}/sendMessage`;
 
     console.log('Sending notification');
 
@@ -161,7 +171,7 @@ const handler = async (req: Request): Promise<Response> => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        chat_id: config.telegram_chat_id,
+        chat_id: cleanChatId,
         text: message,
         parse_mode: 'HTML',
       }),

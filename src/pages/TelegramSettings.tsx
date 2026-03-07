@@ -57,13 +57,13 @@ const TelegramSettings = () => {
 
       const { data, error } = await supabase
         .from('user_telegram_config')
-        .select('telegram_bot_token, telegram_chat_id, notifications_enabled')
+        .select('telegram_bot_token_encrypted, telegram_chat_id_encrypted, notifications_enabled')
         .eq('user_id', user.id)
         .maybeSingle();
 
       if (data) {
-        // Only show if credentials exist (don't pre-fill sensitive data)
-        setHasCredentials(!!(data.telegram_bot_token && data.telegram_chat_id));
+        // Check encrypted columns to determine if credentials exist
+        setHasCredentials(!!(data.telegram_bot_token_encrypted && data.telegram_chat_id_encrypted));
         form.reset({
           telegram_bot_token: '',
           telegram_chat_id: '',
