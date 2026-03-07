@@ -47,6 +47,7 @@ const Intestatari = lazy(() => import("./pages/Intestatari"));
 const Books = lazy(() => import("./pages/Books"));
 const Tags = lazy(() => import("./pages/Tags"));
 const ImportExport = lazy(() => import("./pages/ImportExport"));
+const Proxy = lazy(() => import("./pages/Proxy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Admin = lazy(() => import("./pages/Admin"));
 
@@ -117,6 +118,7 @@ const App = () => (
                                                 <Route path="/impostazioni/books" element={<Books />} />
                                                 <Route path="/impostazioni/tags" element={<Tags />} />
                                                 <Route path="/impostazioni/import-export" element={<ImportExport />} />
+                                                <Route path="/proxy" element={<Proxy />} />
                                                 <Route path="*" element={<NotFound />} />
                                               </Routes>
                                             </main>

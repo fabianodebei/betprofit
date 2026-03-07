@@ -581,6 +581,42 @@ export type Database = {
           },
         ]
       }
+      user_proxies: {
+        Row: {
+          created_at: string
+          http_port: number
+          id: string
+          password: string
+          proxy_host: string
+          socks5_port: number
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          http_port: number
+          id?: string
+          password: string
+          proxy_host: string
+          socks5_port: number
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          http_port?: number
+          id?: string
+          password?: string
+          proxy_host?: string
+          socks5_port?: number
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
