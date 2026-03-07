@@ -577,10 +577,15 @@ export default function Dashboard() {
 
         {/* Bilancio Card */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Bilancio
+          <CardHeader className="pb-1 pt-3">
+            <CardTitle className="text-lg flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Bilancio
+              </span>
+              <span className={`text-base font-bold ${accounts.reduce((s, a) => s + (a.stato === 'Abilitato' ? a.saldoAttuale : 0), 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(accounts.reduce((s, a) => s + (a.stato === 'Abilitato' ? a.saldoAttuale : 0), 0))}
+              </span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -601,12 +606,6 @@ export default function Dashboard() {
                     </div>
                   </div>
                 ))}
-                <div className="col-span-1 sm:col-span-2 lg:col-span-3 flex items-center justify-between rounded-lg bg-muted p-3 mt-2">
-                  <span className="font-semibold text-sm">Totale Conti</span>
-                  <span className={`font-bold ${accounts.reduce((s, a) => s + (a.stato === 'Abilitato' ? a.saldoAttuale : 0), 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(accounts.reduce((s, a) => s + (a.stato === 'Abilitato' ? a.saldoAttuale : 0), 0))}
-                  </span>
-                </div>
               </div>
             )}
           </CardContent>
