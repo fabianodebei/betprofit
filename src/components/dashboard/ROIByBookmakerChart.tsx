@@ -61,7 +61,15 @@ export function ROIByBookmakerChart({
               angle={-45} 
               textAnchor="end" 
               height={isMobile ? 80 : 100}
-              tick={{ fill: 'hsl(var(--foreground))', fontSize: isMobile ? 10 : 12 }}
+              tick={({ x, y, payload }: any) => {
+                const entry = sortedData.find(d => d.bookmaker === payload.value);
+                const color = entry && entry.roi < 0 ? 'hsl(var(--destructive))' : 'hsl(var(--foreground))';
+                return (
+                  <text x={x} y={y} textAnchor="end" fill={color} fontSize={isMobile ? 10 : 12} transform={`rotate(-45, ${x}, ${y})`}>
+                    {payload.value}
+                  </text>
+                );
+              }}
             />
             <YAxis 
               label={{ 
