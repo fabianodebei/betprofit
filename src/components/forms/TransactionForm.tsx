@@ -101,8 +101,7 @@ export function TransactionForm({ open, onOpenChange, preselectedAccount }: Tran
 
   const onSubmit = async (data: TransactionFormData) => {
     const metodo = data.metodo;
-    const account = accounts.find((a) => a.conto === data.conto);
-    // Trova il wallet usando nome E intestatario per evitare wallet sbagliati
+    const account = selectedAccount ?? accounts.find((a) => a.conto === data.conto && a.intestatario === selectedIntestatario);
     const wallet = data.wallet && selectedIntestatario
       ? wallets.find((w) => w.nome === data.wallet && w.intestatario === selectedIntestatario)
       : undefined;

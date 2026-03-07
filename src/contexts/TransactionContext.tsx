@@ -38,20 +38,11 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
-      const { data: accountsData } = await supabase
-        .from('accounts')
-        .select('conto, intestatario')
-        .eq('user_id', user.id);
-
-      const accountsMap = new Map(
-        (accountsData || []).map(acc => [acc.conto, acc.intestatario])
-      );
-
       const mappedTransactions: Transaction[] = (data || []).map((t: any) => ({
         id: t.id,
-        metodo: t.metodo as 'Deposito' | 'Spesa' | 'Prelievo',
+        metodo: t.metodo as 'Deposito' | 'Spesa' | 'Prelievo' | 'Riconciliazione',
         conto: t.conto,
-        intestatario: t.intestatario || accountsMap.get(t.conto),
+        intestatario: t.intestatario || undefined,
         wallet: t.wallet || undefined,
         addebito: t.addebito ? Number(t.addebito) : undefined,
         accredito: t.accredito ? Number(t.accredito) : undefined,
