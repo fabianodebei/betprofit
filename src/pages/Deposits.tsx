@@ -110,25 +110,6 @@ export default function Deposits() {
     });
   };
 
-  // Calculate overall balance
-  const balanceStats = useMemo(() => {
-    const totalDepositi = transactions
-      .filter(t => t.metodo === 'Deposito')
-      .reduce((sum, t) => sum + (t.addebito || 0), 0);
-
-    const totalPrelievi = transactions
-      .filter(t => t.metodo === 'Prelievo')
-      .reduce((sum, t) => sum + (t.accredito || 0), 0);
-
-    const bilancio = totalPrelievi - totalDepositi;
-
-    return {
-      totalDepositi,
-      totalPrelievi,
-      bilancio,
-      isWinning: bilancio > 0
-    };
-  }, [transactions]);
 
   // Filtered transactions
   const filteredTransactions = useMemo(() => {
