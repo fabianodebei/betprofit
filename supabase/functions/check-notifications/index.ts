@@ -325,7 +325,9 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
       
       // Sanitize all user-provided fields with appropriate length limits
       const tipo = sanitizeField(bet.tipo, 50, 'bet.tipo');
-      const evento = sanitizeField(bet.evento, 200, 'bet.evento');
+      const evento = isMultiple && (bet as any)._firstLegEvento
+        ? sanitizeField((bet as any)._firstLegEvento, 200, 'firstLegEvento')
+        : sanitizeField(bet.evento, 200, 'bet.evento');
       const nomeGioco = sanitizeField(bet.nome_gioco, 200, 'bet.nome_gioco');
       const conto = sanitizeField(bet.conto, 100, 'bet.conto');
       const tag = sanitizeField(bet.tag, 100, 'bet.tag');
