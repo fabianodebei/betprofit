@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 interface PlatformKPICardsProps {
   totalUsers: number;
   activeUsers: number;
-  totalBets: number;
+  
   totalEarnings: number;
   newUsersMonth: number;
 }
