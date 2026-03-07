@@ -1,10 +1,7 @@
 import { useEffect, useMemo } from 'react';
-import { TrendingUp, Calendar, Trophy, Wallet, BarChart3, PieChart } from 'lucide-react';
+import { TrendingUp, Calendar, Trophy, Wallet, BarChart3 } from 'lucide-react';
 import { AdvancedKPICard } from '@/components/dashboard/AdvancedKPICard';
 import { ROIByBookmakerChart } from '@/components/dashboard/ROIByBookmakerChart';
-import { BetTypeDistributionChart } from '@/components/dashboard/BetTypeDistributionChart';
-import { MonthlyComparisonChart } from '@/components/dashboard/MonthlyComparisonChart';
-import { QuickInsightsPanel, generateInsights } from '@/components/dashboard/QuickInsightsPanel';
 import { TrendChart } from '@/components/dashboard/TrendChart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -273,26 +270,8 @@ export default function Dashboard() {
     return totalStake > 0 ? (totalProfitto / totalStake) * 100 : 0;
   }, [archivedBets, layBets]);
 
-  const betTypeDistribution = useMemo(() => {
-    const types = new Map();
-    bets.forEach(bet => {
-      if (!types.has(bet.tipo)) {
-        types.set(bet.tipo, { value: 0, count: 0 });
-      }
-      const t = types.get(bet.tipo);
-      t.value += bet.stake;
-      t.count += 1;
-    });
-    
-    const total = Array.from(types.values()).reduce((sum, t) => sum + t.value, 0);
-    return Array.from(types.entries()).map(([name, data]) => ({
-      name,
-      ...data,
-      percentage: total > 0 ? (data.value / total) * 100 : 0
-    }));
-  }, [bets]);
 
-  const insights = useMemo(() => generateInsights(bets, selectedYear), [bets, selectedYear]);
+
 
   const chartData = [
     { month: 'Gen', earnings: monthlyEarnings[0] },
@@ -461,10 +440,81 @@ export default function Dashboard() {
         <ROIByBookmakerChart key={JSON.stringify(bookmakerStats)} data={bookmakerStats} />
       </div>
 
-      {/* Distribution & Insights */}
+      {/* Wallet & Bilancio */}
       <div className="grid gap-6 lg:grid-cols-2 mb-8">
-        <BetTypeDistributionChart data={betTypeDistribution} />
-        <QuickInsightsPanel insights={insights} />
+        {/* Wallet Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Wallet className="h-5 w-5" />
+              Wallet
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {wallets.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground py-8">
+                Nessun wallet configurato
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {wallets.map(wallet => (
+                  <div key={wallet.id} className="flex items-center justify-between rounded-lg border p-3">
+                    <div>
+                      <div className="font-semibold text-sm">{wallet.nome}</div>
+                      <div className="text-xs text-muted-foreground">{wallet.intestatario}</div>
+                    </div>
+                    <div className={`font-bold text-sm ${wallet.saldoAttuale >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(wallet.saldoAttuale)}
+                    </div>
+                  </div>
+                ))}
+                <div className="flex items-center justify-between rounded-lg bg-muted p-3 mt-2">
+                  <span className="font-semibold text-sm">Totale Wallet</span>
+                  <span className={`font-bold ${wallets.reduce((s, w) => s + (w.stato === 'Abilitato' ? w.saldoAttuale : 0), 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(wallets.reduce((s, w) => s + (w.stato === 'Abilitato' ? w.saldoAttuale : 0), 0))}
+                  </span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Bilancio Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Bilancio
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {accounts.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground py-8">
+                Nessun conto configurato
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {accounts.map(account => (
+                  <div key={account.id} className="flex items-center justify-between rounded-lg border p-3">
+                    <div>
+                      <div className="font-semibold text-sm">{account.conto}</div>
+                      <div className="text-xs text-muted-foreground">{account.intestatario}</div>
+                    </div>
+                    <div className={`font-bold text-sm ${account.saldoAttuale >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(account.saldoAttuale)}
+                    </div>
+                  </div>
+                ))}
+                <div className="flex items-center justify-between rounded-lg bg-muted p-3 mt-2">
+                  <span className="font-semibold text-sm">Totale Conti</span>
+                  <span className={`font-bold ${accounts.reduce((s, a) => s + (a.stato === 'Abilitato' ? a.saldoAttuale : 0), 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(accounts.reduce((s, a) => s + (a.stato === 'Abilitato' ? a.saldoAttuale : 0), 0))}
+                  </span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
