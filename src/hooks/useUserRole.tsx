@@ -22,9 +22,15 @@ export const useUserRole = () => {
           .from('user_roles')
           .select('role')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
+
+        if (!data?.role) {
+          setRole('free');
+          return;
+        }
+
         setRole(data.role as UserRole);
       } catch (error) {
         console.error('Error fetching user role:', error);
