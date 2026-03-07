@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Zap, FileText, ArrowRightLeft, Scale, Archive, Wallet, Clock, Settings, Menu, X, ChevronLeft, ChevronRight, LogOut, Search } from 'lucide-react';
+import { Home, Zap, FileText, ArrowRightLeft, Scale, Archive, Wallet, Clock, Settings, Menu, X, ChevronLeft, ChevronRight, LogOut, Search, Sun, Moon } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { GlobalSearchDialog } from '@/components/layout/GlobalSearchDialog';
 import { useYear } from '@/contexts/YearContext';
@@ -53,6 +54,7 @@ export function Header() {
   const {
     signOut
   } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
   useEffect(() => {
@@ -65,9 +67,7 @@ export function Header() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
-  return <header className="sticky top-0 z-50 w-full border-b shadow-sm rounded-none" style={{
-    backgroundColor: 'hsl(210, 33%, 15%)'
-  }}>
+  return <header className="sticky top-0 z-50 w-full border-b shadow-sm rounded-none bg-[hsl(var(--header-bg))]">
       <div className="container mx-auto px-4 bg-transparent">
         <div className="flex h-20 items-center justify-between rounded-none bg-transparent">
           {/* Logo - visible only on mobile */}
@@ -89,6 +89,9 @@ export function Header() {
           })}
             <Button variant="ghost" size="sm" onClick={() => setSearchOpen(true)} className="ml-2 text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground">
               <Search className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={toggleTheme} className="text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground">
+              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
             <Link to="/impostazioni" className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${isActive('/impostazioni') ? 'bg-primary-foreground/20 text-primary-foreground' : 'text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground'}`}>
               <Settings className="h-5 w-5" />
@@ -131,6 +134,10 @@ export function Header() {
                 <Settings className="h-5 w-5" />
                 Impostazioni
               </Link>
+              <button onClick={toggleTheme} className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors text-primary-foreground/80 hover:bg-primary-foreground/10">
+                {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                {theme === 'dark' ? 'Modalità Giorno' : 'Modalità Notte'}
+              </button>
               <button onClick={() => {
             signOut();
             setMobileMenuOpen(false);
