@@ -552,7 +552,8 @@ export default function Dashboard() {
                         ) : (
                           <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${getIconBg()}`}>
                             <CreditCard className="h-5 w-5 text-muted-foreground" />
-                        </div>
+                          </div>
+                        )}
                         <div>
                           <div className="font-semibold text-sm">{wallet.nome}</div>
                           <div className="text-xs text-muted-foreground">{wallet.intestatario}</div>
