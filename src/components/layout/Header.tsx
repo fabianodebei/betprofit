@@ -152,7 +152,5 @@ export function Header() {
             </nav>
           </div>}
       </div>
-
-      <GlobalSearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
     </header>;
 }
