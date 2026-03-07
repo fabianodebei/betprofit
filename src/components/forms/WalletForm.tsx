@@ -1,5 +1,5 @@
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from '@/lib/zodResolver';
 import { z } from 'zod';
 import { useEffect, useMemo, useState } from 'react';
 import { CreditCard } from 'lucide-react';
