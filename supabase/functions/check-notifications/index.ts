@@ -297,7 +297,7 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
     if (isMultiple) {
       const { data: legs, error: legsError } = await supabase
         .from('bet_legs')
-        .select('data_evento')
+        .select('data_evento, evento')
         .eq('bet_id', bet.id)
         .order('data_evento', { ascending: true })
         .limit(1);
