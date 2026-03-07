@@ -330,9 +330,9 @@ export default function Admin() {
               <PlatformKPICards
                 totalUsers={systemStats?.totalUsers || 0}
                 activeUsers={systemStats?.activeUsers || 0}
-                totalBets={systemStats?.totalBets || 0}
                 totalEarnings={totalEarnings}
                 newUsersMonth={systemStats?.newUsersThisMonth || 0}
+              />
               />
 
               {/* Charts row */}
