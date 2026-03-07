@@ -47,11 +47,11 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         (accountsData || []).map(acc => [acc.conto, acc.intestatario])
       );
 
-      const mappedTransactions: Transaction[] = (data || []).map((t) => ({
+      const mappedTransactions: Transaction[] = (data || []).map((t: any) => ({
         id: t.id,
         metodo: t.metodo as 'Deposito' | 'Spesa' | 'Prelievo',
         conto: t.conto,
-        intestatario: accountsMap.get(t.conto),
+        intestatario: t.intestatario || accountsMap.get(t.conto),
         wallet: t.wallet || undefined,
         addebito: t.addebito ? Number(t.addebito) : undefined,
         accredito: t.accredito ? Number(t.accredito) : undefined,
