@@ -1,4 +1,4 @@
-import type { FieldErrors, FieldValues, Resolver } from "react-hook-form";
+import type { FieldErrors, FieldValues, Resolver, ResolverResult } from "react-hook-form";
 import type { z } from "zod";
 
 /**
@@ -10,11 +10,11 @@ import type { z } from "zod";
 export function zodResolver<T extends z.ZodType<any, any>>(
   schema: T
 ): Resolver<z.output<T>> {
-  return async (values: FieldValues) => {
+  return async (values: FieldValues): Promise<ResolverResult<z.output<T>>> => {
     const result = schema.safeParse(values);
 
     if (result.success) {
-      return { values: result.data, errors: {} };
+      return { values: result.data as z.output<T>, errors: {} };
     }
 
     const fieldErrors: FieldErrors = {};
@@ -29,6 +29,6 @@ export function zodResolver<T extends z.ZodType<any, any>>(
       }
     }
 
-    return { values: {}, errors: fieldErrors };
+    return { values: {} as z.output<T>, errors: fieldErrors };
   };
 }
