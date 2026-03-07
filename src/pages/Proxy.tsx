@@ -213,6 +213,31 @@ const AdminProxyView = () => {
               <DialogTitle>{editingProxy ? 'Modifica Proxy' : 'Assegna Proxy'}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
+              <div>
+                <Label>Incolla URL proxy</Label>
+                <Input
+                  placeholder="http://user:pass@host:port"
+                  onChange={(e) => {
+                    const val = e.target.value.trim();
+                    try {
+                      // Format: http://username:password@host:port
+                      const url = new URL(val);
+                      const parsed = {
+                        proxy_host: url.hostname,
+                        http_port: url.port || '',
+                        username: decodeURIComponent(url.username),
+                        password: decodeURIComponent(url.password),
+                      };
+                      if (parsed.proxy_host && parsed.username && parsed.password) {
+                        setForm(prev => ({ ...prev, ...parsed }));
+                      }
+                    } catch {
+                      // not a valid URL yet, ignore
+                    }
+                  }}
+                />
+                <p className="text-xs text-muted-foreground mt-1">Es: http://TFhKe8xZ:Jw6SObmC@proxybet.ddns.net:8001</p>
+              </div>
               {!editingProxy && (
                 <div>
                   <Label>Utente</Label>
