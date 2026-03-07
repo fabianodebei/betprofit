@@ -304,6 +304,7 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
       await addBet({
         tipo: 'Singola',
         conto: data.conto,
+        intestatario: data.intestatario,
         stake: data.stake,
         quota: data.quota,
         evento: data.evento,

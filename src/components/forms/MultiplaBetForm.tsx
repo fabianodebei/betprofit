@@ -547,6 +547,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
         const betId = await addBet({
           tipo: 'Multipla',
           conto: data.conto,
+          intestatario: data.intestatario,
           stake: data.stake,
           evento: selections.map(s => s.mercato || s.evento).filter(Boolean).join(', '),
           dataEvento: firstMatchDate,
