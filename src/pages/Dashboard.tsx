@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { startOfDay, startOfWeek, startOfMonth, endOfDay, endOfWeek, endOfMonth, format, eachDayOfInterval, eachHourOfInterval, addHours } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { TrendingUp, Calendar, Trophy, Wallet, BarChart3 } from 'lucide-react';
+import { TrendingUp, Calendar, Trophy, Wallet, BarChart3, CreditCard } from 'lucide-react';
 import { AdvancedKPICard } from '@/components/dashboard/AdvancedKPICard';
 import { ROIByBookmakerChart } from '@/components/dashboard/ROIByBookmakerChart';
 import { TrendChart, TrendPeriod } from '@/components/dashboard/TrendChart';
