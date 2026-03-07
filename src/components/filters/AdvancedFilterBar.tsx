@@ -38,6 +38,7 @@ export function AdvancedFilterBar({
   availableBookmakers = [],
   availableTags = [],
   availableBetTypes = ['Singola', 'Multipla', 'Casino', 'Rapida'],
+  availableIntestatari = [],
 }: AdvancedFilterBarProps) {
   const hasActiveFilters = filters.search || filters.dateFrom || filters.dateTo || 
     filters.bookmakers.length > 0 || filters.tags.length > 0 || filters.betTypes.length > 0 ||
