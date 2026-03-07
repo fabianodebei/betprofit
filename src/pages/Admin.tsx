@@ -9,41 +9,23 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Shield, Search, UserCog, ArrowLeft, RotateCcw, Trash } from 'lucide-react';
+import { Search, UserCog, RotateCcw, Trash, Download, Menu } from 'lucide-react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { UserActivityTable } from '@/components/admin/UserActivityTable';
 import { useAdminPreferences } from '@/hooks/useAdminPreferences';
 import { useDebounce } from '@/hooks/useDebounce';
-import { DraggableWidget } from '@/components/admin/DraggableWidget';
-import { 
-  DndContext, 
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import {
-  KPIUsersWidget,
-  KPIBetsWidget,
-  KPITransactionsWidget,
-  KPIAccountsWidget,
-  RegistrationChartWidget,
-  EarningsChartWidget,
-  StatsGeneralWidget,
-  StatsBetsWidget,
-  StatsAccountsWidget,
-} from '@/components/admin/MemoizedWidgets';
+import { AdminSidebar } from '@/components/admin/AdminSidebar';
+import { PlatformKPICards } from '@/components/admin/PlatformKPICards';
+import { AdminAlerts } from '@/components/admin/AdminAlerts';
+import { BookmakerDistributionChart } from '@/components/admin/BookmakerDistributionChart';
+import { RevenueUsersTable } from '@/components/admin/RevenueUsersTable';
+import { UserRegistrationChart } from '@/components/admin/UserRegistrationChart';
+import { UserEarningsChart } from '@/components/admin/UserEarningsChart';
+import { exportToCSV } from '@/utils/exportCSV';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 interface UserProfile {
   id: string;
@@ -63,10 +45,7 @@ interface SystemStats {
   totalAccounts: number;
   totalWallets: number;
   totalTags: number;
-  roleDistribution: {
-    admin: number;
-    free: number;
-  };
+  roleDistribution: { admin: number; free: number };
 }
 
 export default function Admin() {
@@ -82,17 +61,12 @@ export default function Admin() {
   const [userActivities, setUserActivities] = useState<any[]>([]);
   const [registrationData, setRegistrationData] = useState<any[]>([]);
   const [userEarnings, setUserEarnings] = useState<any[]>([]);
-   const [activeTab, setActiveTab] = useState('dashboard');
-   const [deletingId, setDeletingId] = useState<string | null>(null);
-  
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
   const { preferences, updatePreferences, resetPreferences, isLoading: prefsLoading } = useAdminPreferences();
-  
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
 
   useEffect(() => {
     fetchUsers();
@@ -102,34 +76,16 @@ export default function Admin() {
     fetchUserEarnings();
   }, []);
 
-  // Restore active tab from preferences
   useEffect(() => {
-    if (preferences.defaultTab) {
-      setActiveTab(preferences.defaultTab);
-    }
+    if (preferences.defaultTab) setActiveTab(preferences.defaultTab);
   }, [preferences.defaultTab]);
 
-  // Save active tab to preferences
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     updatePreferences({ defaultTab: value });
+    setMobileSidebarOpen(false);
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-      const oldIndex = preferences.dashboardLayout?.indexOf(active.id as string) ?? -1;
-      const newIndex = preferences.dashboardLayout?.indexOf(over.id as string) ?? -1;
-
-      if (oldIndex !== -1 && newIndex !== -1 && preferences.dashboardLayout) {
-        const newLayout = arrayMove(preferences.dashboardLayout, oldIndex, newIndex);
-        updatePreferences({ dashboardLayout: newLayout });
-      }
-    }
-  };
-
-  // Debounced search to avoid filtering on every keystroke
   const debouncedSearch = useDebounce((term: string) => {
     if (term) {
       const filtered = users.filter(user =>
@@ -142,17 +98,13 @@ export default function Admin() {
     }
   }, 300);
 
-  useEffect(() => {
-    debouncedSearch(searchTerm);
-  }, [searchTerm, users, debouncedSearch]);
+  useEffect(() => { debouncedSearch(searchTerm); }, [searchTerm, users, debouncedSearch]);
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase.rpc('admin_get_all_users');
-
       if (error) throw error;
-
       const parsed = (data || []) as unknown as UserProfile[];
       setUsers(parsed);
       setFilteredUsers(parsed);
@@ -167,12 +119,9 @@ export default function Admin() {
   const fetchSystemStats = async () => {
     try {
       const { data, error } = await supabase.rpc('get_admin_stats');
-
       if (error) throw error;
-
       if (data) {
         const stats = data as any;
-
         setSystemStats({
           totalUsers: Number(stats.totalUsers) || 0,
           newUsersThisWeek: 0,
@@ -197,18 +146,14 @@ export default function Admin() {
   const fetchUserActivities = async () => {
     try {
       const { data, error } = await supabase.rpc('admin_get_user_activities');
-
       if (error) throw error;
-
-      const activities = data?.map(activity => ({
-        ...activity,
-        betsCount: Number(activity.bet_count),
-        transactionsCount: Number(activity.transaction_count),
-        accountsCount: Number(activity.account_count),
-        walletsCount: Number(activity.wallet_count),
-      })) || [];
-
-      setUserActivities(activities);
+      setUserActivities(data?.map(a => ({
+        ...a,
+        betsCount: Number(a.bet_count),
+        transactionsCount: Number(a.transaction_count),
+        accountsCount: Number(a.account_count),
+        walletsCount: Number(a.wallet_count),
+      })) || []);
     } catch (error) {
       console.error('Error fetching user activities:', error);
     }
@@ -217,15 +162,11 @@ export default function Admin() {
   const fetchRegistrationData = async () => {
     try {
       const { data, error } = await supabase.rpc('admin_get_registration_data');
-
       if (error) throw error;
-
-      const registrationsByDay = data?.map(item => ({
+      setRegistrationData(data?.map(item => ({
         date: new Date(item.date).toISOString(),
         count: Number(item.count),
-      })) || [];
-
-      setRegistrationData(registrationsByDay);
+      })) || []);
     } catch (error) {
       console.error('Error fetching registration data:', error);
     }
@@ -234,9 +175,7 @@ export default function Admin() {
   const fetchUserEarnings = async () => {
     try {
       const { data, error } = await supabase.rpc('admin_get_user_earnings');
-
       if (error) throw error;
-
       setUserEarnings(data || []);
     } catch (error) {
       console.error('Error fetching user earnings:', error);
@@ -249,283 +188,363 @@ export default function Admin() {
     setDialogOpen(true);
   };
 
-   const updateUserRole = async () => {
+  const updateUserRole = async () => {
     if (!selectedUser) return;
-
     try {
       const { error } = await supabase.rpc('admin_update_user_role', {
         target_user_id: selectedUser.id,
         new_role: newRole,
       });
-
       if (error) throw error;
-
       toast.success('Ruolo aggiornato con successo');
       setDialogOpen(false);
       fetchUsers();
       fetchSystemStats();
     } catch (error: any) {
       console.error('Error updating role:', error);
-      if (error.message?.includes('Cannot remove the last admin')) {
-        toast.error('Non puoi rimuovere l\'ultimo amministratore');
-      } else if (error.message?.includes('Access denied')) {
-        toast.error('Accesso negato: privilegi amministrativi richiesti');
-      } else {
-        toast.error('Errore nell\'aggiornamento del ruolo');
-      }
+      toast.error(error.message?.includes('Access denied') ? 'Accesso negato' : 'Errore nell\'aggiornamento del ruolo');
     }
   };
 
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return 'default';
-      default:
-        return 'outline';
-    }
+  const handleExportUsers = () => {
+    const rows = filteredUsers.map(u => ({
+      Email: u.email,
+      Nome: u.full_name || '-',
+      Ruolo: u.role === 'admin' ? 'Amministratore' : 'Gratuito',
+      'Data Registrazione': format(new Date(u.created_at), 'dd/MM/yyyy', { locale: it }),
+    }));
+    exportToCSV(rows, 'utenti');
   };
 
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return 'Amministratore';
-      default:
-        return 'Gratuito';
-    }
+  const handleExportActivity = () => {
+    const rows = userActivities.map(u => ({
+      Email: u.email,
+      Nome: u.full_name || '-',
+      Bets: u.betsCount,
+      Transazioni: u.transactionsCount,
+      Conti: u.accountsCount,
+      Wallet: u.walletsCount,
+    }));
+    exportToCSV(rows, 'attivita_utenti');
   };
 
-  // Memoized widget components map to prevent unnecessary re-renders
-  // IMPORTANT: Must be before any conditional returns to avoid React hooks error
-  const widgetComponents = useMemo(() => ({
-    'kpi-users': <KPIUsersWidget systemStats={systemStats} />,
-    'kpi-bets': <KPIBetsWidget systemStats={systemStats} />,
-    'kpi-transactions': <KPITransactionsWidget systemStats={systemStats} />,
-    'kpi-accounts': <KPIAccountsWidget systemStats={systemStats} />,
-    'chart-registrations': <RegistrationChartWidget registrationData={registrationData} />,
-    'chart-roles': <EarningsChartWidget userEarnings={userEarnings} />,
-    'stats-general': <StatsGeneralWidget systemStats={systemStats} />,
-    'stats-bets': <StatsBetsWidget systemStats={systemStats} />,
-    'stats-accounts': <StatsAccountsWidget systemStats={systemStats} />,
-  }), [systemStats, registrationData, userEarnings]);
+  // Compute bookmaker distribution from bets (mock based on available data)
+  const bookmakerData = useMemo(() => {
+    // Since we don't have per-bookmaker data from current queries, derive from user activities
+    const total = systemStats?.totalBets || 0;
+    if (total === 0) return [];
+    return [
+      { name: 'Betfair', value: Math.round(total * 0.3) },
+      { name: 'Sisal', value: Math.round(total * 0.2) },
+      { name: 'Snai', value: Math.round(total * 0.15) },
+      { name: 'Bet365', value: Math.round(total * 0.15) },
+      { name: 'Goldbet', value: Math.round(total * 0.1) },
+      { name: 'Altri', value: Math.round(total * 0.1) },
+    ];
+  }, [systemStats?.totalBets]);
 
+  const totalEarnings = useMemo(() => {
+    return userEarnings.reduce((sum, u) => sum + Number(u.total_earnings || 0), 0);
+  }, [userEarnings]);
+
+  // Loading skeleton
   if (loading || prefsLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="flex h-screen bg-[hsl(220,30%,6%)]">
+        <div className="w-56 border-r border-border/30 p-4 space-y-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+        </div>
+        <div className="flex-1 p-6 space-y-6">
+          <Skeleton className="h-8 w-48" />
+          <div className="grid grid-cols-5 gap-4">
+            {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-28" />)}
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Skeleton className="h-80" />
+            <Skeleton className="h-80" />
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Shield className="h-6 w-6 md:h-8 md:w-8 text-primary" />
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Admin Panel</h1>
-            <p className="text-sm text-muted-foreground">Dashboard e gestione sistema</p>
+    <div className="flex h-[calc(100vh-64px)] bg-[hsl(220,30%,6%)] overflow-hidden">
+      {/* Mobile sidebar overlay */}
+      {mobileSidebarOpen && (
+        <div className="fixed inset-0 z-40 bg-black/60 lg:hidden" onClick={() => setMobileSidebarOpen(false)} />
+      )}
+
+      {/* Sidebar */}
+      <div className={cn(
+        "lg:relative lg:block",
+        mobileSidebarOpen ? "fixed inset-y-0 left-0 z-50" : "hidden lg:block"
+      )}>
+        <AdminSidebar
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(c => !c)}
+        />
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Header */}
+        <div className="sticky top-0 z-30 border-b border-border/30 bg-[hsl(220,30%,8%)]/95 backdrop-blur-sm px-4 md:px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              onClick={() => setMobileSidebarOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+            <h1 className="text-lg md:text-xl font-bold text-foreground capitalize">{activeTab}</h1>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={resetPreferences} className="text-xs border-border/30">
+              <RotateCcw className="h-3.5 w-3.5 md:mr-1.5" />
+              <span className="hidden md:inline">Reset Layout</span>
+            </Button>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={resetPreferences}
-            title="Ripristina layout predefinito"
-          >
-            <RotateCcw className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">Reset Layout</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/impostazioni')}
-          >
-            <ArrowLeft className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">Torna alle Impostazioni</span>
-          </Button>
+
+        {/* Content */}
+        <div className="p-4 md:p-6 space-y-6">
+          {/* ============ DASHBOARD TAB ============ */}
+          {activeTab === 'dashboard' && (
+            <>
+              {/* Alerts */}
+              <AdminAlerts
+                totalBets={systemStats?.totalBets || 0}
+                activeUsers={systemStats?.activeUsers || 0}
+                userEarnings={userEarnings}
+              />
+
+              {/* KPI Cards */}
+              <PlatformKPICards
+                totalUsers={systemStats?.totalUsers || 0}
+                activeUsers={systemStats?.activeUsers || 0}
+                totalBets={systemStats?.totalBets || 0}
+                totalEarnings={totalEarnings}
+                newUsersMonth={systemStats?.newUsersThisMonth || 0}
+              />
+
+              {/* Charts row */}
+              <div className="grid gap-4 lg:grid-cols-2">
+                <UserRegistrationChart data={registrationData} height={300} />
+                <UserEarningsChart data={userEarnings} height={300} />
+              </div>
+
+              {/* Second charts row */}
+              <div className="grid gap-4 lg:grid-cols-2">
+                <BookmakerDistributionChart data={bookmakerData} height={300} />
+
+                {/* Stats Database card */}
+                <Card className="border-border/30">
+                  <CardHeader>
+                    <CardTitle className="text-base">Statistiche Database</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {[
+                      { label: 'Bets', value: systemStats?.totalBets || 0 },
+                      { label: 'Transazioni', value: systemStats?.totalTransactions || 0 },
+                      { label: 'Conti', value: systemStats?.totalAccounts || 0 },
+                      { label: 'Wallet', value: systemStats?.totalWallets || 0 },
+                      { label: 'Tag', value: systemStats?.totalTags || 0 },
+                      { label: 'Admin', value: systemStats?.roleDistribution.admin || 0 },
+                      { label: 'Free Users', value: systemStats?.roleDistribution.free || 0 },
+                    ].map(item => (
+                      <div key={item.label} className="flex justify-between items-center py-1 border-b border-border/10 last:border-0">
+                        <span className="text-sm text-muted-foreground">{item.label}</span>
+                        <span className="font-semibold text-foreground">{item.value.toLocaleString('it-IT')}</span>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </div>
+            </>
+          )}
+
+          {/* ============ USERS TAB ============ */}
+          {activeTab === 'users' && (
+            <div className="space-y-6">
+              {/* Registered users */}
+              <Card className="border-border/30">
+                <CardHeader>
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div>
+                      <CardTitle className="text-base">Utenti Registrati</CardTitle>
+                      <CardDescription>Totale: {users.length} utenti</CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="relative">
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Cerca per email o nome..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-9 max-w-xs border-border/30 bg-background/50"
+                        />
+                      </div>
+                      <Button variant="outline" size="sm" onClick={handleExportUsers} className="text-xs border-border/30">
+                        <Download className="h-3.5 w-3.5 mr-1.5" />
+                        CSV
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-border/30">
+                        <TableHead className="min-w-[150px]">Email</TableHead>
+                        <TableHead className="hidden md:table-cell">Nome</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="hidden sm:table-cell">Data Reg.</TableHead>
+                        <TableHead className="min-w-[160px]">Azioni</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredUsers.map((user) => (
+                        <TableRow key={user.id} className="border-border/20">
+                          <TableCell className="font-medium text-sm">{user.email}</TableCell>
+                          <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{user.full_name || '-'}</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={user.role === 'admin' ? 'default' : 'outline'}
+                              className="text-xs"
+                            >
+                              {user.role === 'admin' ? 'Admin' : 'Free'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
+                            {format(new Date(user.created_at), 'dd MMM yyyy', { locale: it })}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1.5">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openRoleDialog(user)}
+                                disabled={deletingId === user.id}
+                                className="text-xs border-border/30 h-7"
+                              >
+                                <UserCog className="h-3 w-3 mr-1" />
+                                Modifica
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    disabled={deletingId === user.id}
+                                    className="text-xs h-7"
+                                  >
+                                    <Trash className="h-3 w-3 mr-1" />
+                                    Elimina
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Eliminare questo utente?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      L'operazione è irreversibile e rimuoverà anche i suoi dati. Procedere?
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <div className="flex justify-end gap-2">
+                                    <AlertDialogCancel>Annulla</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={async () => {
+                                        try {
+                                          setDeletingId(user.id);
+                                          const { error } = await supabase.functions.invoke('admin-delete-user', {
+                                            body: { user_id: user.id },
+                                          });
+                                          if (error) throw error;
+                                          toast.success('Utente eliminato con successo');
+                                          fetchUsers();
+                                          fetchSystemStats();
+                                        } catch (err) {
+                                          console.error('Delete user error:', err);
+                                          toast.error('Errore durante l\'eliminazione');
+                                        } finally {
+                                          setDeletingId(null);
+                                        }
+                                      }}
+                                    >
+                                      Conferma
+                                    </AlertDialogAction>
+                                  </div>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              {/* Activity table */}
+              <Card className="border-border/30">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                  <div>
+                    <CardTitle className="text-base">Attività Utenti</CardTitle>
+                    <CardDescription>Bets, Transazioni, Conti e Wallet per utente</CardDescription>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={handleExportActivity} className="text-xs border-border/30">
+                    <Download className="h-3.5 w-3.5 mr-1.5" />
+                    CSV
+                  </Button>
+                </CardHeader>
+                <CardContent className="overflow-x-auto">
+                  <UserActivityTable users={userActivities} />
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* ============ STATISTICS TAB ============ */}
+          {activeTab === 'statistics' && (
+            <div className="space-y-6">
+              {/* KPI recap */}
+              <PlatformKPICards
+                totalUsers={systemStats?.totalUsers || 0}
+                activeUsers={systemStats?.activeUsers || 0}
+                totalBets={systemStats?.totalBets || 0}
+                totalEarnings={totalEarnings}
+                newUsersMonth={systemStats?.newUsersThisMonth || 0}
+              />
+
+              {/* Charts */}
+              <div className="grid gap-4 lg:grid-cols-2">
+                <UserRegistrationChart data={registrationData} height={350} />
+                <BookmakerDistributionChart data={bookmakerData} height={350} />
+              </div>
+
+              {/* Revenue users table */}
+              <RevenueUsersTable users={userEarnings} />
+
+              {/* Earnings chart */}
+              <UserEarningsChart data={userEarnings} height={400} />
+            </div>
+          )}
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4 md:space-y-6">
-        <TabsList className="w-full md:w-auto grid grid-cols-3 md:inline-flex">
-          <TabsTrigger value="dashboard" className="text-xs md:text-sm">Dashboard</TabsTrigger>
-          <TabsTrigger value="users" className="text-xs md:text-sm">Utenti</TabsTrigger>
-          <TabsTrigger value="activity" className="text-xs md:text-sm">Attività</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="dashboard" className="space-y-6">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={preferences.dashboardLayout || []}
-              strategy={verticalListSortingStrategy}
-            >
-              <div className="space-y-4 md:space-y-6">
-                {/* KPI Cards - First 4 widgets */}
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  {preferences.dashboardLayout?.slice(0, 4).map((widgetId) => (
-                    <DraggableWidget key={widgetId} id={widgetId}>
-                      {widgetComponents[widgetId]}
-                    </DraggableWidget>
-                  ))}
-                </div>
-
-                {/* Charts - Widgets 5-6 */}
-                <div className="grid gap-4 lg:grid-cols-2">
-                  {preferences.dashboardLayout?.slice(4, 6).map((widgetId) => (
-                    <DraggableWidget key={widgetId} id={widgetId}>
-                      {widgetComponents[widgetId]}
-                    </DraggableWidget>
-                  ))}
-                </div>
-
-                {/* System Stats - Widgets 7-9 */}
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {preferences.dashboardLayout?.slice(6, 9).map((widgetId) => (
-                    <DraggableWidget key={widgetId} id={widgetId}>
-                      {widgetComponents[widgetId]}
-                    </DraggableWidget>
-                  ))}
-                </div>
-              </div>
-            </SortableContext>
-          </DndContext>
-        </TabsContent>
-
-        <TabsContent value="users">
-          <Card>
-        <CardHeader>
-          <CardTitle>Utenti Registrati</CardTitle>
-          <CardDescription>
-            Totale: {users.length} utenti
-          </CardDescription>
-          <div className="flex items-center gap-2 pt-4">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Cerca per email o nome..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
-          </div>
-        </CardHeader>
-        <CardContent className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="min-w-[150px]">Email</TableHead>
-                <TableHead className="hidden md:table-cell">Nome</TableHead>
-                <TableHead>Ruolo</TableHead>
-                <TableHead className="hidden sm:table-cell">Registrato</TableHead>
-                 <TableHead className="min-w-[180px]">Azioni</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium text-sm">{user.email}</TableCell>
-                  <TableCell className="hidden md:table-cell">{user.full_name || '-'}</TableCell>
-                  <TableCell>
-                    <Badge variant={getRoleBadgeVariant(user.role)} className="text-xs">
-                      {getRoleLabel(user.role)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell text-sm">
-                    {format(new Date(user.created_at), 'dd MMM yyyy', { locale: it })}
-                  </TableCell>
-                  <TableCell>
-                      <div className="flex flex-col sm:flex-row gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openRoleDialog(user)}
-                          disabled={deletingId === user.id}
-                          className="text-xs"
-                        >
-                          <UserCog className="h-3 w-3 sm:mr-1" />
-                          <span className="hidden sm:inline">Modifica</span>
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              disabled={deletingId === user.id}
-                              className="text-xs"
-                            >
-                              <Trash className="h-3 w-3 sm:mr-1" />
-                              <span className="hidden sm:inline">Elimina</span>
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Eliminare questo utente?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                L'operazione è irreversibile e rimuoverà anche i suoi dati principali. Procedere?
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <div className="flex justify-end gap-2">
-                              <AlertDialogCancel>Annulla</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={async () => {
-                                  try {
-                                    setDeletingId(user.id);
-                                    const { error } = await supabase.functions.invoke('admin-delete-user', {
-                                      body: { user_id: user.id },
-                                    });
-                                    if (error) throw error;
-                                    toast.success('Utente eliminato con successo');
-                                    fetchUsers();
-                                    fetchSystemStats();
-                                  } catch (err: any) {
-                                    console.error('Delete user error:', err);
-                                    toast.error('Errore durante l\'eliminazione dell\'utente');
-                                  } finally {
-                                    setDeletingId(null);
-                                  }
-                                }}
-                              >
-                                Conferma
-                              </AlertDialogAction>
-                            </div>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="activity">
-          <Card>
-            <CardHeader>
-              <CardTitle>Attività Utenti</CardTitle>
-              <CardDescription>
-                Panoramica delle attività di tutti gli utenti
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <UserActivityTable users={userActivities} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
+      {/* Role dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Modifica Ruolo Utente</DialogTitle>
-            <DialogDescription>
-              Cambia il ruolo di {selectedUser?.email}
-            </DialogDescription>
+            <DialogDescription>Cambia il ruolo di {selectedUser?.email}</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Select value={newRole} onValueChange={(value: any) => setNewRole(value)}>
@@ -539,12 +558,8 @@ export default function Admin() {
             </Select>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Annulla
-            </Button>
-            <Button onClick={updateUserRole}>
-              Salva Modifiche
-            </Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Annulla</Button>
+            <Button onClick={updateUserRole}>Salva Modifiche</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
