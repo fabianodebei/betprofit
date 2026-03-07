@@ -58,7 +58,7 @@ export function AdvancedFilterBar({
     });
   };
 
-  const toggleArrayFilter = (key: 'bookmakers' | 'tags' | 'betTypes', value: string) => {
+  const toggleArrayFilter = (key: 'bookmakers' | 'tags' | 'betTypes' | 'intestatari', value: string) => {
     const currentValues = filters[key];
     const newValues = currentValues.includes(value)
       ? currentValues.filter(v => v !== value)
