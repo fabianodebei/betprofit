@@ -70,6 +70,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
         id: b.id,
         tipo: b.tipo as 'Singola' | 'Multipla' | 'Casino' | 'Rapida',
         conto: b.conto,
+        intestatario: b.intestatario || undefined,
         stake: Number(b.stake),
         quota: b.quota ? Number(b.quota) : undefined,
         evento: b.evento || undefined,
@@ -114,6 +115,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
         .insert({
           tipo: bet.tipo,
           conto: bet.conto,
+          intestatario: bet.intestatario || null,
           stake: bet.stake,
           quota: bet.quota || null,
           evento: bet.evento || null,
@@ -147,6 +149,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
         id: data.id,
         tipo: data.tipo as 'Singola' | 'Multipla' | 'Casino' | 'Rapida',
         conto: data.conto,
+        intestatario: data.intestatario || undefined,
         stake: Number(data.stake),
         quota: data.quota ? Number(data.quota) : undefined,
         evento: data.evento || undefined,
@@ -187,6 +190,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
       const dbUpdates: any = {};
       if (updates.tipo !== undefined) dbUpdates.tipo = updates.tipo;
       if (updates.conto !== undefined) dbUpdates.conto = updates.conto;
+      if (updates.intestatario !== undefined) dbUpdates.intestatario = updates.intestatario;
       if (updates.stake !== undefined) dbUpdates.stake = updates.stake;
       if (updates.quota !== undefined) dbUpdates.quota = updates.quota;
       if (updates.evento !== undefined) dbUpdates.evento = updates.evento;

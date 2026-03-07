@@ -127,7 +127,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       // Recalcolo bilanci dalle puntate per correggere eventuali inconsistenze
       const { data: betsData, error: betsError } = await supabase
         .from('bets')
-        .select('id, tipo, conto, stato, stake, risultato, tipo_bonus, esito, esito_dettaglio')
+        .select('id, tipo, conto, intestatario, stato, stake, risultato, tipo_bonus, esito, esito_dettaglio')
         .eq('user_id', user.id);
 
       if (betsError) {
@@ -135,24 +135,28 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         throw betsError;
       }
 
+      // Helper: genera una chiave unica per ogni conto usando conto+intestatario
+      // Per bet senza intestatario (vecchie), usa solo conto
+      const getAccountKey = (conto: string, intestatario?: string | null) => {
+        if (intestatario) return `${conto}||${intestatario}`;
+        return conto;
+      };
+
       const giocateMap: Record<string, number> = {};
       const rapideMap: Record<string, number> = {};
 
       (betsData || []).forEach((b: any) => {
-        const conto = b.conto as string;
+        const key = getAccountKey(b.conto, b.intestatario);
         if (b.tipo === 'Rapida') {
-          // Le giocate rapide riflettono direttamente il movimento/profitto registrato
-          rapideMap[conto] = (rapideMap[conto] || 0) + (Number(b.risultato) || 0);
+          rapideMap[key] = (rapideMap[key] || 0) + (Number(b.risultato) || 0);
           return;
         }
         if (b.stato === 'In Corso') {
-          // Mentre sono in corso, lo stake reale va a decrementare temporaneamente il bilancio
           if (b.tipo_bonus !== 'Free Bet' && b.tipo_bonus !== 'Bonus') {
-            giocateMap[conto] = (giocateMap[conto] || 0) - (Number(b.stake) || 0);
+            giocateMap[key] = (giocateMap[key] || 0) - (Number(b.stake) || 0);
           }
         } else if (b.stato === 'Archiviata') {
-          // A fine corsa contano solo i profitti netti (risultato)
-          giocateMap[conto] = (giocateMap[conto] || 0) + (Number(b.risultato) || 0);
+          giocateMap[key] = (giocateMap[key] || 0) + (Number(b.risultato) || 0);
         }
       });
 
@@ -191,13 +195,12 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
       activeLayData.forEach((lb: any) => {
         const conto = lb.conto as string;
+        // Lay bets don't have intestatario yet, use conto only
         
         if (lb.metodo === 'Banca') {
-          // Bancata in corso: sottrai liability dal bilancio
           const liability = Number(lb.stake) * (Number(lb.quota_banca) - 1);
           giocateMap[conto] = (giocateMap[conto] || 0) - liability;
         } else if (lb.metodo === 'Punta') {
-          // Puntata in corso: sottrai stake dal bilancio
           giocateMap[conto] = (giocateMap[conto] || 0) - Number(lb.stake);
         }
       });
@@ -209,45 +212,36 @@ export function AccountProvider({ children }: { children: ReactNode }) {
           const { esito, tipo, conto: contoPunta, esitoDettaglio } = parentInfo;
           const conto = lb.conto as string;
 
-          // Per le multiple: se esitoDettaglio è presente, verifichiamo il lay vincente
           if (tipo === 'Multipla' && esito === 'loss' && esitoDettaglio) {
-            // Multipla persa su un lay specifico
             if (lb.id === esitoDettaglio) {
-              // Questo lay ha vinto
               const profittoLordo = Number(lb.stake);
               const tasse = profittoLordo * (Number(lb.tasse_percentuale || 0) / 100);
               const guadagno = profittoLordo - tasse;
               giocateMap[conto] = (giocateMap[conto] || 0) + guadagno;
             } else if (lb.stato === 'Perso' || lb.stato === 'Vinto') {
-              // Solo i lay che erano stati effettivamente attivati (non in Bozza)
-              // Lay precedenti perdono (liability)
               const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
               giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
             }
           } else if (tipo === 'Multipla' && esito === 'win') {
-            // Multipla vinta: solo i lay che erano in corso perdono
             if (lb.stato === 'Perso' || lb.stato === 'Vinto') {
               const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
               giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
             }
           } else if (tipo !== 'Multipla') {
-            // Singole/casino: applica esito normale
             if (esito === 'win') {
-              // la punta ha vinto -> la bancata perde (liability)
               const perdita = Number(lb.stake) * (Number(lb.quota_banca) - 1);
               giocateMap[conto] = (giocateMap[conto] || 0) - perdita;
             } else if (esito === 'loss') {
-              // la punta ha perso -> la bancata vince (stake meno tasse)
               const profittoLordo = Number(lb.stake);
               const tasse = profittoLordo * (Number(lb.tasse_percentuale || 0) / 100);
               giocateMap[conto] = (giocateMap[conto] || 0) + (profittoLordo - tasse);
             }
-            // refund -> 0
           }
         }
       });
 
       // Ricalcola saldo_attuale dalle transazioni (depositi/prelievi)
+      // Transactions use conto name only (no intestatario yet)
       const { data: transactionsData } = await supabase
         .from('transactions')
         .select('conto, metodo, accredito, addebito')
@@ -267,27 +261,17 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         }
       });
 
-      // Per ogni nome conto, trova il conto più vecchio (primo creato) - solo quello riceve i bilanci
-      // I conti duplicati (stesso nome, intestatario diverso) partono da 0
-      const oldestAccountByConto: Record<string, string> = {}; // conto -> oldest account id
-      const sortedByDate = [...mappedAccounts].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
-      for (const acc of sortedByDate) {
-        if (!oldestAccountByConto[acc.conto]) {
-          oldestAccountByConto[acc.conto] = acc.id;
-        }
-      }
-
       // Aggiorna DB se diverso e prepara stato corretto
       const correctedAccounts: Account[] = [];
       for (const acc of mappedAccounts) {
-        const isOldest = oldestAccountByConto[acc.conto] === acc.id;
-        const newBG = isOldest ? Number((giocateMap[acc.conto] ?? 0).toFixed(4)) : acc.bilancioGiocate;
-        const newBR = isOldest ? Number((rapideMap[acc.conto] ?? 0).toFixed(4)) : acc.bilancioGiocateRapide;
-        const saldoBase = isOldest ? (saldoDisponibileMap[acc.conto] ?? 0) : 0;
-        // Il saldo attuale è: saldo base (depositi - prelievi) + bilancio giocate + bilancio rapide
-        const newSaldo = isOldest ? Number((saldoBase + newBG + newBR).toFixed(4)) : Number((acc.bilancioGiocate + acc.bilancioGiocateRapide).toFixed(4));
+        // Usa chiave composita conto||intestatario per matching preciso
+        const accKey = getAccountKey(acc.conto, acc.intestatario);
+        // Prova prima la chiave composita, poi fallback a solo conto (per bet/transazioni vecchie senza intestatario)
+        const newBG = Number(((giocateMap[accKey] ?? giocateMap[acc.conto]) ?? 0).toFixed(4));
+        const newBR = Number(((rapideMap[accKey] ?? rapideMap[acc.conto]) ?? 0).toFixed(4));
+        const saldoBase = saldoDisponibileMap[acc.conto] ?? 0;
+        const newSaldo = Number((saldoBase + newBG + newBR).toFixed(4));
         
-        // Confronta con tolleranza per evitare loop infiniti dovuti ad arrotondamenti
         const bgDiff = Math.abs(newBG - acc.bilancioGiocate);
         const brDiff = Math.abs(newBR - acc.bilancioGiocateRapide);
         const saldoDiff = Math.abs(newSaldo - acc.saldoAttuale);

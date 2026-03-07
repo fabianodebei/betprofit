@@ -148,6 +148,7 @@ export function CasinoBetForm({
       await addBet({
         tipo: 'Casino',
         conto: data.conto,
+        intestatario: data.intestatario,
         stake: data.stake,
         nomeGioco: data.nomeGioco,
         dataEvento: data.dataEvento,

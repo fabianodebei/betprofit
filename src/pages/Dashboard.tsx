@@ -169,13 +169,14 @@ export default function Dashboard() {
   const bookmakerStats = useMemo(() => {
     const stats = new Map();
     
-    // Se c'è un filtro intestatario, filtra le bet per i conti di quell'intestatario
-    const allowedConti = selectedIntestatario 
-      ? new Set(filteredAccounts.map(a => a.conto))
-      : null;
-    
-    const filteredBets = allowedConti 
-      ? bets.filter(bet => allowedConti.has(bet.conto))
+    // Filtra per intestatario se selezionato (usa il campo intestatario della bet, con fallback al conto)
+    const filteredBets = selectedIntestatario 
+      ? bets.filter(bet => {
+          if (bet.intestatario) return bet.intestatario === selectedIntestatario;
+          // Fallback per bet vecchie senza intestatario: matcha via conto -> account
+          const allowedConti = new Set(filteredAccounts.map(a => a.conto));
+          return allowedConti.has(bet.conto);
+        })
       : bets;
     
     // Add ALL bets (archived + ongoing)
@@ -205,7 +206,7 @@ export default function Dashboard() {
     );
     
     layBetsForBet.forEach(lb => {
-      if (allowedConti && !allowedConti.has(lb.conto)) return;
+      if (selectedIntestatario && !filteredBets.some(fb => fb.id === bet.id)) return;
       
       if (!stats.has(lb.conto)) {
         stats.set(lb.conto, { stake: 0, profitto: 0, count: 0 });
