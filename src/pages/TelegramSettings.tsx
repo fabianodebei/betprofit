@@ -30,7 +30,7 @@ const formSchema = z.object({
   telegram_bot_token: z.preprocess(
     (val) => normalizeTelegramToken(typeof val === 'string' ? val : ''),
     z.string().refine(
-      (val) => val === '' || /^\d+:[A-Za-z0-9_-]{35,}$/.test(val),
+      (val) => val === '' || /^\d+:[A-Za-z0-9_-]{20,}$/.test(val),
       'Formato token non valido. Deve essere nel formato: 123456789:ABCdefGHIjklMNOpqrsTUVwxyz'
     )
   ),

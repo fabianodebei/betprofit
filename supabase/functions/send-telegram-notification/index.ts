@@ -159,7 +159,7 @@ const handler = async (req: Request): Promise<Response> => {
     const cleanChatId = config.telegram_chat_id.replace(/\0+$/g, '').trim();
 
     // Validate token format before use
-    if (!cleanToken.match(/^\d+:[A-Za-z0-9_-]{35,}$/)) {
+    if (!cleanToken.match(/^\d+:[A-Za-z0-9_-]{20,}$/)) {
       console.error('Invalid bot token format in database, clean length:', cleanToken.length);
       return new Response(
         JSON.stringify({ success: false, error: 'Invalid Telegram configuration' }),
