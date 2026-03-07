@@ -54,6 +54,7 @@ export function Header() {
   const {
     signOut
   } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
   useEffect(() => {
