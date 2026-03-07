@@ -228,20 +228,6 @@ export default function Admin() {
     exportToCSV(rows, 'attivita_utenti');
   };
 
-  // Compute bookmaker distribution from bets (mock based on available data)
-  const bookmakerData = useMemo(() => {
-    // Since we don't have per-bookmaker data from current queries, derive from user activities
-    const total = systemStats?.totalBets || 0;
-    if (total === 0) return [];
-    return [
-      { name: 'Betfair', value: Math.round(total * 0.3) },
-      { name: 'Sisal', value: Math.round(total * 0.2) },
-      { name: 'Snai', value: Math.round(total * 0.15) },
-      { name: 'Bet365', value: Math.round(total * 0.15) },
-      { name: 'Goldbet', value: Math.round(total * 0.1) },
-      { name: 'Altri', value: Math.round(total * 0.1) },
-    ];
-  }, [systemStats?.totalBets]);
 
   const totalEarnings = useMemo(() => {
     return userEarnings.reduce((sum, u) => sum + Number(u.total_earnings || 0), 0);
