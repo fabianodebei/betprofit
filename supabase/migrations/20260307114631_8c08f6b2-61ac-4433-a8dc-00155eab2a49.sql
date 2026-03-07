@@ -1,0 +1,1 @@
+ALTER TABLE public.bets ADD COLUMN IF NOT EXISTS intestatario text;

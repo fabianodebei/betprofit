@@ -174,6 +174,7 @@ export type Database = {
           esito_dettaglio: string | null
           evento: string | null
           id: string
+          intestatario: string | null
           mercato: string | null
           metodo: string | null
           nome_gioco: string | null
@@ -205,6 +206,7 @@ export type Database = {
           esito_dettaglio?: string | null
           evento?: string | null
           id?: string
+          intestatario?: string | null
           mercato?: string | null
           metodo?: string | null
           nome_gioco?: string | null
@@ -236,6 +238,7 @@ export type Database = {
           esito_dettaglio?: string | null
           evento?: string | null
           id?: string
+          intestatario?: string | null
           mercato?: string | null
           metodo?: string | null
           nome_gioco?: string | null
