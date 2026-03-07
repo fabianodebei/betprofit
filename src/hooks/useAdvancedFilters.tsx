@@ -8,6 +8,7 @@ export interface FilterState {
   bookmakers: string[];
   tags: string[];
   betTypes: string[];
+  intestatari: string[];
   stakeMin: number | null;
   stakeMax: number | null;
 }
@@ -24,6 +25,7 @@ const initialFilterState: FilterState = {
   bookmakers: [],
   tags: [],
   betTypes: [],
+  intestatari: [],
   stakeMin: null,
   stakeMax: null,
 };
@@ -92,6 +94,13 @@ export function useAdvancedFilters<T extends Record<string, any>>(
     if (filters.betTypes.length > 0) {
       result = result.filter(item => 
         filters.betTypes.includes(item.tipo as string)
+      );
+    }
+
+    // Intestatario filter
+    if (filters.intestatari.length > 0) {
+      result = result.filter(item => 
+        item.intestatario && filters.intestatari.includes(item.intestatario as string)
       );
     }
 

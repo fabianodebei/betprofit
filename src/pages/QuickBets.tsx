@@ -36,7 +36,7 @@ export default function QuickBets() {
     sortOrder,
     setSortOrder,
   } = useAdvancedFilters(quickBets, {
-    searchFields: ['conto', 'metodo', 'tag', 'note'],
+    searchFields: ['conto', 'metodo', 'tag', 'note', 'intestatario'],
     dateField: 'createdAt',
   });
 
@@ -46,6 +46,11 @@ export default function QuickBets() {
   const availableBookmakers = useMemo(() => {
     const bookmakers = new Set(quickBets.map(bet => bet.conto));
     return Array.from(bookmakers);
+  }, [quickBets]);
+
+  const availableIntestatari = useMemo(() => {
+    const intestatari = new Set(quickBets.map(bet => bet.intestatario).filter(Boolean) as string[]);
+    return Array.from(intestatari);
   }, [quickBets]);
 
   const availableTags = useMemo(() => {
@@ -108,6 +113,7 @@ export default function QuickBets() {
         availableBookmakers={availableBookmakers}
         availableTags={availableTags}
         availableBetTypes={['Rapida']}
+        availableIntestatari={availableIntestatari}
       />
 
       <Card>

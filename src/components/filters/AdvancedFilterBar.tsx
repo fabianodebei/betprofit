@@ -14,6 +14,7 @@ export interface FilterState {
   bookmakers: string[];
   tags: string[];
   betTypes: string[];
+  intestatari: string[];
   stakeMin: number | null;
   stakeMax: number | null;
 }
@@ -26,6 +27,7 @@ interface AdvancedFilterBarProps {
   availableBookmakers?: string[];
   availableTags?: string[];
   availableBetTypes?: string[];
+  availableIntestatari?: string[];
 }
 
 export function AdvancedFilterBar({
@@ -36,10 +38,11 @@ export function AdvancedFilterBar({
   availableBookmakers = [],
   availableTags = [],
   availableBetTypes = ['Singola', 'Multipla', 'Casino', 'Rapida'],
+  availableIntestatari = [],
 }: AdvancedFilterBarProps) {
   const hasActiveFilters = filters.search || filters.dateFrom || filters.dateTo || 
     filters.bookmakers.length > 0 || filters.tags.length > 0 || filters.betTypes.length > 0 ||
-    filters.stakeMin !== null || filters.stakeMax !== null;
+    filters.intestatari.length > 0 || filters.stakeMin !== null || filters.stakeMax !== null;
 
   const resetFilters = () => {
     onFilterChange({
@@ -49,12 +52,13 @@ export function AdvancedFilterBar({
       bookmakers: [],
       tags: [],
       betTypes: [],
+      intestatari: [],
       stakeMin: null,
       stakeMax: null,
     });
   };
 
-  const toggleArrayFilter = (key: 'bookmakers' | 'tags' | 'betTypes', value: string) => {
+  const toggleArrayFilter = (key: 'bookmakers' | 'tags' | 'betTypes' | 'intestatari', value: string) => {
     const currentValues = filters[key];
     const newValues = currentValues.includes(value)
       ? currentValues.filter(v => v !== value)
@@ -94,7 +98,7 @@ export function AdvancedFilterBar({
               Filtri
               {hasActiveFilters && (
                 <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 flex items-center justify-center rounded-full">
-                  {[filters.dateFrom, filters.dateTo, ...filters.bookmakers, ...filters.tags, ...filters.betTypes]
+                  {[filters.dateFrom, filters.dateTo, ...filters.bookmakers, ...filters.tags, ...filters.betTypes, ...filters.intestatari]
                     .filter(Boolean).length}
                 </Badge>
               )}
@@ -184,7 +188,25 @@ export function AdvancedFilterBar({
                 </div>
               )}
 
-              {/* Bet Types */}
+              {/* Intestatari */}
+              {availableIntestatari.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-xs">Intestatario</Label>
+                  <div className="flex flex-wrap gap-1">
+                    {availableIntestatari.map(int => (
+                      <Badge
+                        key={int}
+                        variant={filters.intestatari.includes(int) ? "default" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => toggleArrayFilter('intestatari', int)}
+                      >
+                        {int}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label className="text-xs">Tipo Scommessa</Label>
                 <div className="flex flex-wrap gap-1">
