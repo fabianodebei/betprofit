@@ -512,7 +512,7 @@ export default function Dashboard() {
                 Nessun wallet configurato
               </p>
             ) : (
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {wallets.map(wallet => {
                   const name = wallet.nome.toLowerCase();
                   const isPaypal = name.includes('paypal');
