@@ -14,6 +14,7 @@ export interface FilterState {
   bookmakers: string[];
   tags: string[];
   betTypes: string[];
+  intestatari: string[];
   stakeMin: number | null;
   stakeMax: number | null;
 }
@@ -26,6 +27,7 @@ interface AdvancedFilterBarProps {
   availableBookmakers?: string[];
   availableTags?: string[];
   availableBetTypes?: string[];
+  availableIntestatari?: string[];
 }
 
 export function AdvancedFilterBar({
