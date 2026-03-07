@@ -1,0 +1,1 @@
+UPDATE function_rate_limits SET last_execution_at = now() - interval '5 minutes' WHERE id LIKE '%check-notification%' OR id LIKE '%notification%';
