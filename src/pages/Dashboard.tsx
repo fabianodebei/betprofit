@@ -590,7 +590,7 @@ export default function Dashboard() {
                 Nessun conto configurato
               </p>
             ) : (
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {accounts.map(account => (
                   <div key={account.id} className="flex items-center justify-between rounded-lg border p-3">
                     <div>
@@ -602,7 +602,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                 ))}
-                <div className="flex items-center justify-between rounded-lg bg-muted p-3 mt-2">
+                <div className="col-span-1 sm:col-span-2 lg:col-span-3 flex items-center justify-between rounded-lg bg-muted p-3 mt-2">
                   <span className="font-semibold text-sm">Totale Conti</span>
                   <span className={`font-bold ${accounts.reduce((s, a) => s + (a.stato === 'Abilitato' ? a.saldoAttuale : 0), 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                     {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(accounts.reduce((s, a) => s + (a.stato === 'Abilitato' ? a.saldoAttuale : 0), 0))}
