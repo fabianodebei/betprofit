@@ -187,13 +187,8 @@ export default function Dashboard() {
       const s = stats.get(bet.conto);
       s.stake += bet.stake;
       
-      // For quick bets, profitto is the stake itself
-      // For other bets, profitto is the risultato
-      if (bet.tipo === 'Rapida') {
-        s.profitto += bet.stake;
-      } else {
-        s.profitto += bet.risultato || 0;
-      }
+      // profitto is always the risultato (net result)
+      s.profitto += bet.risultato || 0;
       s.count += 1;
     });
 
