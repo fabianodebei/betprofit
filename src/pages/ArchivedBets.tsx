@@ -188,7 +188,7 @@ export default function ArchivedBets() {
                             (() => {
                               const legs = getBetLegsByBetId(bet.id);
                               return legs.length > 0 
-                                ? legs.map(leg => leg.evento).join(', ')
+                                ? legs.sort((a, b) => new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime())[0].evento
                                 : bet.evento || bet.nomeGioco || '-';
                             })()
                           ) : (
