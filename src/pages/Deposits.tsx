@@ -215,7 +215,7 @@ export default function Deposits() {
                               <CollapsibleContent asChild>
                                 <>
                                   {intestatarioStats.map((stat) => (
-                                    <tr key={stat.conto} className="bg-muted/10 border-l-4 border-primary/20">
+                                    <tr key={`${stat.conto}-${stat.intestatario}`} className="bg-muted/10 border-l-4 border-primary/20">
                                       <td className="p-3"></td>
                                       <td className="p-3 pl-8">
                                         <div className="font-medium text-sm">{stat.conto}</div>
@@ -308,7 +308,7 @@ export default function Deposits() {
                         <SelectContent>
                           <SelectItem value="all">Tutti</SelectItem>
                           {activeAccounts.map(account => (
-                            <SelectItem key={account.id} value={account.conto}>
+                            <SelectItem key={account.id} value={getAccountKey(account.conto, account.intestatario)}>
                               {account.conto} - {account.intestatario}
                             </SelectItem>
                           ))}
