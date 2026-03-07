@@ -308,6 +308,8 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
       }
       
       eventDate = new Date(legs[0].data_evento);
+      // Store first leg evento for notification message
+      (bet as any)._firstLegEvento = legs[0].evento;
       console.log(`Multiple bet ${bet.id}: using first match date ${eventDate.toISOString()}`);
     } else {
       // For single bets, use the bet's event date
