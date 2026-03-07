@@ -397,7 +397,7 @@ export default function Dashboard() {
       <div className="grid gap-6 lg:grid-cols-3 mb-8">
         {/* Trend Chart */}
         <div className="lg:col-span-2">
-          <TrendChart data={chartData} title={`Trend Guadagni ${selectedYear}`} />
+          <TrendChart data={chartData} title={`Trend Guadagni ${selectedYear}`} period={trendPeriod} onPeriodChange={setTrendPeriod} />
           {accounts.length === 0 && wallets.length === 0 && (
             <Card className="mt-6">
               <CardContent className="p-6">
