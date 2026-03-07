@@ -267,14 +267,25 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         }
       });
 
+      // Per ogni nome conto, trova il conto più vecchio (primo creato) - solo quello riceve i bilanci
+      // I conti duplicati (stesso nome, intestatario diverso) partono da 0
+      const oldestAccountByConto: Record<string, string> = {}; // conto -> oldest account id
+      const sortedByDate = [...mappedAccounts].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+      for (const acc of sortedByDate) {
+        if (!oldestAccountByConto[acc.conto]) {
+          oldestAccountByConto[acc.conto] = acc.id;
+        }
+      }
+
       // Aggiorna DB se diverso e prepara stato corretto
       const correctedAccounts: Account[] = [];
       for (const acc of mappedAccounts) {
-        const newBG = Number((giocateMap[acc.conto] ?? 0).toFixed(4));
-        const newBR = Number((rapideMap[acc.conto] ?? 0).toFixed(4));
-        const saldoBase = saldoDisponibileMap[acc.conto] ?? 0;
+        const isOldest = oldestAccountByConto[acc.conto] === acc.id;
+        const newBG = isOldest ? Number((giocateMap[acc.conto] ?? 0).toFixed(4)) : acc.bilancioGiocate;
+        const newBR = isOldest ? Number((rapideMap[acc.conto] ?? 0).toFixed(4)) : acc.bilancioGiocateRapide;
+        const saldoBase = isOldest ? (saldoDisponibileMap[acc.conto] ?? 0) : 0;
         // Il saldo attuale è: saldo base (depositi - prelievi) + bilancio giocate + bilancio rapide
-        const newSaldo = Number((saldoBase + newBG + newBR).toFixed(4));
+        const newSaldo = isOldest ? Number((saldoBase + newBG + newBR).toFixed(4)) : Number((acc.bilancioGiocate + acc.bilancioGiocateRapide).toFixed(4));
         
         // Confronta con tolleranza per evitare loop infiniti dovuti ad arrotondamenti
         const bgDiff = Math.abs(newBG - acc.bilancioGiocate);
