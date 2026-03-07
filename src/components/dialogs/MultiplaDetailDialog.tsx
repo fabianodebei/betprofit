@@ -214,7 +214,10 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                           {format(new Date(layBet.dataEvento), 'dd MMMM yyyy HH:mm')}
                         </TableCell>
                         <TableCell className="font-medium">{layBet.evento}</TableCell>
-                        <TableCell>-</TableCell>
+                        <TableCell>{(() => {
+                          const matchingLeg = betLegs.find(leg => leg.evento === layBet.evento);
+                          return matchingLeg?.competizione || '-';
+                        })()}</TableCell>
                         <TableCell>{layBet.mercato}</TableCell>
                         <TableCell>
                           <Badge variant="secondary">Banca</Badge>
