@@ -122,10 +122,14 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    if (!config || !config.notifications_enabled || !config.telegram_bot_token || !config.telegram_chat_id) {
+    // Prefer decrypted values from secure view, fallback to plain legacy columns if needed
+    let resolvedToken = config?.telegram_bot_token ?? null;
+    let resolvedChatId = config?.telegram_chat_id ?? null;
+
+    if (!config || !config.notifications_enabled || !resolvedToken || !resolvedChatId) {
       const { data: rawConfig } = await supabase
         .from('user_telegram_config')
-        .select('notifications_enabled, telegram_bot_token_encrypted, telegram_chat_id_encrypted')
+        .select('notifications_enabled, telegram_bot_token_encrypted, telegram_chat_id_encrypted, telegram_bot_token, telegram_chat_id')
         .eq('user_id', user_id)
         .maybeSingle();
 
@@ -134,29 +138,39 @@ const handler = async (req: Request): Promise<Response> => {
         rawConfig?.telegram_chat_id_encrypted
       );
 
-      const errorMessage = hasEncryptedCredentials && rawConfig?.notifications_enabled
-        ? 'Credenziali Telegram non decifrabili. Apri Impostazioni Telegram e salva di nuovo Token e Chat ID.'
-        : 'Telegram non configurato o notifiche disattivate';
-
-      console.log('Notification not sent:', errorMessage);
-      return new Response(
-        JSON.stringify({ success: false, error: errorMessage }),
-        {
-          status: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        }
+      const hasPlainCredentials = !!(
+        rawConfig?.telegram_bot_token &&
+        rawConfig?.telegram_chat_id
       );
+
+      if (rawConfig?.notifications_enabled && hasPlainCredentials) {
+        resolvedToken = rawConfig.telegram_bot_token;
+        resolvedChatId = rawConfig.telegram_chat_id;
+      } else {
+        const errorMessage = hasEncryptedCredentials && rawConfig?.notifications_enabled
+          ? 'Credenziali Telegram non decifrabili. Apri Impostazioni Telegram e salva di nuovo Token e Chat ID.'
+          : 'Telegram non configurato o notifiche disattivate';
+
+        console.log('Notification not sent:', errorMessage);
+        return new Response(
+          JSON.stringify({ success: false, error: errorMessage }),
+          {
+            status: 400,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          }
+        );
+      }
     }
 
     // Log token diagnostic info (length and char codes of last few chars to detect padding)
-    const tokenLen = config.telegram_bot_token.length;
-    const lastChars = config.telegram_bot_token.slice(-5);
+    const tokenLen = resolvedToken.length;
+    const lastChars = resolvedToken.slice(-5);
     const lastCharCodes = [...lastChars].map((c: string) => c.charCodeAt(0));
     console.log(`Token length: ${tokenLen}, last char codes: [${lastCharCodes.join(',')}]`);
 
     // Trim any null bytes or whitespace that might come from AES padding
-    const cleanToken = config.telegram_bot_token.replace(/\0+$/g, '').trim();
-    const cleanChatId = config.telegram_chat_id.replace(/\0+$/g, '').trim();
+    const cleanToken = resolvedToken.replace(/\0+$/g, '').trim();
+    const cleanChatId = resolvedChatId.replace(/\0+$/g, '').trim();
 
     // Validate token format before use
     if (!cleanToken.match(/^\d+:[A-Za-z0-9_-]{20,}$/)) {
