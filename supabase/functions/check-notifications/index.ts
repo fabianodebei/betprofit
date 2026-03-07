@@ -129,6 +129,44 @@ const handler = async (req: Request): Promise<Response> => {
   }
 };
 
+async function sendTelegramNotification(
+  supabaseUrl: string,
+  serviceKey: string,
+  message: string,
+  userId: string
+): Promise<boolean> {
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/send-telegram-notification`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify({
+        message,
+        user_id: userId,
+      }),
+    });
+
+    let payload: any = null;
+    try {
+      payload = await response.json();
+    } catch {
+      payload = null;
+    }
+
+    if (!response.ok || !payload?.success) {
+      console.error(`Telegram send failed for user ${userId}: status ${response.status}, error ${payload?.error || 'unknown'}`);
+      return false;
+    }
+
+    return true;
+  } catch (error: any) {
+    console.error(`Telegram send exception for user ${userId}:`, error?.message || error);
+    return false;
+  }
+}
+
 async function checkReminders(supabase: any, supabaseUrl: string, serviceKey: string) {
   console.log('Processing reminders');
 
@@ -190,19 +228,19 @@ async function checkReminders(supabase: any, supabaseUrl: string, serviceKey: st
 
       console.log('Sending notification');
 
-      await fetch(`${supabaseUrl}/functions/v1/send-telegram-notification`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${serviceKey}`,
-        },
-        body: JSON.stringify({ 
-          message,
-          user_id: reminder.user_id 
-        }),
-      });
+      const sent = await sendTelegramNotification(
+        supabaseUrl,
+        serviceKey,
+        message,
+        reminder.user_id
+      );
 
-      // Log notification
+      if (!sent) {
+        console.warn(`Skipping reminder ${reminder.id}: Telegram send failed`);
+        continue;
+      }
+
+      // Log notification only after successful delivery
       await supabase
         .from('notification_logs')
         .insert({
@@ -210,7 +248,7 @@ async function checkReminders(supabase: any, supabaseUrl: string, serviceKey: st
           reference_id: reminder.id,
         });
 
-      // Update reminder status
+      // Update reminder status only after successful delivery
       await supabase
         .from('reminders')
         .update({ stato: 'Letto' })
@@ -326,19 +364,19 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
 
       console.log('Sending notification');
 
-      await fetch(`${supabaseUrl}/functions/v1/send-telegram-notification`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${serviceKey}`,
-        },
-        body: JSON.stringify({ 
-          message,
-          user_id: bet.user_id 
-        }),
-      });
+      const sent = await sendTelegramNotification(
+        supabaseUrl,
+        serviceKey,
+        message,
+        bet.user_id
+      );
 
-      // Log notification
+      if (!sent) {
+        console.warn(`Skipping bet ${bet.id}: Telegram send failed`);
+        continue;
+      }
+
+      // Log notification only after successful delivery
       await supabase
         .from('notification_logs')
         .insert({

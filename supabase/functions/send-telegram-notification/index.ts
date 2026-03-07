@@ -125,9 +125,9 @@ const handler = async (req: Request): Promise<Response> => {
     if (!config || !config.notifications_enabled || !config.telegram_bot_token || !config.telegram_chat_id) {
       console.log('Notification not sent: configuration incomplete or disabled');
       return new Response(
-        JSON.stringify({ success: false }),
+        JSON.stringify({ success: false, error: 'Telegram configuration incomplete or notifications disabled' }),
         {
-          status: 200,
+          status: 400,
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
         }
       );
