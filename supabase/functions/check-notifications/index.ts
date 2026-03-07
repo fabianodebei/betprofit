@@ -364,19 +364,19 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
 
       console.log('Sending notification');
 
-      await fetch(`${supabaseUrl}/functions/v1/send-telegram-notification`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${serviceKey}`,
-        },
-        body: JSON.stringify({ 
-          message,
-          user_id: bet.user_id 
-        }),
-      });
+      const sent = await sendTelegramNotification(
+        supabaseUrl,
+        serviceKey,
+        message,
+        bet.user_id
+      );
 
-      // Log notification
+      if (!sent) {
+        console.warn(`Skipping bet ${bet.id}: Telegram send failed`);
+        continue;
+      }
+
+      // Log notification only after successful delivery
       await supabase
         .from('notification_logs')
         .insert({
