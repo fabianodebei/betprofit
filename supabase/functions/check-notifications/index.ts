@@ -129,6 +129,44 @@ const handler = async (req: Request): Promise<Response> => {
   }
 };
 
+async function sendTelegramNotification(
+  supabaseUrl: string,
+  serviceKey: string,
+  message: string,
+  userId: string
+): Promise<boolean> {
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/send-telegram-notification`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify({
+        message,
+        user_id: userId,
+      }),
+    });
+
+    let payload: any = null;
+    try {
+      payload = await response.json();
+    } catch {
+      payload = null;
+    }
+
+    if (!response.ok || !payload?.success) {
+      console.error(`Telegram send failed for user ${userId}: status ${response.status}, error ${payload?.error || 'unknown'}`);
+      return false;
+    }
+
+    return true;
+  } catch (error: any) {
+    console.error(`Telegram send exception for user ${userId}:`, error?.message || error);
+    return false;
+  }
+}
+
 async function checkReminders(supabase: any, supabaseUrl: string, serviceKey: string) {
   console.log('Processing reminders');
 
