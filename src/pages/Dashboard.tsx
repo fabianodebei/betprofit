@@ -27,6 +27,7 @@ export default function Dashboard() {
 
   const archivedBets = getArchivedBets();
   const quickBets = bets.filter(bet => bet.tipo === 'Rapida');
+  const [trendPeriod, setTrendPeriod] = useState<TrendPeriod>('year');
 
   // Force recalculation when bets change
   useEffect(() => {
