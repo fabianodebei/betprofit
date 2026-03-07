@@ -280,10 +280,16 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       for (const acc of mappedAccounts) {
         // Usa chiave composita conto||intestatario per matching preciso
         const accKey = getAccountKey(acc.conto, acc.intestatario);
-        // Prova prima la chiave composita, poi fallback a solo conto (per bet/transazioni vecchie senza intestatario)
-        const newBG = Number(((giocateMap[accKey] ?? giocateMap[acc.conto]) ?? 0).toFixed(4));
-        const newBR = Number(((rapideMap[accKey] ?? rapideMap[acc.conto]) ?? 0).toFixed(4));
-        const saldoBase = saldoDisponibileMap[accKey] ?? saldoDisponibileMap[acc.conto] ?? 0;
+        const isLegacyOwner = legacyOwnerIdByConto[acc.conto] === acc.id;
+
+        // I record legacy senza intestatario vengono assegnati solo al conto più vecchio con quel bookmaker
+        const legacyBG = isLegacyOwner ? (giocateMap[acc.conto] ?? 0) : 0;
+        const legacyBR = isLegacyOwner ? (rapideMap[acc.conto] ?? 0) : 0;
+        const legacySaldo = isLegacyOwner ? (saldoDisponibileMap[acc.conto] ?? 0) : 0;
+
+        const newBG = Number(((giocateMap[accKey] ?? 0) + legacyBG).toFixed(4));
+        const newBR = Number(((rapideMap[accKey] ?? 0) + legacyBR).toFixed(4));
+        const saldoBase = (saldoDisponibileMap[accKey] ?? 0) + legacySaldo;
         const newSaldo = Number((saldoBase + newBG + newBR).toFixed(4));
         
         const bgDiff = Math.abs(newBG - acc.bilancioGiocate);
