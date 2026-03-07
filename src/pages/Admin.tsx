@@ -333,7 +333,6 @@ export default function Admin() {
                 totalEarnings={totalEarnings}
                 newUsersMonth={systemStats?.newUsersThisMonth || 0}
               />
-              />
 
               {/* Charts row */}
               <div className="grid gap-4 lg:grid-cols-2">
