@@ -190,6 +190,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
       const dbUpdates: any = {};
       if (updates.tipo !== undefined) dbUpdates.tipo = updates.tipo;
       if (updates.conto !== undefined) dbUpdates.conto = updates.conto;
+      if (updates.intestatario !== undefined) dbUpdates.intestatario = updates.intestatario;
       if (updates.stake !== undefined) dbUpdates.stake = updates.stake;
       if (updates.quota !== undefined) dbUpdates.quota = updates.quota;
       if (updates.evento !== undefined) dbUpdates.evento = updates.evento;
