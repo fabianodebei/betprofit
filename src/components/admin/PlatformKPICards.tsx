@@ -35,7 +35,7 @@ const KPIItem = ({ label, value, icon: Icon, accentColor, subtext }: KPIItemProp
   </div>
 );
 
-export const PlatformKPICards = ({ totalUsers, activeUsers, totalBets, totalEarnings, newUsersMonth }: PlatformKPICardsProps) => {
+export const PlatformKPICards = ({ totalUsers, activeUsers, totalEarnings, newUsersMonth }: PlatformKPICardsProps) => {
   const annualRevenue = totalUsers * 899;
   const mrr = annualRevenue / 12;
   const newMRR = newUsersMonth * (899 / 12);
