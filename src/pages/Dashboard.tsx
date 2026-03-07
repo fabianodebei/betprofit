@@ -569,7 +569,7 @@ export default function Dashboard() {
                     </div>
                   );
                 })}
-                <div className="flex items-center justify-between rounded-lg bg-muted p-3 mt-2">
+                <div className="col-span-1 md:col-span-2 flex items-center justify-between rounded-lg bg-muted p-3 mt-2">
                   <span className="font-semibold text-sm">Totale Wallet</span>
                   <span className={`font-bold ${wallets.reduce((s, w) => s + (w.stato === 'Abilitato' ? w.saldoAttuale : 0), 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                     {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(wallets.reduce((s, w) => s + (w.stato === 'Abilitato' ? w.saldoAttuale : 0), 0))}
