@@ -82,7 +82,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
       const newTransaction: Transaction = {
         id: data.id,
-        metodo: data.metodo as 'Deposito' | 'Spesa' | 'Prelievo',
+        metodo: data.metodo as 'Deposito' | 'Spesa' | 'Prelievo' | 'Riconciliazione',
         conto: data.conto,
         intestatario: transaction.intestatario,
         wallet: data.wallet || undefined,
