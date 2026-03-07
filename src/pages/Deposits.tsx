@@ -367,9 +367,6 @@ export default function Deposits() {
                 <tbody>
                   {filteredTransactions.map((transaction, idx) => {
                     const txIntestatario = getTransactionIntestatario(transaction);
-                    const account = accounts.find(acc =>
-                      acc.conto === transaction.conto && acc.intestatario === txIntestatario
-                    );
                     const wallet = wallets.find(w =>
                       w.nome === transaction.wallet &&
                       w.intestatario === txIntestatario
