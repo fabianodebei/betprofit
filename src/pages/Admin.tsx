@@ -293,6 +293,10 @@ export default function Admin() {
             <h1 className="text-lg md:text-xl font-bold text-foreground capitalize">{activeTab}</h1>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate('/')} className="text-xs border-border/30">
+              <ArrowLeft className="h-3.5 w-3.5 md:mr-1.5" />
+              <span className="hidden md:inline">Torna alla Dashboard</span>
+            </Button>
             <Button variant="outline" size="sm" onClick={resetPreferences} className="text-xs border-border/30">
               <RotateCcw className="h-3.5 w-3.5 md:mr-1.5" />
               <span className="hidden md:inline">Reset Layout</span>
