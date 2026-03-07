@@ -29,7 +29,7 @@ interface AccountFormProps {
 }
 
 export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormProps) {
-  const { addAccount, updateAccount } = useAccounts();
+  const { addAccount, updateAccount, accounts } = useAccounts();
   const { books } = useBooks();
   const { intestatari } = useIntestatari();
 
