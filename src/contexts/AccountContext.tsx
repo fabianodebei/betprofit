@@ -398,16 +398,33 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
   const deleteAccount = async (id: string) => {
     try {
+      if (!user) throw new Error('User not authenticated');
+
+      const accountToDelete = accounts.find((account) => account.id === id);
+      if (!accountToDelete) throw new Error('Account non trovato');
+
+      // Elimina prima i movimenti collegati al conto per evitare vincoli FK su transactions.account_id
+      const { error: txError } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('user_id', user.id)
+        .or(`account_id.eq.${id},and(conto.eq.${accountToDelete.conto},intestatario.eq.${accountToDelete.intestatario})`);
+
+      if (txError) throw txError;
+
       const { error } = await supabase
         .from('accounts')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
       setAccounts((prev) => prev.filter((account) => account.id !== id));
+      window.dispatchEvent(new Event('refresh-accounts'));
     } catch (error: any) {
       console.error('Error deleting account:', error);
+      throw error;
     }
   };
 
