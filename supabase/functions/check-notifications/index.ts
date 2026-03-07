@@ -297,7 +297,7 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
     if (isMultiple) {
       const { data: legs, error: legsError } = await supabase
         .from('bet_legs')
-        .select('data_evento')
+        .select('data_evento, evento')
         .eq('bet_id', bet.id)
         .order('data_evento', { ascending: true })
         .limit(1);
@@ -308,6 +308,8 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
       }
       
       eventDate = new Date(legs[0].data_evento);
+      // Store first leg evento for notification message
+      (bet as any)._firstLegEvento = legs[0].evento;
       console.log(`Multiple bet ${bet.id}: using first match date ${eventDate.toISOString()}`);
     } else {
       // For single bets, use the bet's event date
@@ -323,7 +325,9 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
       
       // Sanitize all user-provided fields with appropriate length limits
       const tipo = sanitizeField(bet.tipo, 50, 'bet.tipo');
-      const evento = sanitizeField(bet.evento, 200, 'bet.evento');
+      const evento = isMultiple && (bet as any)._firstLegEvento
+        ? sanitizeField((bet as any)._firstLegEvento, 200, 'firstLegEvento')
+        : sanitizeField(bet.evento, 200, 'bet.evento');
       const nomeGioco = sanitizeField(bet.nome_gioco, 200, 'bet.nome_gioco');
       const conto = sanitizeField(bet.conto, 100, 'bet.conto');
       const tag = sanitizeField(bet.tag, 100, 'bet.tag');
