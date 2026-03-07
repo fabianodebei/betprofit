@@ -76,13 +76,14 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         .insert({
           metodo: transaction.metodo,
           conto: transaction.conto,
+          intestatario: transaction.intestatario || null,
           wallet: transaction.wallet || null,
           addebito: transaction.addebito || null,
           accredito: transaction.accredito || null,
           descrizione: transaction.descrizione || null,
           registrato: transaction.registrato.toISOString(),
           user_id: user.id,
-        })
+        } as any)
         .select()
         .single();
 
