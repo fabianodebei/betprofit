@@ -340,33 +340,6 @@ export default function Admin() {
                 <UserEarningsChart data={userEarnings} height={300} />
               </div>
 
-              {/* Second charts row */}
-              <div className="grid gap-4 lg:grid-cols-2">
-                <BookmakerDistributionChart data={bookmakerData} height={300} />
-
-                {/* Stats Database card */}
-                <Card className="border-border/30">
-                  <CardHeader>
-                    <CardTitle className="text-base">Statistiche Database</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {[
-                      { label: 'Bets', value: systemStats?.totalBets || 0 },
-                      { label: 'Transazioni', value: systemStats?.totalTransactions || 0 },
-                      { label: 'Conti', value: systemStats?.totalAccounts || 0 },
-                      { label: 'Wallet', value: systemStats?.totalWallets || 0 },
-                      { label: 'Tag', value: systemStats?.totalTags || 0 },
-                      { label: 'Admin', value: systemStats?.roleDistribution.admin || 0 },
-                      { label: 'Free Users', value: systemStats?.roleDistribution.free || 0 },
-                    ].map(item => (
-                      <div key={item.label} className="flex justify-between items-center py-1 border-b border-border/10 last:border-0">
-                        <span className="text-sm text-muted-foreground">{item.label}</span>
-                        <span className="font-semibold text-foreground">{item.value.toLocaleString('it-IT')}</span>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              </div>
             </>
           )}
 
