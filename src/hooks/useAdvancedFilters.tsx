@@ -25,6 +25,7 @@ const initialFilterState: FilterState = {
   bookmakers: [],
   tags: [],
   betTypes: [],
+  intestatari: [],
   stakeMin: null,
   stakeMax: null,
 };
