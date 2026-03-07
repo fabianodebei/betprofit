@@ -190,7 +190,9 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
             .from('accounts')
             .select('intestatario')
             .eq('conto', transaction.conto)
-            .single();
+            .order('created_at', { ascending: true })
+            .limit(1)
+            .maybeSingle();
           txIntestatario = acc?.intestatario as string | undefined;
         }
 
