@@ -71,12 +71,6 @@ export const PlatformKPICards = ({ totalUsers, activeUsers, totalBets, totalEarn
         subtext={`+${formatCurrency(newMRR)} nuovo`}
       />
       <KPIItem
-        label="Bets Totali"
-        value={totalBets.toLocaleString('it-IT')}
-        icon={BarChart3}
-        accentColor="bg-chart-3/15 text-info"
-      />
-      <KPIItem
         label="Churn Rate"
         value={totalUsers > 0 ? `${Math.max(0, ((totalUsers - activeUsers) / totalUsers * 100)).toFixed(1)}%` : '0%'}
         icon={TrendingUp}
