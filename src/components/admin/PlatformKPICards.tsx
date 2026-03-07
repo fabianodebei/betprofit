@@ -59,10 +59,11 @@ export const PlatformKPICards = ({ totalUsers, activeUsers, totalBets, totalEarn
         accentColor="bg-accent/15 text-accent"
       />
       <KPIItem
-        label="Profitto Piattaforma"
-        value={formatCurrency(totalEarnings)}
+        label="Revenue Totale"
+        value={formatCurrency(totalUsers * 899)}
         icon={DollarSign}
         accentColor="bg-success/15 text-success"
+        subtext={`${totalUsers} utenti × €899/anno`}
       />
       <KPIItem
         label="Churn Rate"
