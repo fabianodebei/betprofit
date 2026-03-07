@@ -583,8 +583,8 @@ export default function Dashboard() {
                 <BarChart3 className="h-5 w-5" />
                 Bilancio
               </span>
-              <span className={`text-base font-bold ${accounts.reduce((s, a) => s + (a.stato === 'Abilitato' ? a.saldoAttuale : 0), 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(accounts.reduce((s, a) => s + (a.stato === 'Abilitato' ? a.saldoAttuale : 0), 0))}
+              <span className={`text-base font-bold ${filteredAccounts.reduce((s, a) => s + (a.stato === 'Abilitato' ? a.saldoAttuale : 0), 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(filteredAccounts.reduce((s, a) => s + (a.stato === 'Abilitato' ? a.saldoAttuale : 0), 0))}
               </span>
             </CardTitle>
           </CardHeader>
@@ -594,19 +594,42 @@ export default function Dashboard() {
                 Nessun conto configurato
               </p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {accounts.map(account => (
-                  <div key={account.id} className="flex items-center justify-between rounded-lg border p-3">
-                    <div>
-                      <div className="font-semibold text-sm">{account.conto}</div>
-                      <div className="text-xs text-muted-foreground">{account.intestatario}</div>
-                    </div>
-                    <div className={`font-bold text-sm ${account.saldoAttuale >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                      {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(account.saldoAttuale)}
-                    </div>
+              <>
+                {uniqueIntestatari.length > 1 && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <Button
+                      size="sm"
+                      variant={selectedIntestatario === null ? 'default' : 'outline'}
+                      onClick={() => setSelectedIntestatario(null)}
+                    >
+                      Tutti
+                    </Button>
+                    {uniqueIntestatari.map(name => (
+                      <Button
+                        key={name}
+                        size="sm"
+                        variant={selectedIntestatario === name ? 'default' : 'outline'}
+                        onClick={() => setSelectedIntestatario(name)}
+                      >
+                        {name}
+                      </Button>
+                    ))}
                   </div>
-                ))}
-              </div>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {filteredAccounts.map(account => (
+                    <div key={account.id} className="flex items-center justify-between rounded-lg border p-3">
+                      <div>
+                        <div className="font-semibold text-sm">{account.conto}</div>
+                        <div className="text-xs text-muted-foreground">{account.intestatario}</div>
+                      </div>
+                      <div className={`font-bold text-sm ${account.saldoAttuale >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(account.saldoAttuale)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
