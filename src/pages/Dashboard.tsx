@@ -505,9 +505,14 @@ export default function Dashboard() {
         {/* Wallet Card */}
         <Card>
           <CardHeader className="pb-1 pt-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Wallet className="h-5 w-5" />
-              Wallet
+            <CardTitle className="text-lg flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Wallet className="h-5 w-5" />
+                Wallet
+              </span>
+              <span className={`text-base font-bold ${wallets.reduce((s, w) => s + (w.stato === 'Abilitato' ? w.saldoAttuale : 0), 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(wallets.reduce((s, w) => s + (w.stato === 'Abilitato' ? w.saldoAttuale : 0), 0))}
+              </span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -565,12 +570,6 @@ export default function Dashboard() {
                     </div>
                   );
                 })}
-                <div className="col-span-1 md:col-span-2 flex items-center justify-between rounded-lg bg-muted p-3 mt-2">
-                  <span className="font-semibold text-sm">Totale Wallet</span>
-                  <span className={`font-bold ${wallets.reduce((s, w) => s + (w.stato === 'Abilitato' ? w.saldoAttuale : 0), 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(wallets.reduce((s, w) => s + (w.stato === 'Abilitato' ? w.saldoAttuale : 0), 0))}
-                  </span>
-                </div>
               </div>
             )}
           </CardContent>
