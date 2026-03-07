@@ -254,7 +254,7 @@ export function QuickBetForm({
                   <FormLabel>Movimento *</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <Input type="number" step="0.01" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} onClick={handleInputClick} />
+                      <Input type="number" step="0.01" placeholder="0.00" {...field} onChange={e => { const val = e.target.value; field.onChange(val === '' || val === '-' ? 0 : parseFloat(val)); }} onClick={handleInputClick} />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                     </div>
                   </FormControl>
