@@ -500,7 +500,7 @@ export default function Dashboard() {
       <div className="grid gap-6 lg:grid-cols-2 mb-8">
         {/* Wallet Card */}
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-1 pt-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <Wallet className="h-5 w-5" />
               Wallet
