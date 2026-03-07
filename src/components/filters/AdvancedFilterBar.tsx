@@ -42,7 +42,7 @@ export function AdvancedFilterBar({
 }: AdvancedFilterBarProps) {
   const hasActiveFilters = filters.search || filters.dateFrom || filters.dateTo || 
     filters.bookmakers.length > 0 || filters.tags.length > 0 || filters.betTypes.length > 0 ||
-    filters.stakeMin !== null || filters.stakeMax !== null;
+    filters.intestatari.length > 0 || filters.stakeMin !== null || filters.stakeMax !== null;
 
   const resetFilters = () => {
     onFilterChange({
