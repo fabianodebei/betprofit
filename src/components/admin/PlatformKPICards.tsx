@@ -41,7 +41,7 @@ export const PlatformKPICards = ({ totalUsers, activeUsers, totalBets, totalEarn
   const newMRR = newUsersMonth * (899 / 12);
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 md:gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
       <KPIItem
         label="Utenti Totali"
         value={String(totalUsers)}
