@@ -15,19 +15,32 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import telegramQR from '@/assets/telegram-qr.jpeg';
 
+const normalizeTelegramToken = (value?: string) => {
+  const trimmed = (value ?? '').trim();
+  if (!trimmed) return '';
+
+  const withoutUrlPrefix = trimmed
+    .replace(/^https?:\/\/api\.telegram\.org\/bot/i, '')
+    .replace(/\/.*$/, '');
+
+  return withoutUrlPrefix.replace(/^bot/i, '').trim();
+};
+
 const formSchema = z.object({
-  telegram_bot_token: z.union([z.string(), z.undefined()])
-    .transform((val) => (val ?? '').trim())
-    .refine(
+  telegram_bot_token: z.preprocess(
+    (val) => normalizeTelegramToken(typeof val === 'string' ? val : ''),
+    z.string().refine(
       (val) => val === '' || /^\d+:[A-Za-z0-9_-]{35,}$/.test(val),
       'Formato token non valido. Deve essere nel formato: 123456789:ABCdefGHIjklMNOpqrsTUVwxyz'
-    ),
-  telegram_chat_id: z.union([z.string(), z.undefined()])
-    .transform((val) => (val ?? '').trim())
-    .refine(
+    )
+  ),
+  telegram_chat_id: z.preprocess(
+    (val) => (typeof val === 'string' ? val.trim() : ''),
+    z.string().refine(
       (val) => val === '' || /^-?\d+$/.test(val),
       'Chat ID deve essere un numero (può essere negativo per i gruppi)'
-    ),
+    )
+  ),
   notifications_enabled: z.boolean(),
 });
 

@@ -24,6 +24,17 @@ interface TelegramConfigContextType {
 
 const TelegramConfigContext = createContext<TelegramConfigContextType | undefined>(undefined);
 
+const normalizeTelegramToken = (value?: string) => {
+  const trimmed = (value ?? '').trim();
+  if (!trimmed) return '';
+
+  const withoutUrlPrefix = trimmed
+    .replace(/^https?:\/\/api\.telegram\.org\/bot/i, '')
+    .replace(/\/.*$/, '');
+
+  return withoutUrlPrefix.replace(/^bot/i, '').trim();
+};
+
 export const TelegramConfigProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const [config, setConfig] = useState<TelegramConfig | null>(null);
