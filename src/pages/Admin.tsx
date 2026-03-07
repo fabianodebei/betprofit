@@ -171,18 +171,11 @@ export default function Admin() {
       if (error) throw error;
 
       if (data) {
-        // Type assertion for RPC response
         const stats = data as any;
-        
-        // Map RPC response to SystemStats format
-        const roleDistribution = {
-          admin: users.filter(u => u.role === 'admin').length,
-          free: users.filter(u => u.role === 'free').length,
-        };
 
         setSystemStats({
           totalUsers: Number(stats.totalUsers) || 0,
-          newUsersThisWeek: 0, // Will be calculated from registration data
+          newUsersThisWeek: 0,
           newUsersThisMonth: Number(stats.newUsersLast30Days) || 0,
           activeUsers: Number(stats.activeUsersLast30Days) || 0,
           totalBets: Number(stats.totalBets) || 0,
@@ -190,7 +183,10 @@ export default function Admin() {
           totalAccounts: Number(stats.totalAccounts) || 0,
           totalWallets: Number(stats.totalWallets) || 0,
           totalTags: Number(stats.totalTags) || 0,
-          roleDistribution,
+          roleDistribution: {
+            admin: Number(stats.totalAdmins) || 0,
+            free: Math.max(0, (Number(stats.totalUsers) || 0) - (Number(stats.totalAdmins) || 0)),
+          },
         });
       }
     } catch (error) {
