@@ -4,7 +4,7 @@ import { it } from 'date-fns/locale';
 import { TrendingUp, Calendar, Trophy, Wallet, BarChart3 } from 'lucide-react';
 import { AdvancedKPICard } from '@/components/dashboard/AdvancedKPICard';
 import { ROIByBookmakerChart } from '@/components/dashboard/ROIByBookmakerChart';
-import { TrendChart } from '@/components/dashboard/TrendChart';
+import { TrendChart, TrendPeriod } from '@/components/dashboard/TrendChart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAccounts } from '@/contexts/AccountContext';
