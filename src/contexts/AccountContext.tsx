@@ -241,15 +241,15 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       });
 
       // Ricalcola saldo_attuale dalle transazioni (depositi/prelievi)
-      // Transactions use conto name only (no intestatario yet)
       const { data: transactionsData } = await supabase
         .from('transactions')
-        .select('conto, metodo, accredito, addebito')
+        .select('conto, metodo, accredito, addebito, intestatario')
         .eq('user_id', user.id);
 
       const saldoDisponibileMap: Record<string, number> = {};
       (transactionsData || []).forEach((t: any) => {
-        const conto = t.conto as string;
+        const intestatario = t.intestatario as string | null;
+        const conto = intestatario ? getAccountKey(t.conto, intestatario) : t.conto as string;
         if (!saldoDisponibileMap[conto]) saldoDisponibileMap[conto] = 0;
         
         if (t.metodo === 'Deposito') {
