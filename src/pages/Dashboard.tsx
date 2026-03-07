@@ -1,10 +1,7 @@
 import { useEffect, useMemo } from 'react';
-import { TrendingUp, Calendar, Trophy, Wallet, BarChart3, PieChart } from 'lucide-react';
+import { TrendingUp, Calendar, Trophy, Wallet, BarChart3 } from 'lucide-react';
 import { AdvancedKPICard } from '@/components/dashboard/AdvancedKPICard';
 import { ROIByBookmakerChart } from '@/components/dashboard/ROIByBookmakerChart';
-import { BetTypeDistributionChart } from '@/components/dashboard/BetTypeDistributionChart';
-import { MonthlyComparisonChart } from '@/components/dashboard/MonthlyComparisonChart';
-import { QuickInsightsPanel, generateInsights } from '@/components/dashboard/QuickInsightsPanel';
 import { TrendChart } from '@/components/dashboard/TrendChart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
