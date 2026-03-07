@@ -47,6 +47,7 @@ const Intestatari = lazy(() => import("./pages/Intestatari"));
 const Books = lazy(() => import("./pages/Books"));
 const Tags = lazy(() => import("./pages/Tags"));
 const ImportExport = lazy(() => import("./pages/ImportExport"));
+const Proxy = lazy(() => import("./pages/Proxy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Admin = lazy(() => import("./pages/Admin"));
 

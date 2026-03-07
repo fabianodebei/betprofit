@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,6 +28,8 @@ interface UserInfo {
   full_name: string;
 }
 
+const proxyTable = () => supabase.from('user_proxies' as any);
+
 const CopyButton = ({ value }: { value: string }) => {
   const [copied, setCopied] = useState(false);
   const handleCopy = () => {
@@ -37,12 +39,11 @@ const CopyButton = ({ value }: { value: string }) => {
   };
   return (
     <button onClick={handleCopy} className="ml-2 text-muted-foreground hover:text-foreground transition-colors">
-      {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+      {copied ? <Check className="h-3.5 w-3.5 text-primary" /> : <Copy className="h-3.5 w-3.5" />}
     </button>
   );
 };
 
-// User view component
 const UserProxyView = ({ proxy }: { proxy: ProxyData | null }) => {
   if (!proxy) {
     return (
@@ -107,7 +108,6 @@ const UserProxyView = ({ proxy }: { proxy: ProxyData | null }) => {
   );
 };
 
-// Admin view component
 const AdminProxyView = () => {
   const [proxies, setProxies] = useState<(ProxyData & { email?: string; full_name?: string })[]>([]);
   const [users, setUsers] = useState<UserInfo[]>([]);
@@ -123,10 +123,9 @@ const AdminProxyView = () => {
   });
 
   const fetchProxies = async () => {
-    const { data, error } = await supabase.from('user_proxies').select('*');
+    const { data, error } = await proxyTable().select('*');
     if (error) { console.error(error); return; }
     
-    // Fetch user info
     const { data: usersData } = await supabase.rpc('admin_get_all_users');
     const allUsers = (usersData as any[]) || [];
     
@@ -136,7 +135,6 @@ const AdminProxyView = () => {
     });
     setProxies(enriched);
     
-    // Users without proxy for the select
     const proxyUserIds = (data || []).map((p: any) => p.user_id);
     const available = allUsers
       .filter((u: any) => !proxyUserIds.includes(u.id))
@@ -170,9 +168,9 @@ const AdminProxyView = () => {
 
     let error;
     if (editingProxy) {
-      ({ error } = await supabase.from('user_proxies').update(payload).eq('id', editingProxy.id));
+      ({ error } = await proxyTable().update(payload).eq('id', editingProxy.id));
     } else {
-      ({ error } = await supabase.from('user_proxies').insert(payload));
+      ({ error } = await proxyTable().insert(payload));
     }
 
     if (error) { toast.error('Errore: ' + error.message); return; }
@@ -183,7 +181,7 @@ const AdminProxyView = () => {
   };
 
   const handleDelete = async (id: string) => {
-    const { error } = await supabase.from('user_proxies').delete().eq('id', id);
+    const { error } = await proxyTable().delete().eq('id', id);
     if (error) { toast.error('Errore: ' + error.message); return; }
     toast.success('Proxy rimosso');
     fetchProxies();
@@ -322,12 +320,11 @@ const Proxy = () => {
     if (isAdmin) { setLoading(false); return; }
     
     const fetchProxy = async () => {
-      const { data } = await supabase
-        .from('user_proxies')
+      const { data } = await proxyTable()
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
-      setProxy(data as ProxyData | null);
+      setProxy(data as unknown as ProxyData | null);
       setLoading(false);
     };
     fetchProxy();
