@@ -60,16 +60,6 @@ export function Header() {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setSearchOpen(true);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
   return <header className="sticky top-0 z-50 w-full border-b shadow-sm rounded-none bg-[hsl(var(--header-bg))]">
       <div className="container mx-auto px-4 bg-transparent">
         <div className="flex h-20 items-center justify-between rounded-none bg-transparent">
