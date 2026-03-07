@@ -228,19 +228,19 @@ async function checkReminders(supabase: any, supabaseUrl: string, serviceKey: st
 
       console.log('Sending notification');
 
-      await fetch(`${supabaseUrl}/functions/v1/send-telegram-notification`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${serviceKey}`,
-        },
-        body: JSON.stringify({ 
-          message,
-          user_id: reminder.user_id 
-        }),
-      });
+      const sent = await sendTelegramNotification(
+        supabaseUrl,
+        serviceKey,
+        message,
+        reminder.user_id
+      );
 
-      // Log notification
+      if (!sent) {
+        console.warn(`Skipping reminder ${reminder.id}: Telegram send failed`);
+        continue;
+      }
+
+      // Log notification only after successful delivery
       await supabase
         .from('notification_logs')
         .insert({
@@ -248,7 +248,7 @@ async function checkReminders(supabase: any, supabaseUrl: string, serviceKey: st
           reference_id: reminder.id,
         });
 
-      // Update reminder status
+      // Update reminder status only after successful delivery
       await supabase
         .from('reminders')
         .update({ stato: 'Letto' })
