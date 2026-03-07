@@ -141,7 +141,7 @@ export default function Dashboard() {
     const layResult = calculateLayBetResults(bet.id, bet.esito || 'refund', bet.esitoDettaglio);
     return sum + betResult + layResult;
   }, 0);
-  const totalYearQuick = yearQuickBets.reduce((sum, bet) => sum + bet.stake, 0);
+  const totalYearQuick = yearQuickBets.reduce((sum, bet) => sum + (bet.risultato || 0), 0);
   const totalYear = totalYearArchived + totalYearQuick;
   
   // Calculate monthly earnings for the chart (archived + quick)
