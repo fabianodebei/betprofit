@@ -127,7 +127,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       // Recalcolo bilanci dalle puntate per correggere eventuali inconsistenze
       const { data: betsData, error: betsError } = await supabase
         .from('bets')
-        .select('id, tipo, conto, stato, stake, risultato, tipo_bonus, esito, esito_dettaglio')
+        .select('id, tipo, conto, intestatario, stato, stake, risultato, tipo_bonus, esito, esito_dettaglio')
         .eq('user_id', user.id);
 
       if (betsError) {
@@ -135,24 +135,28 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         throw betsError;
       }
 
+      // Helper: genera una chiave unica per ogni conto usando conto+intestatario
+      // Per bet senza intestatario (vecchie), usa solo conto
+      const getAccountKey = (conto: string, intestatario?: string | null) => {
+        if (intestatario) return `${conto}||${intestatario}`;
+        return conto;
+      };
+
       const giocateMap: Record<string, number> = {};
       const rapideMap: Record<string, number> = {};
 
       (betsData || []).forEach((b: any) => {
-        const conto = b.conto as string;
+        const key = getAccountKey(b.conto, b.intestatario);
         if (b.tipo === 'Rapida') {
-          // Le giocate rapide riflettono direttamente il movimento/profitto registrato
-          rapideMap[conto] = (rapideMap[conto] || 0) + (Number(b.risultato) || 0);
+          rapideMap[key] = (rapideMap[key] || 0) + (Number(b.risultato) || 0);
           return;
         }
         if (b.stato === 'In Corso') {
-          // Mentre sono in corso, lo stake reale va a decrementare temporaneamente il bilancio
           if (b.tipo_bonus !== 'Free Bet' && b.tipo_bonus !== 'Bonus') {
-            giocateMap[conto] = (giocateMap[conto] || 0) - (Number(b.stake) || 0);
+            giocateMap[key] = (giocateMap[key] || 0) - (Number(b.stake) || 0);
           }
         } else if (b.stato === 'Archiviata') {
-          // A fine corsa contano solo i profitti netti (risultato)
-          giocateMap[conto] = (giocateMap[conto] || 0) + (Number(b.risultato) || 0);
+          giocateMap[key] = (giocateMap[key] || 0) + (Number(b.risultato) || 0);
         }
       });
 
