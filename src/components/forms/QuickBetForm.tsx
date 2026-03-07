@@ -131,6 +131,7 @@ export function QuickBetForm({
       // Update existing bet
       await updateBet(editingBet.id, {
         conto: data.conto,
+        intestatario: data.intestatario,
         stake: data.movimento,
         risultato: data.movimento,
         metodo: data.metodo,
