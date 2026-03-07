@@ -227,15 +227,28 @@ const TelegramSettings = () => {
                     onClick={async () => {
                       setIsTesting(true);
                       try {
-                        const { data, error } = await supabase.functions.invoke('send-telegram-notification', {
-                          body: { message: 'Messaggio di test: notifiche Telegram attive ✅' },
-                        });
-                        if (error) throw error;
-                        if (data?.success) {
-                          toast.success('Messaggio di test inviato su Telegram');
-                        } else {
-                          toast.info('Richiesta inviata. Verifica Telegram.');
+                        const { data: { session } } = await supabase.auth.getSession();
+                        if (!session?.access_token) {
+                          throw new Error('Sessione scaduta: effettua di nuovo il login');
                         }
+
+                        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-telegram-notification`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${session.access_token}`,
+                            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                          },
+                          body: JSON.stringify({ message: 'Messaggio di test: notifiche Telegram attive ✅' }),
+                        });
+
+                        const payload = await response.json().catch(() => null);
+
+                        if (!response.ok || !payload?.success) {
+                          throw new Error(payload?.error || 'Invio test fallito. Controlla token e chat ID.');
+                        }
+
+                        toast.success('Messaggio di test inviato su Telegram');
                       } catch (err: any) {
                         console.error('Test Telegram error:', err);
                         toast.error(err?.message || 'Invio test fallito. Controlla token e chat ID.');

@@ -123,9 +123,24 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     if (!config || !config.notifications_enabled || !config.telegram_bot_token || !config.telegram_chat_id) {
-      console.log('Notification not sent: configuration incomplete or disabled');
+      const { data: rawConfig } = await supabase
+        .from('user_telegram_config')
+        .select('notifications_enabled, telegram_bot_token_encrypted, telegram_chat_id_encrypted')
+        .eq('user_id', user_id)
+        .maybeSingle();
+
+      const hasEncryptedCredentials = !!(
+        rawConfig?.telegram_bot_token_encrypted &&
+        rawConfig?.telegram_chat_id_encrypted
+      );
+
+      const errorMessage = hasEncryptedCredentials && rawConfig?.notifications_enabled
+        ? 'Credenziali Telegram non decifrabili. Apri Impostazioni Telegram e salva di nuovo Token e Chat ID.'
+        : 'Telegram non configurato o notifiche disattivate';
+
+      console.log('Notification not sent:', errorMessage);
       return new Response(
-        JSON.stringify({ success: false, error: 'Telegram configuration incomplete or notifications disabled' }),
+        JSON.stringify({ success: false, error: errorMessage }),
         {
           status: 400,
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
