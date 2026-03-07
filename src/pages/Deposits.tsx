@@ -34,48 +34,66 @@ export default function Deposits() {
     return accounts.filter(acc => acc.stato === 'Abilitato');
   }, [accounts]);
 
-  // Calculate balance by bookmaker
+  const oldestIntestatarioByConto = useMemo(() => {
+    return activeAccounts.reduce<Record<string, string>>((acc, account) => {
+      if (!acc[account.conto]) {
+        acc[account.conto] = account.intestatario;
+      }
+      return acc;
+    }, {});
+  }, [activeAccounts]);
+
+  const getAccountKey = (conto: string, intestatario?: string) =>
+    intestatario ? `${conto}||${intestatario}` : conto;
+
+  const getTransactionIntestatario = (transaction: (typeof transactions)[number]) =>
+    transaction.intestatario || oldestIntestatarioByConto[transaction.conto] || '';
+
+  // Calculate balance by bookmaker + intestatario
   const bookmakerStats = useMemo(() => {
     const statsByBook: Record<string, { depositi: number; prelievi: number; bilancio: number; conto: string; intestatario: string; disponibilePrelievo: number }> = {};
-    
+
     transactions.forEach(t => {
-      if (!statsByBook[t.conto]) {
-        const account = accounts.find(acc => acc.conto === t.conto);
-        statsByBook[t.conto] = {
+      const intestatario = getTransactionIntestatario(t);
+      const statKey = getAccountKey(t.conto, intestatario);
+
+      if (!statsByBook[statKey]) {
+        statsByBook[statKey] = {
           depositi: 0,
           prelievi: 0,
           bilancio: 0,
           conto: t.conto,
-          intestatario: account?.intestatario || '',
+          intestatario,
           disponibilePrelievo: 0
         };
       }
-      
+
       if (t.accredito && t.accredito > 0 && t.metodo !== 'Riconciliazione') {
-        statsByBook[t.conto].depositi += t.accredito;
+        statsByBook[statKey].depositi += t.accredito;
       }
-      
+
       // Escludi le riconciliazioni dai prelievi
       if (t.addebito && t.addebito > 0 && t.metodo !== 'Riconciliazione') {
-        statsByBook[t.conto].prelievi += t.addebito;
+        statsByBook[statKey].prelievi += t.addebito;
       }
     });
-    
+
     // Calculate bilancio and disponibile for each bookmaker
     Object.values(statsByBook).forEach(stat => {
       stat.disponibilePrelievo = stat.depositi - stat.prelievi;
       stat.bilancio = stat.disponibilePrelievo;
     });
-    
+
     return Object.values(statsByBook).sort((a, b) => b.disponibilePrelievo - a.disponibilePrelievo);
-  }, [transactions, accounts]);
+  }, [transactions, oldestIntestatarioByConto]);
 
   // Group bookmaker stats by intestatario
   const statsByIntestatario = useMemo(() => {
     const grouped = new Map<string, typeof bookmakerStats>();
     bookmakerStats.forEach(stat => {
-      const existing = grouped.get(stat.intestatario) || [];
-      grouped.set(stat.intestatario, [...existing, stat]);
+      const intestatario = stat.intestatario || 'Senza intestatario';
+      const existing = grouped.get(intestatario) || [];
+      grouped.set(intestatario, [...existing, stat]);
     });
     return grouped;
   }, [bookmakerStats]);
@@ -97,13 +115,13 @@ export default function Deposits() {
     const totalDepositi = transactions
       .filter(t => t.metodo === 'Deposito')
       .reduce((sum, t) => sum + (t.addebito || 0), 0);
-    
+
     const totalPrelievi = transactions
       .filter(t => t.metodo === 'Prelievo')
       .reduce((sum, t) => sum + (t.accredito || 0), 0);
-    
+
     const bilancio = totalPrelievi - totalDepositi;
-    
+
     return {
       totalDepositi,
       totalPrelievi,
@@ -115,15 +133,17 @@ export default function Deposits() {
   // Filtered transactions
   const filteredTransactions = useMemo(() => {
     return transactions.filter(transaction => {
+      const txKey = getAccountKey(transaction.conto, getTransactionIntestatario(transaction));
+
       if (filterMetodo && filterMetodo !== 'all' && transaction.metodo !== filterMetodo) return false;
-      if (filterConto && filterConto !== 'all' && transaction.conto !== filterConto) return false;
+      if (filterConto && filterConto !== 'all' && txKey !== filterConto) return false;
       if (filterAddebito && transaction.addebito && !transaction.addebito.toString().includes(filterAddebito)) return false;
       if (filterAccredito && transaction.accredito && !transaction.accredito.toString().includes(filterAccredito)) return false;
       if (filterWallet && transaction.wallet && !transaction.wallet.toLowerCase().includes(filterWallet.toLowerCase())) return false;
       if (filterDescrizione && transaction.descrizione && !transaction.descrizione.toLowerCase().includes(filterDescrizione.toLowerCase())) return false;
       return true;
     });
-  }, [transactions, filterMetodo, filterConto, filterAddebito, filterAccredito, filterWallet, filterDescrizione]);
+  }, [transactions, filterMetodo, filterConto, filterAddebito, filterAccredito, filterWallet, filterDescrizione, oldestIntestatarioByConto]);
 
   return (
     <div className="container mx-auto px-4 py-8">
