@@ -170,10 +170,7 @@ const TelegramSettings = () => {
           <CardContent>
             <Form {...form}>
               <form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  void form.handleSubmit(handleSubmit, () => undefined)(event);
-                }}
+                onSubmit={form.handleSubmit(handleSubmit)}
                 className="space-y-6"
               >
                 <FormField

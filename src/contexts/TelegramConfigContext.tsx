@@ -114,7 +114,7 @@ export const TelegramConfigProvider = ({ children }: { children: ReactNode }) =>
       const updateData: any = { updated_at: new Date().toISOString() };
       
       if (filteredUpdates.telegram_bot_token) {
-        const botToken = filteredUpdates.telegram_bot_token.trim();
+        const botToken = normalizeTelegramToken(filteredUpdates.telegram_bot_token);
         // Call encryption function for bot token
         const { data: encryptedToken, error: encryptError } = await supabase
           .rpc('encrypt_telegram_credential', { credential: botToken });
