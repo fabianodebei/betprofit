@@ -16,18 +16,18 @@ import { toast } from 'sonner';
 import telegramQR from '@/assets/telegram-qr.jpeg';
 
 const formSchema = z.object({
-  telegram_bot_token: z.string()
+  telegram_bot_token: z.union([z.string(), z.undefined()])
+    .transform((val) => (val ?? '').trim())
     .refine(
-      (val) => !val || val === '' || /^\d+:[A-Za-z0-9_-]{35,}$/.test(val),
+      (val) => val === '' || /^\d+:[A-Za-z0-9_-]{35,}$/.test(val),
       'Formato token non valido. Deve essere nel formato: 123456789:ABCdefGHIjklMNOpqrsTUVwxyz'
-    )
-    .optional(),
-  telegram_chat_id: z.string()
+    ),
+  telegram_chat_id: z.union([z.string(), z.undefined()])
+    .transform((val) => (val ?? '').trim())
     .refine(
-      (val) => !val || val === '' || /^-?\d+$/.test(val),
+      (val) => val === '' || /^-?\d+$/.test(val),
       'Chat ID deve essere un numero (può essere negativo per i gruppi)'
-    )
-    .optional(),
+    ),
   notifications_enabled: z.boolean(),
 });
 
@@ -152,7 +152,13 @@ const TelegramSettings = () => {
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void form.handleSubmit(handleSubmit, () => undefined)(event);
+                }}
+                className="space-y-6"
+              >
                 <FormField
                   control={form.control}
                   name="telegram_bot_token"
