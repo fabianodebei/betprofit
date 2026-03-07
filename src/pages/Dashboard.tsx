@@ -207,7 +207,7 @@ export default function Dashboard() {
         stats.set(lb.conto, { stake: 0, profitto: 0, count: 0 });
       }
       const s = stats.get(lb.conto);
-      s.stake += lb.stake;
+      s.stake += Math.abs(lb.stake);
       s.count += 1;
       
       if (bet.esito === 'win') {
