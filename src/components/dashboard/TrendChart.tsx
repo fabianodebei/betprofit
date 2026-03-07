@@ -1,22 +1,38 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { formatCurrency } from '@/utils/currency';
 
-interface ChartData {
-  month: string;
+export type TrendPeriod = 'day' | 'week' | 'month' | 'year';
+
+interface ChartDataPoint {
+  label: string;
   earnings: number;
 }
 
 interface TrendChartProps {
-  data: ChartData[];
+  data: ChartDataPoint[];
   title: string;
+  period: TrendPeriod;
+  onPeriodChange: (period: TrendPeriod) => void;
 }
 
-export function TrendChart({ data, title }: TrendChartProps) {
+export function TrendChart({ data, title, period, onPeriodChange }: TrendChartProps) {
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-xl">{title}</CardTitle>
+        <ToggleGroup
+          type="single"
+          value={period}
+          onValueChange={(val) => val && onPeriodChange(val as TrendPeriod)}
+          size="sm"
+        >
+          <ToggleGroupItem value="day" className="text-xs px-3">Giorno</ToggleGroupItem>
+          <ToggleGroupItem value="week" className="text-xs px-3">Settimana</ToggleGroupItem>
+          <ToggleGroupItem value="month" className="text-xs px-3">Mese</ToggleGroupItem>
+          <ToggleGroupItem value="year" className="text-xs px-3">Anno</ToggleGroupItem>
+        </ToggleGroup>
       </CardHeader>
       <CardContent>
         <div className="h-[300px] w-full">
@@ -31,7 +47,7 @@ export function TrendChart({ data, title }: TrendChartProps) {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis 
-                  dataKey="month" 
+                  dataKey="label" 
                   stroke="hsl(var(--muted-foreground))"
                   style={{ fontSize: 12 }}
                 />
