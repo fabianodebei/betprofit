@@ -32,6 +32,17 @@ export default function Dashboard() {
   const archivedBets = getArchivedBets();
   const quickBets = bets.filter(bet => bet.tipo === 'Rapida');
   const [trendPeriod, setTrendPeriod] = useState<TrendPeriod>('year');
+  const [selectedIntestatario, setSelectedIntestatario] = useState<string | null>(null);
+
+  const uniqueIntestatari = useMemo(() => {
+    const names = [...new Set(accounts.map(a => a.intestatario))];
+    return names.sort();
+  }, [accounts]);
+
+  const filteredAccounts = useMemo(() => {
+    if (!selectedIntestatario) return accounts;
+    return accounts.filter(a => a.intestatario === selectedIntestatario);
+  }, [accounts, selectedIntestatario]);
 
   // Force recalculation when bets change
   useEffect(() => {
