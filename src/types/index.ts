@@ -52,6 +52,7 @@ export interface Bet {
   id: string;
   tipo: 'Singola' | 'Multipla' | 'Casino' | 'Rapida';
   conto: string;
+  intestatario?: string;
   stake: number;
   quota?: number;
   evento?: string;

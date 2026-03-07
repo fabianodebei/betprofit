@@ -149,6 +149,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
         id: data.id,
         tipo: data.tipo as 'Singola' | 'Multipla' | 'Casino' | 'Rapida',
         conto: data.conto,
+        intestatario: data.intestatario || undefined,
         stake: Number(data.stake),
         quota: data.quota ? Number(data.quota) : undefined,
         evento: data.evento || undefined,
