@@ -136,6 +136,10 @@ export function Header() {
                 <Settings className="h-5 w-5" />
                 Impostazioni
               </Link>
+              <button onClick={toggleTheme} className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors text-primary-foreground/80 hover:bg-primary-foreground/10">
+                {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                {theme === 'dark' ? 'Modalità Giorno' : 'Modalità Notte'}
+              </button>
               <button onClick={() => {
             signOut();
             setMobileMenuOpen(false);
