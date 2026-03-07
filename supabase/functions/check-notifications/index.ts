@@ -356,10 +356,23 @@ async function checkBetsToReport(supabase: any, supabaseUrl: string, serviceKey:
         message += `📝 Note: ${escapeHtml(note)}\n`;
       }
 
-      message += `\n✅ Archivia la scommessa`;
-
       if (isMultiple) {
-        message += `\n⚠️ <b>Banca la prossima scommessa della multipla!</b>`;
+        // Check if there are still pending lay bets for this multipla
+        const { data: pendingLays } = await supabase
+          .from('lay_bets')
+          .select('id')
+          .eq('parent_bet_id', bet.id)
+          .eq('stato', 'In Corso');
+
+        const hasPendingLays = pendingLays && pendingLays.length > 0;
+
+        if (hasPendingLays) {
+          message += `\n⚠️ <b>Banca la prossima scommessa della multipla!</b>`;
+        } else {
+          message += `\n✅ Archivia la scommessa`;
+        }
+      } else {
+        message += `\n✅ Archivia la scommessa`;
       }
 
       console.log('Sending notification');
