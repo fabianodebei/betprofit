@@ -145,16 +145,25 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       const { supabase: supabaseClient } = await import('@/integrations/supabase/client');
       
       // Fetch account
-      let accountQuery = supabaseClient
-        .from('accounts')
-        .select('*')
-        .eq('conto', transaction.conto);
-
+      let accountData: any = null;
       if (transaction.intestatario) {
-        accountQuery = accountQuery.eq('intestatario', transaction.intestatario as any);
+        const { data } = await supabaseClient
+          .from('accounts')
+          .select('*')
+          .eq('conto', transaction.conto)
+          .eq('intestatario', transaction.intestatario as any)
+          .maybeSingle();
+        accountData = data;
+      } else {
+        const { data } = await supabaseClient
+          .from('accounts')
+          .select('*')
+          .eq('conto', transaction.conto)
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        accountData = data;
       }
-
-      const { data: accountData } = await accountQuery.single();
 
       if (accountData) {
         let balanceAdjustment = 0;
