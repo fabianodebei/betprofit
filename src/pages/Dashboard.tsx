@@ -185,7 +185,7 @@ export default function Dashboard() {
         stats.set(bet.conto, { stake: 0, profitto: 0, count: 0 });
       }
       const s = stats.get(bet.conto);
-      s.stake += bet.stake;
+      s.stake += Math.abs(bet.stake);
       
       // profitto is always the risultato (net result)
       s.profitto += bet.risultato || 0;
