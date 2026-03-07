@@ -89,15 +89,9 @@ export function AccountForm({ open, onOpenChange, editingAccount }: AccountFormP
         stato: data.stato,
       });
     } else {
-      // Se esiste già un conto con lo stesso book, aggiungi suffisso SOLO al nuovo conto
-      const existingWithSameBook = accounts.some(a => a.conto === data.conto);
-      const contoName = existingWithSameBook 
-        ? `${data.conto} - ${data.intestatario}` 
-        : data.conto;
-      
       await addAccount({
         intestatario: data.intestatario,
-        conto: contoName,
+        conto: data.conto,
         descrizione: data.descrizione,
         stato: data.stato,
       });
