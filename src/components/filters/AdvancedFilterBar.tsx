@@ -52,6 +52,7 @@ export function AdvancedFilterBar({
       bookmakers: [],
       tags: [],
       betTypes: [],
+      intestatari: [],
       stakeMin: null,
       stakeMax: null,
     });
