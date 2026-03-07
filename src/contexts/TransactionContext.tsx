@@ -89,22 +89,11 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
-      // Fetch intestatario for this conto to enrich local state
-      let txIntestatario: string | undefined = undefined;
-      try {
-        const { data: acc } = await supabase
-          .from('accounts')
-          .select('intestatario')
-          .eq('conto', data.conto)
-          .single();
-        txIntestatario = acc?.intestatario;
-      } catch {}
-
       const newTransaction: Transaction = {
         id: data.id,
         metodo: data.metodo as 'Deposito' | 'Spesa' | 'Prelievo',
         conto: data.conto,
-        intestatario: txIntestatario,
+        intestatario: transaction.intestatario,
         wallet: data.wallet || undefined,
         addebito: data.addebito ? Number(data.addebito) : undefined,
         accredito: data.accredito ? Number(data.accredito) : undefined,
