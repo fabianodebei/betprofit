@@ -296,7 +296,7 @@ export default function Dashboard() {
 
   // Helper: get bet earning (archived result + lay results, or quick stake)
   const getBetEarning = (bet: typeof bets[0]) => {
-    if (bet.tipo === 'Rapida') return bet.stake;
+    if (bet.tipo === 'Rapida') return bet.risultato || 0;
     if (bet.stato !== 'Archiviata') return 0;
     const betResult = bet.risultato || 0;
     const layResult = calculateLayBetResults(bet.id, bet.esito || 'refund', bet.esitoDettaglio);
