@@ -1,11 +1,11 @@
-import { Users, TrendingUp, Activity, DollarSign, BarChart3 } from 'lucide-react';
+import { Users, TrendingUp, Activity, DollarSign } from 'lucide-react';
 import { formatCurrency } from '@/utils/currency';
 import { cn } from '@/lib/utils';
 
 interface PlatformKPICardsProps {
   totalUsers: number;
   activeUsers: number;
-  totalBets: number;
+  
   totalEarnings: number;
   newUsersMonth: number;
 }
@@ -35,13 +35,13 @@ const KPIItem = ({ label, value, icon: Icon, accentColor, subtext }: KPIItemProp
   </div>
 );
 
-export const PlatformKPICards = ({ totalUsers, activeUsers, totalBets, totalEarnings, newUsersMonth }: PlatformKPICardsProps) => {
+export const PlatformKPICards = ({ totalUsers, activeUsers, totalEarnings, newUsersMonth }: PlatformKPICardsProps) => {
   const annualRevenue = totalUsers * 899;
   const mrr = annualRevenue / 12;
   const newMRR = newUsersMonth * (899 / 12);
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 md:gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
       <KPIItem
         label="Utenti Totali"
         value={String(totalUsers)}
@@ -69,12 +69,6 @@ export const PlatformKPICards = ({ totalUsers, activeUsers, totalBets, totalEarn
         icon={TrendingUp}
         accentColor="bg-accent/15 text-accent"
         subtext={`+${formatCurrency(newMRR)} nuovo`}
-      />
-      <KPIItem
-        label="Bets Totali"
-        value={totalBets.toLocaleString('it-IT')}
-        icon={BarChart3}
-        accentColor="bg-chart-3/15 text-info"
       />
       <KPIItem
         label="Churn Rate"
