@@ -269,7 +269,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         // Prova prima la chiave composita, poi fallback a solo conto (per bet/transazioni vecchie senza intestatario)
         const newBG = Number(((giocateMap[accKey] ?? giocateMap[acc.conto]) ?? 0).toFixed(4));
         const newBR = Number(((rapideMap[accKey] ?? rapideMap[acc.conto]) ?? 0).toFixed(4));
-        const saldoBase = saldoDisponibileMap[acc.conto] ?? 0;
+        const saldoBase = saldoDisponibileMap[accKey] ?? saldoDisponibileMap[acc.conto] ?? 0;
         const newSaldo = Number((saldoBase + newBG + newBR).toFixed(4));
         
         const bgDiff = Math.abs(newBG - acc.bilancioGiocate);

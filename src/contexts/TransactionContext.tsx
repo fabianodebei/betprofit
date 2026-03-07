@@ -112,6 +112,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       const dbUpdates: any = {};
       if (updates.metodo !== undefined) dbUpdates.metodo = updates.metodo;
       if (updates.conto !== undefined) dbUpdates.conto = updates.conto;
+      if (updates.intestatario !== undefined) dbUpdates.intestatario = updates.intestatario;
       if (updates.wallet !== undefined) dbUpdates.wallet = updates.wallet;
       if (updates.addebito !== undefined) dbUpdates.addebito = updates.addebito;
       if (updates.accredito !== undefined) dbUpdates.accredito = updates.accredito;
