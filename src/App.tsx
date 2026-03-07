@@ -118,6 +118,7 @@ const App = () => (
                                                 <Route path="/impostazioni/books" element={<Books />} />
                                                 <Route path="/impostazioni/tags" element={<Tags />} />
                                                 <Route path="/impostazioni/import-export" element={<ImportExport />} />
+                                                <Route path="/proxy" element={<Proxy />} />
                                                 <Route path="*" element={<NotFound />} />
                                               </Routes>
                                             </main>
