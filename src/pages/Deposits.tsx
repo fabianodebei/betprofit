@@ -5,7 +5,7 @@ import { TransactionForm } from '@/components/forms/TransactionForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { EmptyState } from '@/components/common/EmptyState';
-import { Badge } from '@/components/common/Badge';
+
 import { useTransactions } from '@/contexts/TransactionContext';
 import { useAccounts } from '@/contexts/AccountContext';
 import { useWallets } from '@/contexts/WalletContext';
@@ -34,48 +34,66 @@ export default function Deposits() {
     return accounts.filter(acc => acc.stato === 'Abilitato');
   }, [accounts]);
 
-  // Calculate balance by bookmaker
+  const oldestIntestatarioByConto = useMemo(() => {
+    return activeAccounts.reduce<Record<string, string>>((acc, account) => {
+      if (!acc[account.conto]) {
+        acc[account.conto] = account.intestatario;
+      }
+      return acc;
+    }, {});
+  }, [activeAccounts]);
+
+  const getAccountKey = (conto: string, intestatario?: string) =>
+    intestatario ? `${conto}||${intestatario}` : conto;
+
+  const getTransactionIntestatario = (transaction: (typeof transactions)[number]) =>
+    transaction.intestatario || oldestIntestatarioByConto[transaction.conto] || '';
+
+  // Calculate balance by bookmaker + intestatario
   const bookmakerStats = useMemo(() => {
     const statsByBook: Record<string, { depositi: number; prelievi: number; bilancio: number; conto: string; intestatario: string; disponibilePrelievo: number }> = {};
-    
+
     transactions.forEach(t => {
-      if (!statsByBook[t.conto]) {
-        const account = accounts.find(acc => acc.conto === t.conto);
-        statsByBook[t.conto] = {
+      const intestatario = getTransactionIntestatario(t);
+      const statKey = getAccountKey(t.conto, intestatario);
+
+      if (!statsByBook[statKey]) {
+        statsByBook[statKey] = {
           depositi: 0,
           prelievi: 0,
           bilancio: 0,
           conto: t.conto,
-          intestatario: account?.intestatario || '',
+          intestatario,
           disponibilePrelievo: 0
         };
       }
-      
+
       if (t.accredito && t.accredito > 0 && t.metodo !== 'Riconciliazione') {
-        statsByBook[t.conto].depositi += t.accredito;
+        statsByBook[statKey].depositi += t.accredito;
       }
-      
+
       // Escludi le riconciliazioni dai prelievi
       if (t.addebito && t.addebito > 0 && t.metodo !== 'Riconciliazione') {
-        statsByBook[t.conto].prelievi += t.addebito;
+        statsByBook[statKey].prelievi += t.addebito;
       }
     });
-    
+
     // Calculate bilancio and disponibile for each bookmaker
     Object.values(statsByBook).forEach(stat => {
       stat.disponibilePrelievo = stat.depositi - stat.prelievi;
       stat.bilancio = stat.disponibilePrelievo;
     });
-    
+
     return Object.values(statsByBook).sort((a, b) => b.disponibilePrelievo - a.disponibilePrelievo);
-  }, [transactions, accounts]);
+  }, [transactions, oldestIntestatarioByConto]);
 
   // Group bookmaker stats by intestatario
   const statsByIntestatario = useMemo(() => {
     const grouped = new Map<string, typeof bookmakerStats>();
     bookmakerStats.forEach(stat => {
-      const existing = grouped.get(stat.intestatario) || [];
-      grouped.set(stat.intestatario, [...existing, stat]);
+      const intestatario = stat.intestatario || 'Senza intestatario';
+      const existing = grouped.get(intestatario) || [];
+      grouped.set(intestatario, [...existing, stat]);
     });
     return grouped;
   }, [bookmakerStats]);
@@ -92,38 +110,21 @@ export default function Deposits() {
     });
   };
 
-  // Calculate overall balance
-  const balanceStats = useMemo(() => {
-    const totalDepositi = transactions
-      .filter(t => t.metodo === 'Deposito')
-      .reduce((sum, t) => sum + (t.addebito || 0), 0);
-    
-    const totalPrelievi = transactions
-      .filter(t => t.metodo === 'Prelievo')
-      .reduce((sum, t) => sum + (t.accredito || 0), 0);
-    
-    const bilancio = totalPrelievi - totalDepositi;
-    
-    return {
-      totalDepositi,
-      totalPrelievi,
-      bilancio,
-      isWinning: bilancio > 0
-    };
-  }, [transactions]);
 
   // Filtered transactions
   const filteredTransactions = useMemo(() => {
     return transactions.filter(transaction => {
+      const txKey = getAccountKey(transaction.conto, getTransactionIntestatario(transaction));
+
       if (filterMetodo && filterMetodo !== 'all' && transaction.metodo !== filterMetodo) return false;
-      if (filterConto && filterConto !== 'all' && transaction.conto !== filterConto) return false;
+      if (filterConto && filterConto !== 'all' && txKey !== filterConto) return false;
       if (filterAddebito && transaction.addebito && !transaction.addebito.toString().includes(filterAddebito)) return false;
       if (filterAccredito && transaction.accredito && !transaction.accredito.toString().includes(filterAccredito)) return false;
       if (filterWallet && transaction.wallet && !transaction.wallet.toLowerCase().includes(filterWallet.toLowerCase())) return false;
       if (filterDescrizione && transaction.descrizione && !transaction.descrizione.toLowerCase().includes(filterDescrizione.toLowerCase())) return false;
       return true;
     });
-  }, [transactions, filterMetodo, filterConto, filterAddebito, filterAccredito, filterWallet, filterDescrizione]);
+  }, [transactions, filterMetodo, filterConto, filterAddebito, filterAccredito, filterWallet, filterDescrizione, oldestIntestatarioByConto]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -195,7 +196,7 @@ export default function Deposits() {
                               <CollapsibleContent asChild>
                                 <>
                                   {intestatarioStats.map((stat) => (
-                                    <tr key={stat.conto} className="bg-muted/10 border-l-4 border-primary/20">
+                                    <tr key={`${stat.conto}-${stat.intestatario}`} className="bg-muted/10 border-l-4 border-primary/20">
                                       <td className="p-3"></td>
                                       <td className="p-3 pl-8">
                                         <div className="font-medium text-sm">{stat.conto}</div>
@@ -288,7 +289,7 @@ export default function Deposits() {
                         <SelectContent>
                           <SelectItem value="all">Tutti</SelectItem>
                           {activeAccounts.map(account => (
-                            <SelectItem key={account.id} value={account.conto}>
+                            <SelectItem key={account.id} value={getAccountKey(account.conto, account.intestatario)}>
                               {account.conto} - {account.intestatario}
                             </SelectItem>
                           ))}
@@ -346,17 +347,18 @@ export default function Deposits() {
                 </thead>
                 <tbody>
                   {filteredTransactions.map((transaction, idx) => {
-                    const account = accounts.find(acc => acc.conto === transaction.conto);
-                    const wallet = wallets.find(w => 
-                      w.nome === transaction.wallet && 
-                      w.intestatario === transaction.intestatario
+                    const txIntestatario = getTransactionIntestatario(transaction);
+                    const wallet = wallets.find(w =>
+                      w.nome === transaction.wallet &&
+                      w.intestatario === txIntestatario
                     );
+
                     return (
                       <tr key={transaction.id} className="border-b hover:bg-muted/20">
                         <td className="p-3 text-sm">{idx + 1}</td>
                         <td className="p-3 text-sm">{transaction.metodo}</td>
                         <td className="p-3 text-sm">{formatDateTime(transaction.registrato)}</td>
-                        <td className="p-3 text-sm">{transaction.conto}{account && ` - ${account.intestatario}`}</td>
+                        <td className="p-3 text-sm">{transaction.conto}{txIntestatario && ` - ${txIntestatario}`}</td>
                         <td className="p-3 text-sm font-semibold text-destructive">
                           {transaction.addebito && transaction.addebito > 0 ? formatCurrency(-transaction.addebito) : ''}
                         </td>
