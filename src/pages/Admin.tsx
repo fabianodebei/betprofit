@@ -19,7 +19,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { PlatformKPICards } from '@/components/admin/PlatformKPICards';
 import { AdminAlerts } from '@/components/admin/AdminAlerts';
-import { BookmakerDistributionChart } from '@/components/admin/BookmakerDistributionChart';
+
 import { RevenueUsersTable } from '@/components/admin/RevenueUsersTable';
 import { UserRegistrationChart } from '@/components/admin/UserRegistrationChart';
 import { UserEarningsChart } from '@/components/admin/UserEarningsChart';
@@ -228,20 +228,6 @@ export default function Admin() {
     exportToCSV(rows, 'attivita_utenti');
   };
 
-  // Compute bookmaker distribution from bets (mock based on available data)
-  const bookmakerData = useMemo(() => {
-    // Since we don't have per-bookmaker data from current queries, derive from user activities
-    const total = systemStats?.totalBets || 0;
-    if (total === 0) return [];
-    return [
-      { name: 'Betfair', value: Math.round(total * 0.3) },
-      { name: 'Sisal', value: Math.round(total * 0.2) },
-      { name: 'Snai', value: Math.round(total * 0.15) },
-      { name: 'Bet365', value: Math.round(total * 0.15) },
-      { name: 'Goldbet', value: Math.round(total * 0.1) },
-      { name: 'Altri', value: Math.round(total * 0.1) },
-    ];
-  }, [systemStats?.totalBets]);
 
   const totalEarnings = useMemo(() => {
     return userEarnings.reduce((sum, u) => sum + Number(u.total_earnings || 0), 0);
@@ -340,33 +326,6 @@ export default function Admin() {
                 <UserEarningsChart data={userEarnings} height={300} />
               </div>
 
-              {/* Second charts row */}
-              <div className="grid gap-4 lg:grid-cols-2">
-                <BookmakerDistributionChart data={bookmakerData} height={300} />
-
-                {/* Stats Database card */}
-                <Card className="border-border/30">
-                  <CardHeader>
-                    <CardTitle className="text-base">Statistiche Database</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {[
-                      { label: 'Bets', value: systemStats?.totalBets || 0 },
-                      { label: 'Transazioni', value: systemStats?.totalTransactions || 0 },
-                      { label: 'Conti', value: systemStats?.totalAccounts || 0 },
-                      { label: 'Wallet', value: systemStats?.totalWallets || 0 },
-                      { label: 'Tag', value: systemStats?.totalTags || 0 },
-                      { label: 'Admin', value: systemStats?.roleDistribution.admin || 0 },
-                      { label: 'Free Users', value: systemStats?.roleDistribution.free || 0 },
-                    ].map(item => (
-                      <div key={item.label} className="flex justify-between items-center py-1 border-b border-border/10 last:border-0">
-                        <span className="text-sm text-muted-foreground">{item.label}</span>
-                        <span className="font-semibold text-foreground">{item.value.toLocaleString('it-IT')}</span>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              </div>
             </>
           )}
 
@@ -524,7 +483,7 @@ export default function Admin() {
               {/* Charts */}
               <div className="grid gap-4 lg:grid-cols-2">
                 <UserRegistrationChart data={registrationData} height={350} />
-                <BookmakerDistributionChart data={bookmakerData} height={350} />
+                <UserEarningsChart data={userEarnings} height={350} />
               </div>
 
               {/* Revenue users table */}
