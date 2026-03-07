@@ -206,7 +206,7 @@ export default function Dashboard() {
     );
     
     layBetsForBet.forEach(lb => {
-      if (allowedConti && !allowedConti.has(lb.conto)) return;
+      if (selectedIntestatario && !filteredBets.some(fb => fb.id === bet.id)) return;
       
       if (!stats.has(lb.conto)) {
         stats.set(lb.conto, { stake: 0, profitto: 0, count: 0 });
