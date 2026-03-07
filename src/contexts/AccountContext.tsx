@@ -398,16 +398,44 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
   const deleteAccount = async (id: string) => {
     try {
+      if (!user) throw new Error('User not authenticated');
+
+      const accountToDelete = accounts.find((account) => account.id === id);
+      if (!accountToDelete) throw new Error('Account non trovato');
+
+      // Elimina prima i movimenti collegati al conto per evitare vincoli FK su transactions.account_id
+      const { error: txByAccountIdError } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('account_id', id);
+
+      if (txByAccountIdError) throw txByAccountIdError;
+
+      // Cleanup legacy movimenti senza account_id ma legati a conto + intestatario
+      const { error: txLegacyError } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('user_id', user.id)
+        .is('account_id', null)
+        .eq('conto', accountToDelete.conto)
+        .eq('intestatario', accountToDelete.intestatario);
+
+      if (txLegacyError) throw txLegacyError;
+
       const { error } = await supabase
         .from('accounts')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
       setAccounts((prev) => prev.filter((account) => account.id !== id));
+      window.dispatchEvent(new Event('refresh-accounts'));
     } catch (error: any) {
       console.error('Error deleting account:', error);
+      throw error;
     }
   };
 
