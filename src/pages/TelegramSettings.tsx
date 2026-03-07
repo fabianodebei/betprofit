@@ -91,8 +91,12 @@ const TelegramSettings = () => {
   const handleSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
-      await updateConfig(data);
-      setHasCredentials(!!(data.telegram_bot_token && data.telegram_chat_id));
+      await updateConfig({
+        ...data,
+        telegram_bot_token: normalizeTelegramToken(data.telegram_bot_token),
+        telegram_chat_id: data.telegram_chat_id?.trim() ?? '',
+      });
+      setHasCredentials(!!(normalizeTelegramToken(data.telegram_bot_token) && data.telegram_chat_id?.trim()));
       // Clear sensitive fields after save
       form.setValue('telegram_bot_token', '');
       form.setValue('telegram_chat_id', '');
