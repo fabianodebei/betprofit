@@ -127,7 +127,7 @@ export default function Dashboard() {
            bet.createdAt.getFullYear() === selectedYear
   );
   
-  const currentMonthQuickEarnings = currentMonthQuickBets.reduce((sum, bet) => sum + bet.stake, 0);
+  const currentMonthQuickEarnings = currentMonthQuickBets.reduce((sum, bet) => sum + (bet.risultato || 0), 0);
   
   // Total current month earnings (archived + quick)
   const currentMonthEarnings = isCurrentYear ? currentMonthArchivedEarnings + currentMonthQuickEarnings : 0;
