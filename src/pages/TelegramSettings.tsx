@@ -152,7 +152,13 @@ const TelegramSettings = () => {
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void form.handleSubmit(handleSubmit, () => undefined)(event);
+                }}
+                className="space-y-6"
+              >
                 <FormField
                   control={form.control}
                   name="telegram_bot_token"

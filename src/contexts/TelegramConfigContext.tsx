@@ -103,18 +103,20 @@ export const TelegramConfigProvider = ({ children }: { children: ReactNode }) =>
       const updateData: any = { updated_at: new Date().toISOString() };
       
       if (filteredUpdates.telegram_bot_token) {
+        const botToken = filteredUpdates.telegram_bot_token.trim();
         // Call encryption function for bot token
         const { data: encryptedToken, error: encryptError } = await supabase
-          .rpc('encrypt_telegram_credential', { credential: filteredUpdates.telegram_bot_token });
+          .rpc('encrypt_telegram_credential', { credential: botToken });
         
         if (encryptError) throw encryptError;
         updateData.telegram_bot_token_encrypted = encryptedToken;
       }
       
       if (filteredUpdates.telegram_chat_id) {
+        const chatId = filteredUpdates.telegram_chat_id.trim();
         // Call encryption function for chat ID
         const { data: encryptedChatId, error: encryptError } = await supabase
-          .rpc('encrypt_telegram_credential', { credential: filteredUpdates.telegram_chat_id });
+          .rpc('encrypt_telegram_credential', { credential: chatId });
         
         if (encryptError) throw encryptError;
         updateData.telegram_chat_id_encrypted = encryptedChatId;
