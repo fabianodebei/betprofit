@@ -115,6 +115,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
         .insert({
           tipo: bet.tipo,
           conto: bet.conto,
+          intestatario: bet.intestatario || null,
           stake: bet.stake,
           quota: bet.quota || null,
           evento: bet.evento || null,
