@@ -67,9 +67,7 @@ export function Header() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
-  return <header className="sticky top-0 z-50 w-full border-b shadow-sm rounded-none" style={{
-    backgroundColor: 'hsl(210, 33%, 15%)'
-  }}>
+  return <header className="sticky top-0 z-50 w-full border-b shadow-sm rounded-none bg-[hsl(var(--header-bg))]">
       <div className="container mx-auto px-4 bg-transparent">
         <div className="flex h-20 items-center justify-between rounded-none bg-transparent">
           {/* Logo - visible only on mobile */}
