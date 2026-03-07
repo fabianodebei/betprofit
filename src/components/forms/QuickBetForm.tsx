@@ -250,17 +250,23 @@ export function QuickBetForm({
             
             <FormField control={form.control} name="movimento" render={({
             field
-          }) => <FormItem>
+          }) => {
+              const [rawValue, setRawValue] = useState(field.value?.toString() || '0');
+              useEffect(() => {
+                setRawValue(field.value?.toString() || '0');
+              }, [field.value]);
+              return <FormItem>
                   <FormLabel>Movimento *</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <Input type="number" step="0.01" placeholder="0.00" {...field} onChange={e => { const val = e.target.value; field.onChange(val === '' || val === '-' ? 0 : parseFloat(val)); }} onClick={handleInputClick} />
+                      <Input type="text" inputMode="decimal" placeholder="0.00" value={rawValue} onChange={e => { const val = e.target.value; if (/^-?\d*[.,]?\d*$/.test(val) || val === '' || val === '-') { setRawValue(val); const num = parseFloat(val.replace(',', '.')); if (!isNaN(num)) field.onChange(num); else if (val === '' || val === '-') field.onChange(0); } }} onClick={handleInputClick} />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                     </div>
                   </FormControl>
                   <FormDescription></FormDescription>
                   <FormMessage />
-                </FormItem>} />
+                </FormItem>;
+            }} />
             <FormField control={form.control} name="registrato" render={({
             field
           }) => <FormItem className="flex flex-col">
