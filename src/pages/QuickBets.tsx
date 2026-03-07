@@ -113,6 +113,7 @@ export default function QuickBets() {
         availableBookmakers={availableBookmakers}
         availableTags={availableTags}
         availableBetTypes={['Rapida']}
+        availableIntestatari={availableIntestatari}
       />
 
       <Card>
