@@ -165,14 +165,13 @@ export default function QuickBets() {
                   </thead>
                   <tbody>
                     {paginatedItems.map((bet, idx) => {
-                      const account = accounts.find(a => a.conto === bet.conto);
                       return (
                       <tr key={bet.id} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
                         <td className="p-3 text-sm">{(currentPage - 1) * pageSize + idx + 1}</td>
                         <td className="p-3 text-sm">{formatDateTime(bet.createdAt)}</td>
                         <td className="p-3 text-sm">
                           {bet.conto}
-                          {account?.intestatario && <span className="text-muted-foreground"> - {account.intestatario}</span>}
+                          {bet.intestatario && <span className="text-muted-foreground"> - {bet.intestatario}</span>}
                         </td>
                         <td className="p-3 text-sm">{bet.metodo || '-'}</td>
                         <td className="p-3 text-sm">{bet.tag || '-'}</td>
