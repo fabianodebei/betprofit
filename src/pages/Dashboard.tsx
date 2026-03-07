@@ -533,18 +533,25 @@ export default function Dashboard() {
                   };
 
                   const getIcon = () => {
-                    if (isPaypal) return <img src={walletPaypal} alt="PayPal" className="h-6 w-6 rounded object-contain" />;
-                    if (isSkrill) return <img src={walletSkrill} alt="Skrill" className="h-6 w-6 rounded object-contain" />;
-                    if (isVisa) return <img src={walletVisa} alt="Visa" className="h-6 w-6 rounded object-contain" />;
-                    if (isMastercard) return <img src={walletMastercard} alt="Mastercard" className="h-6 w-6 rounded object-contain" />;
-                    return <CreditCard className="h-5 w-5 text-muted-foreground" />;
+                    if (isPaypal) return <img src={walletPaypal} alt="PayPal" className="h-9 w-9 rounded-lg object-cover" />;
+                    if (isSkrill) return <img src={walletSkrill} alt="Skrill" className="h-9 w-9 rounded-lg object-cover" />;
+                    if (isVisa) return <img src={walletVisa} alt="Visa" className="h-9 w-9 rounded-lg object-cover" />;
+                    if (isMastercard) return <img src={walletMastercard} alt="Mastercard" className="h-9 w-9 rounded-lg object-cover" />;
+                    return null;
                   };
+
+                  const icon = getIcon();
 
                   return (
                     <div key={wallet.id} className="flex items-center gap-3 justify-between rounded-lg border p-3">
                       <div className="flex items-center gap-3">
-                        <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${getIconBg()}`}>
-                          {getIcon()}
+                        {icon ? (
+                          <div className="h-9 w-9 flex-shrink-0 overflow-hidden rounded-lg">
+                            {icon}
+                          </div>
+                        ) : (
+                          <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${getIconBg()}`}>
+                            <CreditCard className="h-5 w-5 text-muted-foreground" />
                         </div>
                         <div>
                           <div className="font-semibold text-sm">{wallet.nome}</div>
