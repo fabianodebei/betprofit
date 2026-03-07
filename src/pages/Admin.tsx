@@ -297,10 +297,6 @@ export default function Admin() {
               <ArrowLeft className="h-3.5 w-3.5 md:mr-1.5" />
               <span className="hidden md:inline">Torna alla Dashboard</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={resetPreferences} className="text-xs border-border/30">
-              <RotateCcw className="h-3.5 w-3.5 md:mr-1.5" />
-              <span className="hidden md:inline">Reset Layout</span>
-            </Button>
           </div>
         </div>
 
