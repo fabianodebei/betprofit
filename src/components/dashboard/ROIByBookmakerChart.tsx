@@ -72,6 +72,7 @@ export function ROIByBookmakerChart({
               }}
             />
             <YAxis 
+              domain={['auto', 'auto']}
               label={{ 
                 value: 'ROI %', 
                 angle: -90, 
@@ -82,11 +83,12 @@ export function ROIByBookmakerChart({
             />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
             <ReferenceLine y={0} stroke="hsl(var(--border))" strokeWidth={2} />
-            <Bar dataKey="roi" radius={[4, 4, 4, 4]}>
+            <Bar dataKey="roi">
               {sortedData.map((entry, index) => (
                 <Cell 
                   key={`cell-${index}`} 
                   fill={entry.roi >= 0 ? 'hsl(var(--success))' : 'hsl(var(--destructive))'} 
+                  radius={entry.roi >= 0 ? [4, 4, 0, 0] : [0, 0, 4, 4]}
                 />
               ))}
             </Bar>
