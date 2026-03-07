@@ -1,4 +1,4 @@
-import { Users, TrendingUp, Activity, DollarSign, BarChart3 } from 'lucide-react';
+import { Users, TrendingUp, Activity, DollarSign } from 'lucide-react';
 import { formatCurrency } from '@/utils/currency';
 import { cn } from '@/lib/utils';
 
