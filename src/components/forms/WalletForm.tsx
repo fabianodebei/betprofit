@@ -1,7 +1,8 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,6 +12,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { useWallets } from '@/contexts/WalletContext';
 import { useIntestatari } from '@/contexts/IntestatariContext';
 import { Wallet } from '@/types';
+
+const PREDEFINED_WALLETS = [
+  { value: 'PayPal', label: 'PayPal' },
+  { value: 'Visa', label: 'Visa' },
+  { value: 'Mastercard', label: 'Mastercard' },
+  { value: 'Skrill', label: 'Skrill' },
+  { value: 'custom', label: 'Inserisci manualmente' },
+];
 
 const walletSchema = z.object({
   intestatario: z.string().min(1, 'Intestatario è obbligatorio'),
@@ -30,6 +39,7 @@ interface WalletFormProps {
 export function WalletForm({ open, onOpenChange, editingWallet }: WalletFormProps) {
   const { addWallet, updateWallet } = useWallets();
   const { intestatari } = useIntestatari();
+  const [walletType, setWalletType] = useState<string>('PayPal');
 
   const availableIntestatari = useMemo(() => {
     return intestatari
@@ -49,6 +59,8 @@ export function WalletForm({ open, onOpenChange, editingWallet }: WalletFormProp
 
   useEffect(() => {
     if (editingWallet && open) {
+      const isPredefined = PREDEFINED_WALLETS.some(w => w.value === editingWallet.nome);
+      setWalletType(isPredefined ? editingWallet.nome : 'custom');
       form.reset({
         intestatario: editingWallet.intestatario,
         nome: editingWallet.nome,
@@ -56,6 +68,7 @@ export function WalletForm({ open, onOpenChange, editingWallet }: WalletFormProp
         stato: editingWallet.stato,
       });
     } else if (!open) {
+      setWalletType('PayPal');
       form.reset({
         intestatario: '',
         nome: '',
@@ -64,6 +77,15 @@ export function WalletForm({ open, onOpenChange, editingWallet }: WalletFormProp
       });
     }
   }, [editingWallet, open, form]);
+
+  // Sync walletType selection to form nome field
+  useEffect(() => {
+    if (walletType !== 'custom') {
+      form.setValue('nome', walletType);
+    } else if (!editingWallet) {
+      form.setValue('nome', '');
+    }
+  }, [walletType, form, editingWallet]);
 
   const onSubmit = async (data: WalletFormData) => {
     if (editingWallet) {
@@ -118,19 +140,41 @@ export function WalletForm({ open, onOpenChange, editingWallet }: WalletFormProp
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="nome"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Es: PayPal" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+
+            {/* Wallet type selection */}
+            <FormItem>
+              <FormLabel>Tipo Wallet *</FormLabel>
+              <Select value={walletType} onValueChange={setWalletType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleziona tipo wallet" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PREDEFINED_WALLETS.map((w) => (
+                    <SelectItem key={w.value} value={w.value}>
+                      {w.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormItem>
+
+            {/* Manual name input only when custom */}
+            {walletType === 'custom' && (
+              <FormField
+                control={form.control}
+                name="nome"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome Wallet *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Es: Postepay, Bonifico..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <FormField
               control={form.control}
               name="descrizione"

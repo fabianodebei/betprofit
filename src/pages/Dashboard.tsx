@@ -514,19 +514,49 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-3">
                 {wallets.map(wallet => {
-                  const isPaypal = wallet.nome.toLowerCase().includes('paypal');
+                  const name = wallet.nome.toLowerCase();
+                  const isPaypal = name.includes('paypal');
+                  const isSkrill = name.includes('skrill');
+                  const isVisa = name.includes('visa');
+                  const isMastercard = name.includes('mastercard');
+
+                  const getIconBg = () => {
+                    if (isPaypal) return 'bg-blue-100 dark:bg-blue-900/40';
+                    if (isSkrill) return 'bg-purple-100 dark:bg-purple-900/40';
+                    if (isVisa) return 'bg-indigo-100 dark:bg-indigo-900/40';
+                    if (isMastercard) return 'bg-orange-100 dark:bg-orange-900/40';
+                    return 'bg-muted';
+                  };
+
+                  const getIcon = () => {
+                    if (isPaypal) return (
+                      <svg viewBox="0 0 24 24" className="h-5 w-5 text-blue-600 dark:text-blue-400" fill="currentColor">
+                        <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 2.23A.773.773 0 0 1 5.707 1.6h6.153c2.036 0 3.632.567 4.746 1.687 1.078 1.084 1.49 2.59 1.223 4.476-.018.129-.04.263-.066.4a7.09 7.09 0 0 1-.253 1.046c-.86 2.737-3.168 4.085-6.39 4.085H9.405a.773.773 0 0 0-.763.658l-.862 5.455a.641.641 0 0 1-.633.54l-.07-.01z"/>
+                        <path d="M18.813 7.37c-.064.397-.144.803-.244 1.22-1.103 4.213-4.158 5.66-8.262 5.66h-1.15a1.01 1.01 0 0 0-.998.858l-.588 3.724-.334 2.12a.531.531 0 0 0 .525.615h3.676a.885.885 0 0 0 .874-.747l.036-.186.691-4.383.045-.242a.885.885 0 0 1 .874-.748h.55c3.562 0 6.348-1.447 7.163-5.632.34-1.75.164-3.21-.735-4.235a3.532 3.532 0 0 0-1.013-.805c-.12.197-.232.389-.36.58z" opacity=".7"/>
+                      </svg>
+                    );
+                    if (isSkrill) return (
+                      <svg viewBox="0 0 24 24" className="h-5 w-5 text-purple-600 dark:text-purple-400" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.5 14.5h-3v-2h3c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5h-1c-1.93 0-3.5-1.57-3.5-3.5S10.07 4.5 12 4.5h3v2h-3c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5h1c1.93 0 3.5 1.57 3.5 3.5s-1.57 3.5-3.5 3.5z"/>
+                      </svg>
+                    );
+                    if (isVisa) return (
+                      <span className="text-xs font-black italic text-indigo-600 dark:text-indigo-400">VISA</span>
+                    );
+                    if (isMastercard) return (
+                      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none">
+                        <circle cx="9" cy="12" r="6" fill="#EB001B" opacity="0.8"/>
+                        <circle cx="15" cy="12" r="6" fill="#F79E1B" opacity="0.8"/>
+                      </svg>
+                    );
+                    return <CreditCard className="h-5 w-5 text-muted-foreground" />;
+                  };
+
                   return (
                     <div key={wallet.id} className="flex items-center gap-3 justify-between rounded-lg border p-3">
                       <div className="flex items-center gap-3">
-                        <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${isPaypal ? 'bg-blue-100 dark:bg-blue-900/40' : 'bg-muted'}`}>
-                          {isPaypal ? (
-                            <svg viewBox="0 0 24 24" className="h-5 w-5 text-blue-600 dark:text-blue-400" fill="currentColor">
-                              <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 2.23A.773.773 0 0 1 5.707 1.6h6.153c2.036 0 3.632.567 4.746 1.687 1.078 1.084 1.49 2.59 1.223 4.476-.018.129-.04.263-.066.4a7.09 7.09 0 0 1-.253 1.046c-.86 2.737-3.168 4.085-6.39 4.085H9.405a.773.773 0 0 0-.763.658l-.862 5.455a.641.641 0 0 1-.633.54l-.07-.01z"/>
-                              <path d="M18.813 7.37c-.064.397-.144.803-.244 1.22-1.103 4.213-4.158 5.66-8.262 5.66h-1.15a1.01 1.01 0 0 0-.998.858l-.588 3.724-.334 2.12a.531.531 0 0 0 .525.615h3.676a.885.885 0 0 0 .874-.747l.036-.186.691-4.383.045-.242a.885.885 0 0 1 .874-.748h.55c3.562 0 6.348-1.447 7.163-5.632.34-1.75.164-3.21-.735-4.235a3.532 3.532 0 0 0-1.013-.805c-.12.197-.232.389-.36.58z" opacity=".7"/>
-                            </svg>
-                          ) : (
-                            <CreditCard className="h-5 w-5 text-muted-foreground" />
-                          )}
+                        <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${getIconBg()}`}>
+                          {getIcon()}
                         </div>
                         <div>
                           <div className="font-semibold text-sm">{wallet.nome}</div>
