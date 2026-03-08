@@ -262,7 +262,7 @@ const AdminProxyView = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Porta HTTP</Label>
-                  <Input type="number" value={form.http_port} onChange={(e) => setForm({ ...form, http_port: e.target.value })} placeholder="8004" />
+                  <Input type="number" value={form.http_port} onChange={(e) => setForm({ ...form, http_port: e.target.value, socks5_port: e.target.value })} placeholder="8004" />
                 </div>
                 <div>
                   <Label>Porta SOCKS5</Label>
