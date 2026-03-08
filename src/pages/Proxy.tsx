@@ -222,9 +222,11 @@ const AdminProxyView = () => {
                     try {
                       // Format: http://username:password@host:port
                       const url = new URL(val);
+                      const portVal = url.port || '';
                       const parsed = {
                         proxy_host: url.hostname,
-                        http_port: url.port || '',
+                        http_port: portVal,
+                        socks5_port: portVal,
                         username: decodeURIComponent(url.username),
                         password: decodeURIComponent(url.password),
                       };
