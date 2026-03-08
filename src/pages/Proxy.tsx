@@ -139,6 +139,7 @@ const AdminProxyView = () => {
     socks5_port: '',
     username: '',
     password: '',
+    rotation_url: '',
   });
 
   const fetchProxies = async () => {
