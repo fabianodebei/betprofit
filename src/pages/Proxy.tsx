@@ -119,7 +119,6 @@ const UserProxyView = ({ proxy }: { proxy: ProxyData | null }) => {
               </Button>
             )}
           </div>
-          )}
         </CardContent>
       </Card>
     </div>
