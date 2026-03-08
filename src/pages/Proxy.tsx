@@ -20,6 +20,7 @@ interface ProxyData {
   socks5_port: number;
   username: string;
   password: string;
+  rotation_url?: string | null;
 }
 
 interface UserInfo {
