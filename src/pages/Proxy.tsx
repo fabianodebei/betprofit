@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Globe, Copy, Check } from 'lucide-react';
+import { Plus, Pencil, Trash2, Globe, Copy, Check, RotateCw } from 'lucide-react';
 
 interface ProxyData {
   id: string;
@@ -20,6 +20,7 @@ interface ProxyData {
   socks5_port: number;
   username: string;
   password: string;
+  rotation_url?: string | null;
 }
 
 interface UserInfo {
@@ -102,6 +103,24 @@ const UserProxyView = ({ proxy }: { proxy: ProxyData | null }) => {
               </p>
             </div>
           </div>
+          {proxy.rotation_url && (
+            <div className="mt-4">
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  try {
+                    await fetch(proxy.rotation_url!, { mode: 'no-cors' });
+                    toast.success('Richiesta di rotazione IP inviata');
+                  } catch {
+                    toast.error('Errore nella rotazione IP');
+                  }
+                }}
+              >
+                <RotateCw className="h-4 w-4 mr-2" />
+                Ruota IP
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -120,6 +139,7 @@ const AdminProxyView = () => {
     socks5_port: '',
     username: '',
     password: '',
+    rotation_url: '',
   });
 
   const fetchProxies = async () => {
@@ -145,7 +165,7 @@ const AdminProxyView = () => {
   useEffect(() => { fetchProxies(); }, []);
 
   const resetForm = () => {
-    setForm({ user_id: '', proxy_host: '', http_port: '', socks5_port: '', username: '', password: '' });
+    setForm({ user_id: '', proxy_host: '', http_port: '', socks5_port: '', username: '', password: '', rotation_url: '' });
     setEditingProxy(null);
   };
 
@@ -155,13 +175,14 @@ const AdminProxyView = () => {
       return;
     }
 
-    const payload = {
+    const payload: any = {
       user_id: editingProxy ? editingProxy.user_id : form.user_id,
       proxy_host: form.proxy_host,
       http_port: parseInt(form.http_port),
       socks5_port: parseInt(form.socks5_port),
       username: form.username,
       password: form.password,
+      rotation_url: form.rotation_url || null,
     };
 
     if (!payload.user_id) { toast.error('Seleziona un utente'); return; }
@@ -196,6 +217,7 @@ const AdminProxyView = () => {
       socks5_port: String(proxy.socks5_port),
       username: proxy.username,
       password: proxy.password,
+      rotation_url: proxy.rotation_url || '',
     });
     setDialogOpen(true);
   };
@@ -276,6 +298,10 @@ const AdminProxyView = () => {
               <div>
                 <Label>Password</Label>
                 <Input value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="password" />
+              </div>
+              <div>
+                <Label>Link Rotazione IP (opzionale)</Label>
+                <Input value={form.rotation_url} onChange={(e) => setForm({ ...form, rotation_url: e.target.value })} placeholder="https://..." />
               </div>
               <Button onClick={handleSave} className="w-full">
                 {editingProxy ? 'Aggiorna' : 'Assegna'}
