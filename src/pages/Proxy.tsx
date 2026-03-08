@@ -66,7 +66,7 @@ const UserProxyView = ({ proxy }: { proxy: ProxyData | null }) => {
       <h1 className="text-2xl font-bold mb-6">Proxy</h1>
       <Card>
         <CardContent className="py-6">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+          <div className="flex flex-wrap items-end gap-6">
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground uppercase tracking-wider">Proxy</p>
               <p className="font-semibold flex items-center">
@@ -102,9 +102,7 @@ const UserProxyView = ({ proxy }: { proxy: ProxyData | null }) => {
                 <CopyButton value={proxy.password} />
               </p>
             </div>
-          </div>
-          {proxy.rotation_url && (
-            <div className="mt-4">
+            {proxy.rotation_url && (
               <Button
                 variant="outline"
                 onClick={async () => {
@@ -119,7 +117,8 @@ const UserProxyView = ({ proxy }: { proxy: ProxyData | null }) => {
                 <RotateCw className="h-4 w-4 mr-2" />
                 Ruota IP
               </Button>
-            </div>
+            )}
+          </div>
           )}
         </CardContent>
       </Card>
