@@ -217,6 +217,7 @@ const AdminProxyView = () => {
       socks5_port: String(proxy.socks5_port),
       username: proxy.username,
       password: proxy.password,
+      rotation_url: proxy.rotation_url || '',
     });
     setDialogOpen(true);
   };
