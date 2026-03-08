@@ -65,7 +65,7 @@ const UserProxyView = ({ proxy }: { proxy: ProxyData | null }) => {
       <h1 className="text-2xl font-bold mb-6">Proxy</h1>
       <Card>
         <CardContent className="py-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground uppercase tracking-wider">Proxy</p>
               <p className="font-semibold flex items-center">
