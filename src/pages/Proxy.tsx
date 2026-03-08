@@ -222,9 +222,11 @@ const AdminProxyView = () => {
                     try {
                       // Format: http://username:password@host:port
                       const url = new URL(val);
+                      const portVal = url.port || '';
                       const parsed = {
                         proxy_host: url.hostname,
-                        http_port: url.port || '',
+                        http_port: portVal,
+                        socks5_port: portVal,
                         username: decodeURIComponent(url.username),
                         password: decodeURIComponent(url.password),
                       };
@@ -260,11 +262,11 @@ const AdminProxyView = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Porta HTTP</Label>
-                  <Input type="number" value={form.http_port} onChange={(e) => setForm({ ...form, http_port: e.target.value })} placeholder="8004" />
+                  <Input type="number" value={form.http_port} onChange={(e) => setForm({ ...form, http_port: e.target.value, socks5_port: e.target.value })} placeholder="8004" />
                 </div>
                 <div>
                   <Label>Porta SOCKS5</Label>
-                  <Input type="number" value={form.socks5_port} onChange={(e) => setForm({ ...form, socks5_port: e.target.value })} placeholder="5004" />
+                  <Input type="number" value={form.socks5_port} readOnly className="bg-muted cursor-not-allowed" placeholder="5004" />
                 </div>
               </div>
               <div>
