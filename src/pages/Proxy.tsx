@@ -103,6 +103,24 @@ const UserProxyView = ({ proxy }: { proxy: ProxyData | null }) => {
               </p>
             </div>
           </div>
+          {proxy.rotation_url && (
+            <div className="mt-4">
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  try {
+                    await fetch(proxy.rotation_url!, { mode: 'no-cors' });
+                    toast.success('Richiesta di rotazione IP inviata');
+                  } catch {
+                    toast.error('Errore nella rotazione IP');
+                  }
+                }}
+              >
+                <RotateCw className="h-4 w-4 mr-2" />
+                Ruota IP
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
