@@ -165,7 +165,7 @@ const AdminProxyView = () => {
   useEffect(() => { fetchProxies(); }, []);
 
   const resetForm = () => {
-    setForm({ user_id: '', proxy_host: '', http_port: '', socks5_port: '', username: '', password: '' });
+    setForm({ user_id: '', proxy_host: '', http_port: '', socks5_port: '', username: '', password: '', rotation_url: '' });
     setEditingProxy(null);
   };
 
