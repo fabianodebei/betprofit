@@ -175,13 +175,14 @@ const AdminProxyView = () => {
       return;
     }
 
-    const payload = {
+    const payload: any = {
       user_id: editingProxy ? editingProxy.user_id : form.user_id,
       proxy_host: form.proxy_host,
       http_port: parseInt(form.http_port),
       socks5_port: parseInt(form.socks5_port),
       username: form.username,
       password: form.password,
+      rotation_url: form.rotation_url || null,
     };
 
     if (!payload.user_id) { toast.error('Seleziona un utente'); return; }
