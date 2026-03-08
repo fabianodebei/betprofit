@@ -266,7 +266,7 @@ const AdminProxyView = () => {
                 </div>
                 <div>
                   <Label>Porta SOCKS5</Label>
-                  <Input type="number" value={form.socks5_port} onChange={(e) => setForm({ ...form, socks5_port: e.target.value })} placeholder="5004" />
+                  <Input type="number" value={form.socks5_port} readOnly className="bg-muted cursor-not-allowed" placeholder="5004" />
                 </div>
               </div>
               <div>
