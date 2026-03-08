@@ -299,6 +299,10 @@ const AdminProxyView = () => {
                 <Label>Password</Label>
                 <Input value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="password" />
               </div>
+              <div>
+                <Label>Link Rotazione IP (opzionale)</Label>
+                <Input value={form.rotation_url} onChange={(e) => setForm({ ...form, rotation_url: e.target.value })} placeholder="https://..." />
+              </div>
               <Button onClick={handleSave} className="w-full">
                 {editingProxy ? 'Aggiorna' : 'Assegna'}
               </Button>

@@ -588,6 +588,7 @@ export type Database = {
           id: string
           password: string
           proxy_host: string
+          rotation_url: string | null
           socks5_port: number
           updated_at: string
           user_id: string
@@ -599,6 +600,7 @@ export type Database = {
           id?: string
           password: string
           proxy_host: string
+          rotation_url?: string | null
           socks5_port: number
           updated_at?: string
           user_id: string
@@ -610,6 +612,7 @@ export type Database = {
           id?: string
           password?: string
           proxy_host?: string
+          rotation_url?: string | null
           socks5_port?: number
           updated_at?: string
           user_id?: string
