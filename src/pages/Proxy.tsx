@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Globe, Copy, Check } from 'lucide-react';
+import { Plus, Pencil, Trash2, Globe, Copy, Check, RotateCw } from 'lucide-react';
 
 interface ProxyData {
   id: string;
