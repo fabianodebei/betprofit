@@ -42,6 +42,8 @@ export const UserEarningsChart = ({ data, height = 300 }: UserEarningsChartProps
             borderRadius: '6px',
             color: 'hsl(var(--popover-foreground))',
           }}
+          labelStyle={{ color: 'hsl(var(--popover-foreground))' }}
+          itemStyle={{ color: 'hsl(var(--popover-foreground))' }}
           formatter={(value: number) => [formatCurrency(value), 'Guadagno']}
         />
         <Bar dataKey="earnings" radius={[8, 8, 0, 0]}>
