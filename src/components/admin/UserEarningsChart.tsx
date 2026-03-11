@@ -29,10 +29,10 @@ export const UserEarningsChart = ({ data, height = 300 }: UserEarningsChartProps
           angle={-45}
           textAnchor="end"
           height={80}
-          tick={{ fill: 'hsl(var(--foreground))' }}
+          tick={{ fill: 'hsl(var(--muted-foreground))' }}
         />
         <YAxis 
-          tick={{ fill: 'hsl(var(--foreground))' }}
+          tick={{ fill: 'hsl(var(--muted-foreground))' }}
           tickFormatter={(value) => `€${value}`}
         />
         <Tooltip 
