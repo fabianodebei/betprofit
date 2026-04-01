@@ -25,6 +25,8 @@ const requestSchema = z.object({
 });
 
 serve(async (req: Request): Promise<Response> => {
+  const corsHeaders = getCorsHeaders(req);
+  
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: { ...corsHeaders } });
   }
@@ -38,7 +40,6 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    // Auth client (for getting current user from JWT)
     const supabaseAuth = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -50,10 +51,8 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    // Service client to perform privileged operations
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Verify admin role
     const { data: roleRow, error: roleErr } = await supabaseAdmin
       .from("user_roles")
       .select("role")
@@ -68,7 +67,6 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    // Validate request body
     const body = await req.json().catch(() => ({}));
     const parsed = requestSchema.safeParse(body);
     if (!parsed.success) {
@@ -81,7 +79,6 @@ serve(async (req: Request): Promise<Response> => {
 
     const targetUserId = parsed.data.user_id;
 
-    // Log the admin action BEFORE deletion
     try {
       await supabaseAdmin.from("admin_audit_log").insert({
         admin_user_id: authData.user.id,
@@ -94,36 +91,21 @@ serve(async (req: Request): Promise<Response> => {
       });
     } catch (auditErr) {
       console.error("Failed to log audit:", auditErr);
-      // Continue with deletion even if audit logging fails
     }
 
-    // Best-effort cleanup of user data in public tables
     const tables = [
-      "user_telegram_config",
-      "accounts",
-      "bets",
-      "bet_legs",
-      "transactions",
-      "wallets",
-      "reminders",
-      "tags",
-      "books",
-      "intestatari",
-      "user_roles",
-      "admin_audit_log", // Clean up audit logs for this user too
+      "user_telegram_config", "accounts", "bets", "bet_legs", "transactions",
+      "wallets", "reminders", "tags", "books", "intestatari", "user_roles", "admin_audit_log",
     ];
 
     await Promise.all(
       tables.map(async (table) => {
         try {
           await supabaseAdmin.from(table).delete().eq("user_id", targetUserId);
-        } catch (_) {
-          // ignore missing tables
-        }
+        } catch (_) {}
       })
     );
 
-    // Delete auth user
     const { error: delErr } = await supabaseAdmin.auth.admin.deleteUser(targetUserId);
     if (delErr) {
       console.error("Failed to delete user:", delErr.message);
