@@ -196,7 +196,7 @@ const AdminProxyView = () => {
   };
 
   const handleDelete = async (id: string) => {
-    const { error } = await proxyTable().delete().eq('id', id);
+    const { error } = await supabase.rpc('admin_delete_proxy' as any, { p_id: id });
     if (error) { toast.error('Errore: ' + error.message); return; }
     toast.success('Proxy rimosso');
     fetchProxies();
