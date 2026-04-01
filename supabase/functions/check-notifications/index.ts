@@ -66,10 +66,20 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Verify HMAC signature before processing
+  if (!verifySignature(req)) {
+    console.error('Unauthorized: invalid or missing signature');
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      {
+        status: 401,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
+    );
+  }
+
   try {
     console.log('Notification check triggered');
-    // Authenticated endpoint: JWT verification enabled in config.toml
-    // Cron job calls with service role key for authentication
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
