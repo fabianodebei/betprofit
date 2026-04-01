@@ -29,7 +29,8 @@ interface UserInfo {
   full_name: string;
 }
 
-const proxyTable = () => supabase.from('user_proxies' as any);
+const proxyTable = () => supabase.from('user_proxies_decrypted' as any);
+const proxyTableRaw = () => supabase.from('user_proxies' as any);
 
 const CopyButton = ({ value }: { value: string }) => {
   const [copied, setCopied] = useState(false);
