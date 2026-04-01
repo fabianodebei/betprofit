@@ -587,36 +587,42 @@ export type Database = {
           http_port: number
           id: string
           password: string
+          password_encrypted: string | null
           proxy_host: string
           rotation_url: string | null
           socks5_port: number
           updated_at: string
           user_id: string
           username: string
+          username_encrypted: string | null
         }
         Insert: {
           created_at?: string
           http_port: number
           id?: string
           password: string
+          password_encrypted?: string | null
           proxy_host: string
           rotation_url?: string | null
           socks5_port: number
           updated_at?: string
           user_id: string
           username: string
+          username_encrypted?: string | null
         }
         Update: {
           created_at?: string
           http_port?: number
           id?: string
           password?: string
+          password_encrypted?: string | null
           proxy_host?: string
           rotation_url?: string | null
           socks5_port?: number
           updated_at?: string
           user_id?: string
           username?: string
+          username_encrypted?: string | null
         }
         Relationships: []
       }
@@ -709,6 +715,45 @@ export type Database = {
       }
     }
     Views: {
+      user_proxies_decrypted: {
+        Row: {
+          created_at: string | null
+          http_port: number | null
+          id: string | null
+          password: string | null
+          proxy_host: string | null
+          rotation_url: string | null
+          socks5_port: number | null
+          updated_at: string | null
+          user_id: string | null
+          username: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          http_port?: number | null
+          id?: string | null
+          password?: never
+          proxy_host?: string | null
+          rotation_url?: string | null
+          socks5_port?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          username?: never
+        }
+        Update: {
+          created_at?: string | null
+          http_port?: number | null
+          id?: string | null
+          password?: never
+          proxy_host?: string | null
+          rotation_url?: string | null
+          socks5_port?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          username?: never
+        }
+        Relationships: []
+      }
       user_telegram_config_decrypted: {
         Row: {
           created_at: string | null
@@ -745,6 +790,7 @@ export type Database = {
         Args: { _book_metodo: string; _book_nome: string }
         Returns: string
       }
+      admin_delete_proxy: { Args: { p_id: string }; Returns: undefined }
       admin_delete_user_with_audit: {
         Args: { target_user_id: string }
         Returns: undefined
@@ -783,6 +829,19 @@ export type Database = {
       admin_update_user_role: {
         Args: { new_role: string; target_user_id: string }
         Returns: undefined
+      }
+      admin_upsert_proxy: {
+        Args: {
+          p_http_port?: number
+          p_id?: string
+          p_password?: string
+          p_proxy_host?: string
+          p_rotation_url?: string
+          p_socks5_port?: number
+          p_user_id?: string
+          p_username?: string
+        }
+        Returns: string
       }
       decrypt_telegram_credential: {
         Args: { encrypted_credential: string }

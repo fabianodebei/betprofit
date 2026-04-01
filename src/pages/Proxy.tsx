@@ -29,7 +29,8 @@ interface UserInfo {
   full_name: string;
 }
 
-const proxyTable = () => supabase.from('user_proxies' as any);
+const proxyTable = () => supabase.from('user_proxies_decrypted' as any);
+const proxyTableRaw = () => supabase.from('user_proxies' as any);
 
 const CopyButton = ({ value }: { value: string }) => {
   const [copied, setCopied] = useState(false);
@@ -173,24 +174,19 @@ const AdminProxyView = () => {
       return;
     }
 
-    const payload: any = {
-      user_id: editingProxy ? editingProxy.user_id : form.user_id,
-      proxy_host: form.proxy_host,
-      http_port: parseInt(form.http_port),
-      socks5_port: parseInt(form.socks5_port),
-      username: form.username,
-      password: form.password,
-      rotation_url: form.rotation_url || null,
-    };
+    const userId = editingProxy ? editingProxy.user_id : form.user_id;
+    if (!userId) { toast.error('Seleziona un utente'); return; }
 
-    if (!payload.user_id) { toast.error('Seleziona un utente'); return; }
-
-    let error;
-    if (editingProxy) {
-      ({ error } = await proxyTable().update(payload).eq('id', editingProxy.id));
-    } else {
-      ({ error } = await proxyTable().insert(payload));
-    }
+    const { error } = await supabase.rpc('admin_upsert_proxy' as any, {
+      p_id: editingProxy?.id || null,
+      p_user_id: userId,
+      p_proxy_host: form.proxy_host,
+      p_http_port: parseInt(form.http_port),
+      p_socks5_port: parseInt(form.socks5_port),
+      p_username: form.username,
+      p_password: form.password,
+      p_rotation_url: form.rotation_url || null,
+    });
 
     if (error) { toast.error('Errore: ' + error.message); return; }
     toast.success(editingProxy ? 'Proxy aggiornato' : 'Proxy assegnato');
@@ -200,7 +196,7 @@ const AdminProxyView = () => {
   };
 
   const handleDelete = async (id: string) => {
-    const { error } = await proxyTable().delete().eq('id', id);
+    const { error } = await supabase.rpc('admin_delete_proxy' as any, { p_id: id });
     if (error) { toast.error('Errore: ' + error.message); return; }
     toast.success('Proxy rimosso');
     fetchProxies();
