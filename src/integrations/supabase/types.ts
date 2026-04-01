@@ -586,42 +586,42 @@ export type Database = {
           created_at: string
           http_port: number
           id: string
-          password: string
+          password: string | null
           password_encrypted: string | null
           proxy_host: string
           rotation_url: string | null
           socks5_port: number
           updated_at: string
           user_id: string
-          username: string
+          username: string | null
           username_encrypted: string | null
         }
         Insert: {
           created_at?: string
           http_port: number
           id?: string
-          password: string
+          password?: string | null
           password_encrypted?: string | null
           proxy_host: string
           rotation_url?: string | null
           socks5_port: number
           updated_at?: string
           user_id: string
-          username: string
+          username?: string | null
           username_encrypted?: string | null
         }
         Update: {
           created_at?: string
           http_port?: number
           id?: string
-          password?: string
+          password?: string | null
           password_encrypted?: string | null
           proxy_host?: string
           rotation_url?: string | null
           socks5_port?: number
           updated_at?: string
           user_id?: string
-          username?: string
+          username?: string | null
           username_encrypted?: string | null
         }
         Relationships: []
