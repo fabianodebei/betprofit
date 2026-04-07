@@ -146,6 +146,7 @@ const App = () => (
               </SettingsProvider>
             </YearProvider>
           </TelegramConfigProvider>
+          </ImpersonationProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
