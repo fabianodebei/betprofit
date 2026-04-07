@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { Search, UserCog, RotateCcw, Trash, Download, Menu, ArrowLeft, Eye } from 'lucide-react';
 import { useImpersonation } from '@/contexts/ImpersonationContext';
-import { useNavigate as useNav } from 'react-router-dom';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { UserActivityTable } from '@/components/admin/UserActivityTable';
