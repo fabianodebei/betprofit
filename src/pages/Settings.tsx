@@ -2,10 +2,12 @@ import { List, Euro, FileText, Users, BookOpen, Tag, MessageSquare, Shield, Data
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useImpersonation } from '@/contexts/ImpersonationContext';
 
 export default function Settings() {
   const navigate = useNavigate();
   const { isAdmin } = useUserRole();
+  const { isImpersonating } = useImpersonation();
   
   const settingsSections = [
     ...(isAdmin ? [{
