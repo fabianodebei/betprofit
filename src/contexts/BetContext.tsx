@@ -261,7 +261,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
         if (Object.keys(updateData).length > 0) {
           const { error: updateAccountError } = await supabase
             .from('accounts')
-            .update(updateData)
+            .update(updateData as any)
             .eq('id', account.id);
 
           if (updateAccountError) throw updateAccountError;
