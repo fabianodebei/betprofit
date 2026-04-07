@@ -215,7 +215,7 @@ export default function Admin() {
     const rows = filteredUsers.map(u => ({
       Email: u.email,
       Nome: u.full_name || '-',
-      Ruolo: u.role === 'admin' ? 'Amministratore' : 'Gratuito',
+      Ruolo: u.role === 'admin' ? 'Amministratore' : u.role === 'free_be' ? 'Free BE' : u.role === 'free_ss' ? 'Free SS' : u.role === 'pagamento' ? 'A Pagamento' : 'Free',
       'Data Registrazione': format(new Date(u.created_at), 'dd/MM/yyyy', { locale: it }),
     }));
     exportToCSV(rows, 'utenti');
