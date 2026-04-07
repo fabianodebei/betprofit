@@ -227,7 +227,7 @@ export default function OngoingBets() {
                       
                         return (
                         <>
-                          <tr key={bet.id} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
+                          <tr key={bet.id} className={`${idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'} ${bet.tipo === 'Multipla' || hasLayBets ? 'cursor-pointer' : ''}`} onClick={() => { if (bet.tipo === 'Multipla' || hasLayBets) toggleLayBets(bet.id); }}>
                             <td className="p-2 md:p-3 text-xs md:text-sm">
                               <div className="flex items-center gap-1 md:gap-2">
                                 {(hasLayBets || bet.tipo === 'Multipla') && (
@@ -281,7 +281,7 @@ export default function OngoingBets() {
                             <td className="p-2 md:p-3 hidden md:table-cell">
                               {bet.tag && <Badge variant="outline" className="text-xs">{bet.tag}</Badge>}
                             </td>
-                            <td className="p-2 md:p-3">
+                            <td className="p-2 md:p-3" onClick={(e) => e.stopPropagation()}>
                               <div className="flex flex-col md:flex-row gap-1">
                                 {bet.tipo === 'Multipla' && (
                                   <Button size="sm" variant="outline" onClick={() => handleShowMultiplaDetail(bet)} className="text-xs whitespace-nowrap">Dettagli</Button>
