@@ -19,7 +19,7 @@ import { useTags } from '@/contexts/TagContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useWallets } from '@/contexts/WalletContext';
 import { useIntestatari } from '@/contexts/IntestatariContext';
-import { SPORT_MARKETS } from '@/constants/markets';
+import { SPORT_MARKETS, COMPETITIONS } from '@/constants/markets';
 import { PREDEFINED_TAGS } from '@/constants/predefinedTags';
 import { Bet } from '@/types';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -770,12 +770,18 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Competizione</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Es: Serie A" 
-                          {...field} 
-                        />
-                      </FormControl>
+                      <Select onValueChange={field.onChange} value={field.value || ''}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleziona competizione" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {COMPETITIONS.map((comp) => (
+                            <SelectItem key={comp} value={comp}>{comp}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
