@@ -69,6 +69,7 @@ const App = () => (
       <TooltipProvider>
         <BrowserRouter>
           <AuthProvider>
+          <ImpersonationProvider>
           <TelegramConfigProvider>
             <YearProvider>
               <SettingsProvider>
@@ -97,10 +98,11 @@ const App = () => (
                                     <Route
                                       path="/*"
                                       element={
-                                        <ProtectedRoute>
-                                          <div className="flex min-h-screen flex-col">
-                                            <Header />
-                                            <main className="flex-1">
+                        <ProtectedRoute>
+                          <ImpersonationBanner />
+                          <div className="flex min-h-screen flex-col">
+                            <Header />
+                            <main className="flex-1">
                                               <Routes>
                                                 <Route path="/" element={<Dashboard />} />
                                                 <Route path="/wallets" element={<Wallets />} />
