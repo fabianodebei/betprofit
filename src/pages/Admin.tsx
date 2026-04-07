@@ -240,7 +240,7 @@ export default function Admin() {
   }, [userEarnings]);
 
   const paidUsersCount = useMemo(() => {
-    return users.filter(u => u.role === 'pagamento').length;
+    return users.filter(u => u.role === 'pagamento' || u.role === 'pagamento_ss').length;
   }, [users]);
 
   // Loading skeleton
