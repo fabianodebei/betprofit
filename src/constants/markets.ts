@@ -68,6 +68,33 @@ export const QUICK_BET_METHODS = [
   "Altro",
 ] as const;
 
+export const COMPETITIONS = [
+  "UEFA Champions League",
+  "UEFA Europa League",
+  "UEFA Conference League",
+  "Serie A (Italia)",
+  "Premier League (Inghilterra)",
+  "La Liga (Spagna)",
+  "Bundesliga (Germania)",
+  "Ligue 1 (Francia)",
+  "Eredivisie (Olanda)",
+  "Primeira Liga (Portogallo)",
+  "MLS (USA)",
+  "Liga MX (Messico)",
+  "Brasileirão",
+  "Coppa Italia",
+  "FA Cup (Inghilterra)",
+  "Copa del Rey (Spagna)",
+  "DFB-Pokal (Germania)",
+  "Coupe de France",
+  "Supercoppe nazionali",
+  "Qualificazioni Mondiali 2026",
+  "Play-off Mondiali",
+  "Africa Cup of Nations",
+  "Amichevoli internazionali",
+  "FIFA World Cup",
+] as const;
+
 // Flatten all sport markets for easy access
 export const ALL_SPORT_MARKETS = [
   ...SPORT_MARKETS.calcio,

@@ -770,12 +770,18 @@ export function SingleBetForm({ open, onOpenChange, editingBet, mode = 'create' 
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Competizione</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Es: Serie A" 
-                          {...field} 
-                        />
-                      </FormControl>
+                      <Select onValueChange={field.onChange} value={field.value || ''}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleziona competizione" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {COMPETITIONS.map((comp) => (
+                            <SelectItem key={comp} value={comp}>{comp}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
