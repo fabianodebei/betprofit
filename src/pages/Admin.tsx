@@ -33,7 +33,7 @@ interface UserProfile {
   email: string;
   full_name: string | null;
   created_at: string;
-  role: 'admin' | 'free';
+  role: 'admin' | 'free' | 'free_be' | 'free_ss' | 'pagamento';
 }
 
 interface SystemStats {
@@ -46,7 +46,7 @@ interface SystemStats {
   totalAccounts: number;
   totalWallets: number;
   totalTags: number;
-  roleDistribution: { admin: number; free: number };
+  roleDistribution: { admin: number; free: number; free_be: number; free_ss: number; pagamento: number };
 }
 
 export default function Admin() {
@@ -57,7 +57,7 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
-  const [newRole, setNewRole] = useState<'admin' | 'free'>('free');
+  const [newRole, setNewRole] = useState<'admin' | 'free' | 'free_be' | 'free_ss' | 'pagamento'>('pagamento');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [systemStats, setSystemStats] = useState<SystemStats | null>(null);
   const [userActivities, setUserActivities] = useState<any[]>([]);
@@ -136,7 +136,10 @@ export default function Admin() {
           totalTags: Number(stats.totalTags) || 0,
           roleDistribution: {
             admin: Number(stats.totalAdmins) || 0,
-            free: Math.max(0, (Number(stats.totalUsers) || 0) - (Number(stats.totalAdmins) || 0)),
+            free: 0,
+            free_be: 0,
+            free_ss: 0,
+            pagamento: Math.max(0, (Number(stats.totalUsers) || 0) - (Number(stats.totalAdmins) || 0)),
           },
         });
       }
@@ -212,7 +215,7 @@ export default function Admin() {
     const rows = filteredUsers.map(u => ({
       Email: u.email,
       Nome: u.full_name || '-',
-      Ruolo: u.role === 'admin' ? 'Amministratore' : 'Gratuito',
+      Ruolo: u.role === 'admin' ? 'Amministratore' : u.role === 'free_be' ? 'Free BE' : u.role === 'free_ss' ? 'Free SS' : u.role === 'pagamento' ? 'A Pagamento' : 'Free',
       'Data Registrazione': format(new Date(u.created_at), 'dd/MM/yyyy', { locale: it }),
     }));
     exportToCSV(rows, 'utenti');
@@ -234,6 +237,10 @@ export default function Admin() {
   const totalEarnings = useMemo(() => {
     return userEarnings.reduce((sum, u) => sum + Number(u.total_earnings || 0), 0);
   }, [userEarnings]);
+
+  const paidUsersCount = useMemo(() => {
+    return users.filter(u => u.role === 'pagamento').length;
+  }, [users]);
 
   // Loading skeleton
   if (loading || prefsLoading) {
@@ -318,6 +325,7 @@ export default function Admin() {
               <PlatformKPICards
                 totalUsers={systemStats?.totalUsers || 0}
                 activeUsers={systemStats?.activeUsers || 0}
+                paidUsers={paidUsersCount}
                 totalEarnings={totalEarnings}
                 newUsersMonth={systemStats?.newUsersThisMonth || 0}
               />
@@ -380,10 +388,10 @@ export default function Admin() {
                           <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{user.full_name || '-'}</TableCell>
                           <TableCell>
                             <Badge
-                              variant={user.role === 'admin' ? 'default' : 'outline'}
+                              variant={user.role === 'admin' ? 'default' : user.role === 'pagamento' ? 'secondary' : 'outline'}
                               className="text-xs"
                             >
-                              {user.role === 'admin' ? 'Admin' : 'Free'}
+                              {user.role === 'admin' ? 'Admin' : user.role === 'free_be' ? 'Free BE' : user.role === 'free_ss' ? 'Free SS' : user.role === 'pagamento' ? 'A Pagamento' : 'Free'}
                             </Badge>
                           </TableCell>
                           <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
@@ -502,7 +510,10 @@ export default function Admin() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="free">Gratuito</SelectItem>
+                <SelectItem value="pagamento">A Pagamento</SelectItem>
+                <SelectItem value="free_be">Free BE (Matched Betting)</SelectItem>
+                <SelectItem value="free_ss">Free SS (Solo Sport)</SelectItem>
+                <SelectItem value="free">Free (Legacy)</SelectItem>
                 <SelectItem value="admin">Amministratore</SelectItem>
               </SelectContent>
             </Select>
