@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useWallets } from '@/contexts/WalletContext';
 import { formatCurrency } from '@/utils/currency';
+import { toast } from 'sonner';
 
 const transferSchema = z.object({
   fromWallet: z.string().min(1, 'Seleziona wallet sorgente'),
@@ -45,9 +46,18 @@ export function WalletTransferForm({ open, onOpenChange }: WalletTransferFormPro
     },
   });
 
+  const enabledWallets = wallets.filter(w => w.stato === 'Abilitato');
+  const walletsWithFunds = enabledWallets.filter(w => w.saldoAttuale > 0);
+  const canTransfer = walletsWithFunds.length > 0 && enabledWallets.length >= 2;
+
   const onSubmit = async (data: TransferFormData) => {
     const fromWallet = wallets.find((w) => w.id === data.fromWallet);
     const toWallet = wallets.find((w) => w.id === data.toWallet);
+
+    if (fromWallet && fromWallet.saldoAttuale < data.amount) {
+      toast.error(`Saldo insufficiente nel wallet ${fromWallet.nome}. Disponibile: €${fromWallet.saldoAttuale.toFixed(2)}`);
+      return;
+    }
 
     if (fromWallet && toWallet) {
       await updateWallet(fromWallet.id, {
@@ -69,6 +79,13 @@ export function WalletTransferForm({ open, onOpenChange }: WalletTransferFormPro
         <DialogHeader>
           <DialogTitle>Nuovo Trasferisci</DialogTitle>
         </DialogHeader>
+        {!canTransfer ? (
+          <div className="py-4 text-center text-sm text-muted-foreground">
+            {enabledWallets.length < 2
+              ? 'Servono almeno 2 wallet abilitati per effettuare un trasferimento.'
+              : 'Nessun wallet con saldo disponibile per il trasferimento.'}
+          </div>
+        ) : (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -204,6 +221,7 @@ export function WalletTransferForm({ open, onOpenChange }: WalletTransferFormPro
             </DialogFooter>
           </form>
         </Form>
+        )}
       </DialogContent>
     </Dialog>
   );
