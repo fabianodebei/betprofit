@@ -101,4 +101,5 @@ export const ALL_SPORT_MARKETS = [
   ...SPORT_MARKETS.calcio,
   ...SPORT_MARKETS.tennis,
   ...SPORT_MARKETS.basket,
+  "Altro Sport",
 ] as const;
