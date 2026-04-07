@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useWallets } from '@/contexts/WalletContext';
 import { formatCurrency } from '@/utils/currency';
+import { toast } from 'sonner';
 
 const transferSchema = z.object({
   fromWallet: z.string().min(1, 'Seleziona wallet sorgente'),
