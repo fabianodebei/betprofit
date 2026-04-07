@@ -10,7 +10,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Search, UserCog, RotateCcw, Trash, Download, Menu, ArrowLeft } from 'lucide-react';
+import { Search, UserCog, RotateCcw, Trash, Download, Menu, ArrowLeft, Eye } from 'lucide-react';
+import { useImpersonation } from '@/contexts/ImpersonationContext';
+import { useNavigate as useNav } from 'react-router-dom';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { UserActivityTable } from '@/components/admin/UserActivityTable';
