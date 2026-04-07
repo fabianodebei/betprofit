@@ -34,7 +34,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
             event: '*',
             schema: 'public',
             table: 'accounts',
-            filter: `user_id=eq.${user.id}`
+            filter: `user_id=eq.${effectiveUserId}`
           },
           () => {
             fetchAccounts();
@@ -50,7 +50,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
             event: '*',
             schema: 'public',
             table: 'bets',
-            filter: `user_id=eq.${user.id}`
+            filter: `user_id=eq.${effectiveUserId}`
           },
           () => {
             fetchAccounts();
@@ -66,7 +66,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
             event: '*',
             schema: 'public',
             table: 'transactions',
-            filter: `user_id=eq.${user.id}`
+            filter: `user_id=eq.${effectiveUserId}`
           },
           () => {
             fetchAccounts();
@@ -82,7 +82,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
             event: '*',
             schema: 'public',
             table: 'lay_bets',
-            filter: `user_id=eq.${user.id}`
+            filter: `user_id=eq.${effectiveUserId}`
           },
           () => {
             fetchAccounts();
@@ -100,7 +100,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       setAccounts([]);
       setLoading(false);
     }
-  }, [user]);
+  }, [user, effectiveUserId]);
 
   const fetchAccounts = async () => {
     if (!user) return;
@@ -108,7 +108,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase
         .from('accounts')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', effectiveUserId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -143,7 +143,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       const { data: betsData, error: betsError } = await supabase
         .from('bets')
         .select('id, tipo, conto, intestatario, stato, stake, risultato, tipo_bonus, esito, esito_dettaglio')
-        .eq('user_id', user.id);
+        .eq('user_id', effectiveUserId);
 
       if (betsError) {
         console.error('Error fetching bets for account calculation:', betsError);
@@ -196,7 +196,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       const { data: layData, error: layError } = await supabase
         .from('lay_bets')
         .select('id, parent_bet_id, metodo, conto, stake, quota_banca, tasse_percentuale, attiva, stato')
-        .eq('user_id', user.id);
+        .eq('user_id', effectiveUserId);
 
       if (layError) {
         console.error('Error fetching lay bets for account calculation:', layError);
@@ -259,7 +259,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       const { data: transactionsData } = await supabase
         .from('transactions')
         .select('conto, metodo, accredito, addebito, intestatario')
-        .eq('user_id', user.id);
+        .eq('user_id', effectiveUserId);
 
       const saldoDisponibileMap: Record<string, number> = {};
       (transactionsData || []).forEach((t: any) => {
@@ -329,7 +329,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     const handler = () => fetchAccounts();
     window.addEventListener('refresh-accounts', handler);
     return () => window.removeEventListener('refresh-accounts', handler);
-  }, [user]);
+  }, [user, effectiveUserId]);
   const addAccount = async (account: Omit<Account, 'id' | 'createdAt' | 'saldoAttuale' | 'bilancioGiocate' | 'bilancioGiocateRapide'>) => {
     try {
       if (!user) throw new Error('User not authenticated');
@@ -345,7 +345,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
           saldo_attuale: 0,
           bilancio_giocate: 0,
           bilancio_giocate_rapide: 0,
-          user_id: user.id,
+          user_id: effectiveUserId,
         })
         .select()
         .single();
@@ -409,7 +409,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       const { error: txByAccountIdError } = await supabase
         .from('transactions')
         .delete()
-        .eq('user_id', user.id)
+        .eq('user_id', effectiveUserId)
         .eq('account_id', id);
 
       if (txByAccountIdError) throw txByAccountIdError;
@@ -418,7 +418,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       const { error: txLegacyError } = await supabase
         .from('transactions')
         .delete()
-        .eq('user_id', user.id)
+        .eq('user_id', effectiveUserId)
         .is('account_id', null)
         .eq('conto', accountToDelete.conto)
         .eq('intestatario', accountToDelete.intestatario);
@@ -429,7 +429,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         .from('accounts')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('user_id', effectiveUserId);
 
       if (error) throw error;
 

@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { Reminder } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { useImpersonation } from './ImpersonationContext';
 
 interface ReminderContextType {
   reminders: Reminder[];
@@ -17,6 +18,7 @@ export function ReminderProvider({ children }: { children: ReactNode }) {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { effectiveUserId } = useImpersonation();
 
   useEffect(() => {
     if (user) {
@@ -25,7 +27,7 @@ export function ReminderProvider({ children }: { children: ReactNode }) {
       setReminders([]);
       setLoading(false);
     }
-  }, [user]);
+  }, [user, effectiveUserId]);
 
   const fetchReminders = async () => {
     if (!user) return;
@@ -33,7 +35,7 @@ export function ReminderProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase
         .from('reminders')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', effectiveUserId)
         .order('data_di_scadenza', { ascending: true });
 
       if (error) throw error;
@@ -70,7 +72,7 @@ export function ReminderProvider({ children }: { children: ReactNode }) {
           data_di_scadenza: reminder.dataScadenza.toISOString(),
           notifica_periodo: reminder.notificaPeriodo,
           stato: reminder.stato,
-          user_id: user.id,
+          user_id: effectiveUserId,
         })
         .select()
         .single();

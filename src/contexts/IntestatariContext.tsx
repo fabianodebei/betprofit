@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { useImpersonation } from './ImpersonationContext';
 
 export type Intestatario = {
   id: string;
@@ -25,6 +26,7 @@ export function IntestatariProvider({ children }: { children: ReactNode }) {
   const [intestatari, setIntestatari] = useState<Intestatario[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { effectiveUserId } = useImpersonation();
 
   useEffect(() => {
     if (user) {
@@ -38,7 +40,7 @@ export function IntestatariProvider({ children }: { children: ReactNode }) {
             event: '*',
             schema: 'public',
             table: 'intestatari',
-            filter: `user_id=eq.${user.id}`
+            filter: `user_id=eq.${effectiveUserId}`
           },
           () => {
             fetchIntestatari();
@@ -53,7 +55,7 @@ export function IntestatariProvider({ children }: { children: ReactNode }) {
       setIntestatari([]);
       setLoading(false);
     }
-  }, [user]);
+  }, [user, effectiveUserId]);
 
   const fetchIntestatari = async () => {
     if (!user) return;
@@ -61,7 +63,7 @@ export function IntestatariProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase
         .from('intestatari')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', effectiveUserId)
         .order('nome', { ascending: true });
 
       if (error) throw error;
@@ -92,7 +94,7 @@ export function IntestatariProvider({ children }: { children: ReactNode }) {
           descrizione: intestatario.descrizione || null,
           stato: intestatario.stato,
           predefinito: intestatario.predefinito,
-          user_id: user.id,
+          user_id: effectiveUserId,
         });
 
       if (error) throw error;

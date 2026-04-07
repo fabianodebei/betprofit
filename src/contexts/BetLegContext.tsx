@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { useImpersonation } from './ImpersonationContext';
 import type { BetLeg } from '@/types';
 
 interface BetLegContextType {
@@ -19,6 +20,7 @@ export const BetLegProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [betLegs, setBetLegs] = useState<BetLeg[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { effectiveUserId } = useImpersonation();
 
   useEffect(() => {
     if (user) {
@@ -28,14 +30,14 @@ export const BetLegProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setBetLegs([]);
       setLoading(false);
     }
-  }, [user]);
+  }, [user, effectiveUserId]);
 
   const fetchBetLegs = async () => {
     try {
       const { data, error } = await supabase
         .from('bet_legs')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('user_id', effectiveUserId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -73,7 +75,7 @@ export const BetLegProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           event: '*',
           schema: 'public',
           table: 'bet_legs',
-          filter: user ? `user_id=eq.${user.id}` : undefined,
+          filter: effectiveUserId ? `user_id=eq.${effectiveUserId}` : undefined,
         },
         () => {
           fetchBetLegs();
@@ -94,7 +96,7 @@ export const BetLegProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const { error } = await supabase.from('bet_legs').insert([
         {
           bet_id: betLeg.betId,
-          user_id: userData.user.id,
+          user_id: effectiveUserId,
           evento: betLeg.evento,
           competizione: betLeg.competizione,
           mercato: betLeg.mercato,
