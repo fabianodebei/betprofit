@@ -33,7 +33,7 @@ interface UserProfile {
   email: string;
   full_name: string | null;
   created_at: string;
-  role: 'admin' | 'free';
+  role: 'admin' | 'free' | 'free_be' | 'free_ss' | 'pagamento';
 }
 
 interface SystemStats {
@@ -46,7 +46,7 @@ interface SystemStats {
   totalAccounts: number;
   totalWallets: number;
   totalTags: number;
-  roleDistribution: { admin: number; free: number };
+  roleDistribution: { admin: number; free: number; free_be: number; free_ss: number; pagamento: number };
 }
 
 export default function Admin() {
@@ -57,7 +57,7 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
-  const [newRole, setNewRole] = useState<'admin' | 'free'>('free');
+  const [newRole, setNewRole] = useState<'admin' | 'free' | 'free_be' | 'free_ss' | 'pagamento'>('pagamento');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [systemStats, setSystemStats] = useState<SystemStats | null>(null);
   const [userActivities, setUserActivities] = useState<any[]>([]);

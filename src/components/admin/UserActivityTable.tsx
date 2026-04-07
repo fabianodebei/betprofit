@@ -7,7 +7,7 @@ interface UserActivity {
   id: string;
   email: string;
   full_name: string | null;
-  role: 'admin' | 'free';
+  role: 'admin' | 'free' | 'free_be' | 'free_ss' | 'pagamento';
   created_at: string;
   betsCount: number;
   transactionsCount: number;
