@@ -225,12 +225,12 @@ export default function OngoingBets() {
                       const isExpanded = expandedBets.has(bet.id);
                       const hasLayBets = layBets.length > 0;
                       
-                      return (
+                        return (
                         <>
                           <tr key={bet.id} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
                             <td className="p-2 md:p-3 text-xs md:text-sm">
                               <div className="flex items-center gap-1 md:gap-2">
-                                {hasLayBets && (
+                                {(hasLayBets || bet.tipo === 'Multipla') && (
                                   <Button
                                     size="sm"
                                     variant="ghost"
@@ -253,6 +253,11 @@ export default function OngoingBets() {
                                 {hasLayBets && (
                                   <Badge variant="warning" className="text-xs whitespace-nowrap">
                                     {layBets.length} bancate
+                                  </Badge>
+                                )}
+                                {bet.tipo === 'Multipla' && (
+                                  <Badge variant="secondary" className="text-xs whitespace-nowrap">
+                                    {getBetLegsByBetId(bet.id).length} sel.
                                   </Badge>
                                 )}
                               </div>
@@ -290,6 +295,36 @@ export default function OngoingBets() {
                               </div>
                             </td>
                           </tr>
+                          {/* Expanded legs for multipla */}
+                          {isExpanded && bet.tipo === 'Multipla' && (() => {
+                            const legs = getBetLegsByBetId(bet.id).sort((a, b) => new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime());
+                            return legs.map((leg) => (
+                              <tr key={`leg-${leg.id}`} className={`${idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'} border-l-4 border-l-primary/30`}>
+                                <td className="p-2 md:p-3 text-xs md:text-sm pl-10 md:pl-12">
+                                  <div className="flex items-center gap-2">
+                                    <ArrowRight className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
+                                    {formatDateTime(leg.dataEvento)}
+                                  </div>
+                                </td>
+                                <td className="p-2 md:p-3">
+                                  <Badge variant={leg.stato === 'Vinta' ? 'success' : leg.stato === 'Persa' ? 'destructive' : leg.stato === 'Void' ? 'secondary' : 'info'} className="text-xs">
+                                    {leg.stato}
+                                  </Badge>
+                                </td>
+                                <td className="p-2 md:p-3 text-xs md:text-sm max-w-[200px] truncate">{leg.evento}</td>
+                                <td className="p-2 md:p-3 text-xs hidden lg:table-cell">
+                                  {leg.competizione && <span className="text-muted-foreground">{leg.competizione}</span>}
+                                </td>
+                                <td className="p-2 md:p-3 text-xs md:text-sm">
+                                  {leg.mercato || '-'}
+                                </td>
+                                <td className="p-2 md:p-3 text-xs md:text-sm hidden md:table-cell">
+                                  Quota: {leg.quota.toFixed(2)}
+                                </td>
+                                <td className="p-2 md:p-3"></td>
+                              </tr>
+                            ));
+                          })()}
                           {/* Statistics row for multipla without lay bets */}
                           {bet.tipo === 'Multipla' && !hasLayBets && bet.vincitaPotenziale !== undefined && (
                             <tr className={`${idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'} border-t border-muted`}>
