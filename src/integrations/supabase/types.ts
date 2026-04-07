@@ -867,7 +867,7 @@ export type Database = {
       validate_telegram_message: { Args: { message: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "free"
+      app_role: "admin" | "free" | "free_be" | "free_ss" | "pagamento"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -995,7 +995,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "free"],
+      app_role: ["admin", "free", "free_be", "free_ss", "pagamento"],
     },
   },
 } as const
