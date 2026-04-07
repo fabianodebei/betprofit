@@ -136,7 +136,10 @@ export default function Admin() {
           totalTags: Number(stats.totalTags) || 0,
           roleDistribution: {
             admin: Number(stats.totalAdmins) || 0,
-            free: Math.max(0, (Number(stats.totalUsers) || 0) - (Number(stats.totalAdmins) || 0)),
+            free: 0,
+            free_be: 0,
+            free_ss: 0,
+            pagamento: Math.max(0, (Number(stats.totalUsers) || 0) - (Number(stats.totalAdmins) || 0)),
           },
         });
       }
@@ -380,10 +383,10 @@ export default function Admin() {
                           <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{user.full_name || '-'}</TableCell>
                           <TableCell>
                             <Badge
-                              variant={user.role === 'admin' ? 'default' : 'outline'}
+                              variant={user.role === 'admin' ? 'default' : user.role === 'pagamento' ? 'secondary' : 'outline'}
                               className="text-xs"
                             >
-                              {user.role === 'admin' ? 'Admin' : 'Free'}
+                              {user.role === 'admin' ? 'Admin' : user.role === 'free_be' ? 'Free BE' : user.role === 'free_ss' ? 'Free SS' : user.role === 'pagamento' ? 'A Pagamento' : 'Free'}
                             </Badge>
                           </TableCell>
                           <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
@@ -502,7 +505,10 @@ export default function Admin() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="free">Gratuito</SelectItem>
+                <SelectItem value="pagamento">A Pagamento</SelectItem>
+                <SelectItem value="free_be">Free BE (Matched Betting)</SelectItem>
+                <SelectItem value="free_ss">Free SS (Solo Sport)</SelectItem>
+                <SelectItem value="free">Free (Legacy)</SelectItem>
                 <SelectItem value="admin">Amministratore</SelectItem>
               </SelectContent>
             </Select>
