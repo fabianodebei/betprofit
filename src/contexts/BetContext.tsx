@@ -378,7 +378,18 @@ export function BetProvider({ children }: { children: ReactNode }) {
       window.dispatchEvent(new Event('refresh-accounts'));
     }
 
-    await updateBet(id, { stato: 'In Corso', risultato: undefined });
+    // Reset stato, risultato, esito direttamente nel DB
+    const { error } = await supabase
+      .from('bets')
+      .update({ stato: 'In Corso', risultato: null, esito: null, esito_dettaglio: null })
+      .eq('id', id);
+    
+    if (!error) {
+      setBets(prev => prev.map(b => b.id === id 
+        ? { ...b, stato: 'In Corso' as const, risultato: undefined, esito: undefined, esitoDettaglio: undefined } 
+        : b
+      ));
+    }
   };
 
   const getOngoingBets = () => {
