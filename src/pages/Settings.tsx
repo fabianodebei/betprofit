@@ -10,7 +10,7 @@ export default function Settings() {
   const { isImpersonating } = useImpersonation();
   
   const settingsSections = [
-    ...(isAdmin ? [{
+    ...(isAdmin && !isImpersonating ? [{
       icon: Shield,
       title: 'Admin Panel',
       description: 'Gestisci utenti e permessi',
