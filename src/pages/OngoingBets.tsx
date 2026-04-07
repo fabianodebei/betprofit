@@ -281,7 +281,7 @@ export default function OngoingBets() {
                             <td className="p-2 md:p-3 hidden md:table-cell">
                               {bet.tag && <Badge variant="outline" className="text-xs">{bet.tag}</Badge>}
                             </td>
-                            <td className="p-2 md:p-3">
+                            <td className="p-2 md:p-3" onClick={(e) => e.stopPropagation()}>
                               <div className="flex flex-col md:flex-row gap-1">
                                 {bet.tipo === 'Multipla' && (
                                   <Button size="sm" variant="outline" onClick={() => handleShowMultiplaDetail(bet)} className="text-xs whitespace-nowrap">Dettagli</Button>
