@@ -221,6 +221,7 @@ export function WalletTransferForm({ open, onOpenChange }: WalletTransferFormPro
             </DialogFooter>
           </form>
         </Form>
+        )}
       </DialogContent>
     </Dialog>
   );
