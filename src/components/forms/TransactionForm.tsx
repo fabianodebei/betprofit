@@ -106,8 +106,12 @@ export function TransactionForm({ open, onOpenChange, preselectedAccount }: Tran
       ? wallets.find((w) => w.nome === data.wallet && w.intestatario === selectedIntestatario)
       : undefined;
 
-    // Verifica saldo wallet per movimenti in uscita (Deposito)
-    if (wallet && data.wallet && metodo === 'Deposito') {
+    // Per Deposito: richiedi wallet e verifica saldo
+    if (metodo === 'Deposito') {
+      if (!wallet || !data.wallet) {
+        toast.error('Seleziona un wallet per effettuare un deposito.');
+        return;
+      }
       if (wallet.saldoAttuale < data.movimento) {
         toast.error(`Saldo insufficiente nel wallet ${wallet.nome}. Disponibile: €${wallet.saldoAttuale.toFixed(2)}`);
         return;

@@ -45,9 +45,18 @@ export function WalletTransferForm({ open, onOpenChange }: WalletTransferFormPro
     },
   });
 
+  const enabledWallets = wallets.filter(w => w.stato === 'Abilitato');
+  const walletsWithFunds = enabledWallets.filter(w => w.saldoAttuale > 0);
+  const canTransfer = walletsWithFunds.length > 0 && enabledWallets.length >= 2;
+
   const onSubmit = async (data: TransferFormData) => {
     const fromWallet = wallets.find((w) => w.id === data.fromWallet);
     const toWallet = wallets.find((w) => w.id === data.toWallet);
+
+    if (fromWallet && fromWallet.saldoAttuale < data.amount) {
+      toast.error(`Saldo insufficiente nel wallet ${fromWallet.nome}. Disponibile: €${fromWallet.saldoAttuale.toFixed(2)}`);
+      return;
+    }
 
     if (fromWallet && toWallet) {
       await updateWallet(fromWallet.id, {
