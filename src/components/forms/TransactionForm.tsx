@@ -281,6 +281,11 @@ export function TransactionForm({ open, onOpenChange, preselectedAccount }: Tran
                 </FormItem>
               )}
             />
+            {selectedIntestatario && form.watch('metodo') === 'Deposito' && filteredWallets.length === 0 && (
+              <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+                Nessun wallet disponibile per questo intestatario. Crea prima un wallet per poter effettuare un deposito.
+              </div>
+            )}
             {selectedIntestatario && filteredWallets.length > 0 && form.watch('metodo') !== 'Riconciliazione' && (
               <FormField
                 control={form.control}
