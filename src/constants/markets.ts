@@ -93,6 +93,7 @@ export const COMPETITIONS = [
   "UEFA Champions League",
   "UEFA Conference League",
   "UEFA Europa League",
+  "Altro",
 ] as const;
 
 // Flatten all sport markets for easy access
