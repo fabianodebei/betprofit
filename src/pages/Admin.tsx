@@ -51,6 +51,7 @@ interface SystemStats {
 
 export default function Admin() {
   const navigate = useNavigate();
+  const { startImpersonation } = useImpersonation();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
