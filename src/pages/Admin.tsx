@@ -33,7 +33,7 @@ interface UserProfile {
   email: string;
   full_name: string | null;
   created_at: string;
-  role: 'admin' | 'free' | 'free_be' | 'free_ss' | 'pagamento';
+  role: 'admin' | 'free' | 'free_be' | 'free_ss' | 'pagamento' | 'pagamento_ss';
 }
 
 interface SystemStats {
@@ -46,7 +46,7 @@ interface SystemStats {
   totalAccounts: number;
   totalWallets: number;
   totalTags: number;
-  roleDistribution: { admin: number; free: number; free_be: number; free_ss: number; pagamento: number };
+  roleDistribution: { admin: number; free: number; free_be: number; free_ss: number; pagamento: number; pagamento_ss: number };
 }
 
 export default function Admin() {
@@ -57,7 +57,7 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
-  const [newRole, setNewRole] = useState<'admin' | 'free' | 'free_be' | 'free_ss' | 'pagamento'>('pagamento');
+  const [newRole, setNewRole] = useState<'admin' | 'free' | 'free_be' | 'free_ss' | 'pagamento' | 'pagamento_ss'>('pagamento');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [systemStats, setSystemStats] = useState<SystemStats | null>(null);
   const [userActivities, setUserActivities] = useState<any[]>([]);
@@ -140,6 +140,7 @@ export default function Admin() {
             free_be: 0,
             free_ss: 0,
             pagamento: Math.max(0, (Number(stats.totalUsers) || 0) - (Number(stats.totalAdmins) || 0)),
+            pagamento_ss: 0,
           },
         });
       }
@@ -215,7 +216,7 @@ export default function Admin() {
     const rows = filteredUsers.map(u => ({
       Email: u.email,
       Nome: u.full_name || '-',
-      Ruolo: u.role === 'admin' ? 'Amministratore' : u.role === 'free_be' ? 'Free BE' : u.role === 'free_ss' ? 'Free SS' : u.role === 'pagamento' ? 'A Pagamento' : 'Free',
+      Ruolo: u.role === 'admin' ? 'Amministratore' : u.role === 'free_be' ? 'Free BE' : u.role === 'free_ss' ? 'Free SS' : u.role === 'pagamento' ? 'A Pagamento' : u.role === 'pagamento_ss' ? 'A Pagamento SS' : 'Free',
       'Data Registrazione': format(new Date(u.created_at), 'dd/MM/yyyy', { locale: it }),
     }));
     exportToCSV(rows, 'utenti');
@@ -388,10 +389,10 @@ export default function Admin() {
                           <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{user.full_name || '-'}</TableCell>
                           <TableCell>
                             <Badge
-                              variant={user.role === 'admin' ? 'default' : user.role === 'pagamento' ? 'secondary' : 'outline'}
+                              variant={user.role === 'admin' ? 'default' : (user.role === 'pagamento' || user.role === 'pagamento_ss') ? 'secondary' : 'outline'}
                               className="text-xs"
                             >
-                              {user.role === 'admin' ? 'Admin' : user.role === 'free_be' ? 'Free BE' : user.role === 'free_ss' ? 'Free SS' : user.role === 'pagamento' ? 'A Pagamento' : 'Free'}
+                              {user.role === 'admin' ? 'Admin' : user.role === 'free_be' ? 'Free BE' : user.role === 'free_ss' ? 'Free SS' : user.role === 'pagamento' ? 'A Pagamento' : user.role === 'pagamento_ss' ? 'A Pagamento SS' : 'Free'}
                             </Badge>
                           </TableCell>
                           <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
@@ -511,9 +512,9 @@ export default function Admin() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="pagamento">A Pagamento</SelectItem>
+                <SelectItem value="pagamento_ss">A Pagamento SS (Solo Sport)</SelectItem>
                 <SelectItem value="free_be">Free BE (Matched Betting)</SelectItem>
                 <SelectItem value="free_ss">Free SS (Solo Sport)</SelectItem>
-                <SelectItem value="free">Free (Legacy)</SelectItem>
                 <SelectItem value="admin">Amministratore</SelectItem>
               </SelectContent>
             </Select>
