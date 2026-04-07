@@ -22,7 +22,7 @@ import { useWallets } from '@/contexts/WalletContext';
 import { useIntestatari } from '@/contexts/IntestatariContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { PREDEFINED_TAGS } from '@/constants/predefinedTags';
-import { ALL_SPORT_MARKETS } from '@/constants/markets';
+import { ALL_SPORT_MARKETS, COMPETITIONS } from '@/constants/markets';
 import { Bet, BetLeg } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -668,11 +668,19 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
 
                         <div>
                           <label className="text-sm font-medium">Competizione</label>
-                          <Input
+                          <Select
                             value={selection.competizione}
-                            onChange={(e) => handleSelectionChange(index, 'competizione', e.target.value)}
-                            placeholder="Es: Premier League"
-                          />
+                            onValueChange={(value) => handleSelectionChange(index, 'competizione', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Seleziona competizione" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {COMPETITIONS.map((comp) => (
+                                <SelectItem key={comp} value={comp}>{comp}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
 
