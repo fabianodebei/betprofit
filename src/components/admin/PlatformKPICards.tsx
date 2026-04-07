@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 interface PlatformKPICardsProps {
   totalUsers: number;
   activeUsers: number;
-  
+  paidUsers: number;
   totalEarnings: number;
   newUsersMonth: number;
 }
@@ -35,8 +35,8 @@ const KPIItem = ({ label, value, icon: Icon, accentColor, subtext }: KPIItemProp
   </div>
 );
 
-export const PlatformKPICards = ({ totalUsers, activeUsers, totalEarnings, newUsersMonth }: PlatformKPICardsProps) => {
-  const annualRevenue = totalUsers * 899;
+export const PlatformKPICards = ({ totalUsers, activeUsers, paidUsers, totalEarnings, newUsersMonth }: PlatformKPICardsProps) => {
+  const annualRevenue = paidUsers * 899;
   const mrr = annualRevenue / 12;
   const newMRR = newUsersMonth * (899 / 12);
 
@@ -61,7 +61,7 @@ export const PlatformKPICards = ({ totalUsers, activeUsers, totalEarnings, newUs
         value={formatCurrency(annualRevenue)}
         icon={DollarSign}
         accentColor="bg-success/15 text-success"
-        subtext={`${totalUsers} × €899/anno`}
+        subtext={`${paidUsers} × €899/anno`}
       />
       <KPIItem
         label="MRR"
