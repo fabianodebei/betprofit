@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { Bet } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { useImpersonation } from './ImpersonationContext';
 import { calculateDeleteBetUpdate } from '@/utils/betCalculations';
 
 interface BetContextType {
@@ -24,6 +25,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
   const [bets, setBets] = useState<Bet[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { effectiveUserId } = useImpersonation();
 
   useEffect(() => {
     if (user) {
@@ -38,7 +40,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
             event: '*',
             schema: 'public',
             table: 'bets',
-            filter: `user_id=eq.${user.id}`
+            filter: `user_id=eq.${effectiveUserId}`
           },
           () => {
             fetchBets();
@@ -53,7 +55,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
       setBets([]);
       setLoading(false);
     }
-  }, [user]);
+  }, [user, effectiveUserId]);
 
   const fetchBets = async () => {
     if (!user) return;
@@ -61,7 +63,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase
         .from('bets')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', effectiveUserId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -138,7 +140,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
           numero_minimo_selezioni: bet.numeroMinimoSelezioni || null,
           quota_combinata: bet.quotaCombinata || null,
           vincita_potenziale: bet.vincitaPotenziale || null,
-          user_id: user.id,
+          user_id: effectiveUserId,
         })
         .select()
         .single();
@@ -242,7 +244,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
       let accountQuery = supabase
         .from('accounts')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('user_id', effectiveUserId)
         .eq('conto', betToDelete.conto);
 
       if (betToDelete.walletId) {
@@ -343,7 +345,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
     let accountQuery = supabase
       .from('accounts')
       .select('*')
-      .eq('user_id', user?.id)
+      .eq('user_id', effectiveUserId)
       .eq('conto', bet.conto);
 
     if (bet.walletId) {

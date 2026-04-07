@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { useImpersonation } from './ImpersonationContext';
 
 export interface Tag {
   id: string;
@@ -30,6 +31,7 @@ export const TagProvider = ({ children }: { children: ReactNode }) => {
   const [tags, setTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { effectiveUserId } = useImpersonation();
 
   const fetchTags = async () => {
     if (!user) return;
@@ -37,7 +39,7 @@ export const TagProvider = ({ children }: { children: ReactNode }) => {
       const { data, error } = await supabase
         .from('tags')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', effectiveUserId)
         .order('nome', { ascending: true });
 
       if (error) throw error;
@@ -65,7 +67,7 @@ export const TagProvider = ({ children }: { children: ReactNode }) => {
             event: '*',
             schema: 'public',
             table: 'tags',
-            filter: `user_id=eq.${user.id}`
+            filter: `user_id=eq.${effectiveUserId}`
           },
           () => {
             fetchTags();
@@ -80,7 +82,7 @@ export const TagProvider = ({ children }: { children: ReactNode }) => {
       setTags([]);
       setLoading(false);
     }
-  }, [user]);
+  }, [user, effectiveUserId]);
 
   const addTag = async (tag: Omit<Tag, 'id' | 'created_at'>) => {
     try {
@@ -88,7 +90,7 @@ export const TagProvider = ({ children }: { children: ReactNode }) => {
       
       const { error } = await supabase
         .from('tags')
-        .insert([{ ...tag, user_id: user.id }]);
+        .insert([{ ...tag, user_id: effectiveUserId }]);
 
       if (error) throw error;
 

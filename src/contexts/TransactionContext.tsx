@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { Transaction } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { useImpersonation } from './ImpersonationContext';
 
 interface TransactionContextType {
   transactions: Transaction[];
@@ -17,6 +18,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { effectiveUserId } = useImpersonation();
 
   useEffect(() => {
     if (user) {
@@ -25,7 +27,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       setTransactions([]);
       setLoading(false);
     }
-  }, [user]);
+  }, [user, effectiveUserId]);
 
   const fetchTransactions = async () => {
     if (!user) return;
@@ -33,7 +35,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase
         .from('transactions')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', effectiveUserId)
         .order('registrato', { ascending: false });
 
       if (error) throw error;
@@ -73,7 +75,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
           accredito: transaction.accredito || null,
           descrizione: transaction.descrizione || null,
           registrato: transaction.registrato.toISOString(),
-          user_id: user.id,
+          user_id: effectiveUserId,
         } as any)
         .select()
         .single();

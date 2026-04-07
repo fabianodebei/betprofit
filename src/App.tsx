@@ -5,9 +5,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ImpersonationProvider } from "./contexts/ImpersonationContext";
 import { TelegramConfigProvider } from "./contexts/TelegramConfigContext";
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
+import { ImpersonationBanner } from "./components/layout/ImpersonationBanner";
 import { ProtectedRoute } from "./components/layout/ProtectedRoute";
 import { AdminRoute } from "./components/layout/AdminRoute";
 import { WalletProvider } from "./contexts/WalletContext";
@@ -67,6 +69,7 @@ const App = () => (
       <TooltipProvider>
         <BrowserRouter>
           <AuthProvider>
+          <ImpersonationProvider>
           <TelegramConfigProvider>
             <YearProvider>
               <SettingsProvider>
@@ -95,10 +98,11 @@ const App = () => (
                                     <Route
                                       path="/*"
                                       element={
-                                        <ProtectedRoute>
-                                          <div className="flex min-h-screen flex-col">
-                                            <Header />
-                                            <main className="flex-1">
+                        <ProtectedRoute>
+                          <ImpersonationBanner />
+                          <div className="flex min-h-screen flex-col">
+                            <Header />
+                            <main className="flex-1">
                                               <Routes>
                                                 <Route path="/" element={<Dashboard />} />
                                                 <Route path="/wallets" element={<Wallets />} />
@@ -142,6 +146,7 @@ const App = () => (
               </SettingsProvider>
             </YearProvider>
           </TelegramConfigProvider>
+          </ImpersonationProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { Wallet } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { useImpersonation } from './ImpersonationContext';
 
 interface WalletContextType {
   wallets: Wallet[];
@@ -18,12 +19,12 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { effectiveUserId } = useImpersonation();
 
   useEffect(() => {
-    if (user) {
+    if (effectiveUserId) {
       fetchWallets();
 
-      // Listen to realtime changes
       const channel = supabase
         .channel('wallets-changes')
         .on(
@@ -32,7 +33,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
             event: '*',
             schema: 'public',
             table: 'wallets',
-            filter: `user_id=eq.${user.id}`
+            filter: `user_id=eq.${effectiveUserId}`
           },
           () => {
             fetchWallets();
@@ -47,15 +48,15 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       setWallets([]);
       setLoading(false);
     }
-  }, [user]);
+  }, [user, effectiveUserId]);
 
   const fetchWallets = async () => {
-    if (!user) return;
+    if (!effectiveUserId) return;
     try {
       const { data, error } = await supabase
         .from('wallets')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', effectiveUserId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -80,7 +81,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   const addWallet = async (wallet: Omit<Wallet, 'id' | 'createdAt'>) => {
     try {
-      if (!user) throw new Error('User not authenticated');
+      if (!effectiveUserId) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
         .from('wallets')
@@ -90,7 +91,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           descrizione: wallet.descrizione || null,
           saldo_attuale: wallet.saldoAttuale,
           stato: wallet.stato,
-          user_id: user.id,
+          user_id: effectiveUserId,
         })
         .select()
         .single();

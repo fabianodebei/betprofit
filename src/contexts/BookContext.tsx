@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { useImpersonation } from './ImpersonationContext';
 
 export interface Book {
   id: string;
@@ -42,6 +43,7 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { effectiveUserId } = useImpersonation();
 
   const fetchBooks = async () => {
     if (!user) {
@@ -85,7 +87,7 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
             event: '*',
             schema: 'public',
             table: 'books',
-            filter: `user_id=eq.${user.id}`
+            filter: `user_id=eq.${effectiveUserId}`
           },
           () => {
             fetchBooks();
@@ -97,7 +99,7 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
         supabase.removeChannel(channel);
       };
     }
-  }, [user]);
+  }, [user, effectiveUserId]);
 
   const addBook = async (book: Omit<Book, 'id' | 'created_at'>) => {
     try {
@@ -105,7 +107,7 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
       
       const { error } = await supabase
         .from('books')
-        .insert([{ ...book, user_id: user.id }]);
+        .insert([{ ...book, user_id: effectiveUserId }]);
 
       if (error) throw error;
     } catch (error: any) {

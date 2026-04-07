@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { LayBet } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { useImpersonation } from './ImpersonationContext';
 
 interface LayBetContextType {
   layBets: LayBet[];
@@ -18,6 +19,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
   const [layBets, setLayBets] = useState<LayBet[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { effectiveUserId } = useImpersonation();
 
   useEffect(() => {
     if (user) {
@@ -32,7 +34,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
             event: '*',
             schema: 'public',
             table: 'lay_bets',
-            filter: `user_id=eq.${user.id}`
+            filter: `user_id=eq.${effectiveUserId}`
           },
           () => {
             fetchLayBets();
@@ -47,7 +49,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
       setLayBets([]);
       setLoading(false);
     }
-  }, [user]);
+  }, [user, effectiveUserId]);
 
   const fetchLayBets = async () => {
     if (!user) return;
@@ -55,7 +57,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase
         .from('lay_bets')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', effectiveUserId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -106,7 +108,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
           attiva: layBet.attiva ?? true,
           stato: layBet.stato || 'Bozza',
           url_evento: layBet.urlEvento || null,
-          user_id: user.id,
+          user_id: effectiveUserId,
         })
         .select()
         .single();

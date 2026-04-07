@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Search, UserCog, RotateCcw, Trash, Download, Menu, ArrowLeft } from 'lucide-react';
+import { Search, UserCog, RotateCcw, Trash, Download, Menu, ArrowLeft, Eye } from 'lucide-react';
+import { useImpersonation } from '@/contexts/ImpersonationContext';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { UserActivityTable } from '@/components/admin/UserActivityTable';
@@ -50,6 +51,7 @@ interface SystemStats {
 
 export default function Admin() {
   const navigate = useNavigate();
+  const { startImpersonation } = useImpersonation();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -389,6 +391,18 @@ export default function Admin() {
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-1.5">
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => {
+                                  startImpersonation(user.id, user.email);
+                                  navigate('/');
+                                }}
+                                className="text-xs h-7"
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                Impersona
+                              </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
