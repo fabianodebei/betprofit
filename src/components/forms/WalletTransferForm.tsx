@@ -79,6 +79,13 @@ export function WalletTransferForm({ open, onOpenChange }: WalletTransferFormPro
         <DialogHeader>
           <DialogTitle>Nuovo Trasferisci</DialogTitle>
         </DialogHeader>
+        {!canTransfer ? (
+          <div className="py-4 text-center text-sm text-muted-foreground">
+            {enabledWallets.length < 2
+              ? 'Servono almeno 2 wallet abilitati per effettuare un trasferimento.'
+              : 'Nessun wallet con saldo disponibile per il trasferimento.'}
+          </div>
+        ) : (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
