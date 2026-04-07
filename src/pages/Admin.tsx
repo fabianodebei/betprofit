@@ -392,6 +392,18 @@ export default function Admin() {
                           <TableCell>
                             <div className="flex gap-1.5">
                               <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => {
+                                  startImpersonation(user.id, user.email);
+                                  navigate('/');
+                                }}
+                                className="text-xs h-7"
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                Impersona
+                              </Button>
+                              <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => openRoleDialog(user)}
