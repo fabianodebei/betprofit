@@ -238,6 +238,10 @@ export default function Admin() {
     return userEarnings.reduce((sum, u) => sum + Number(u.total_earnings || 0), 0);
   }, [userEarnings]);
 
+  const paidUsersCount = useMemo(() => {
+    return users.filter(u => u.role === 'pagamento').length;
+  }, [users]);
+
   // Loading skeleton
   if (loading || prefsLoading) {
     return (
@@ -321,6 +325,7 @@ export default function Admin() {
               <PlatformKPICards
                 totalUsers={systemStats?.totalUsers || 0}
                 activeUsers={systemStats?.activeUsers || 0}
+                paidUsers={paidUsersCount}
                 totalEarnings={totalEarnings}
                 newUsersMonth={systemStats?.newUsersThisMonth || 0}
               />
