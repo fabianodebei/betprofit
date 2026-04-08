@@ -25,7 +25,8 @@ export const BetLegProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     if (user) {
       fetchBetLegs();
-      subscribeToChanges();
+      const cleanup = subscribeToChanges();
+      return cleanup;
     } else {
       setBetLegs([]);
       setLoading(false);
