@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@/lib/zodResolver';
 import { z } from 'zod';
@@ -54,6 +54,7 @@ interface SavedFormState {
   selectedIntestatario: string;
   selectedConto: string;
   tipoBonus: string;
+  autoSave?: boolean;
 }
 
 const saveFormState = (state: SavedFormState) => {
@@ -130,6 +131,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
   const [selectedConto, setSelectedConto] = useState<string>('');
   const [tipoBonus, setTipoBonus] = useState<Bet['tipoBonus']>('Nessuno');
   const [selectionErrors, setSelectionErrors] = useState<number[]>([]);
+  const autoSaveRef = useRef(false);
   const [quotaInputs, setQuotaInputs] = useState<string[]>(['1,50', '1,50']);
   
   // State for bet selections
@@ -246,16 +248,20 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
           ...sel,
           dataEvento: new Date(sel.dataEvento),
         }));
-        
+
         setSelections(restoredSelections);
         setQuotaInputs(savedState.quotaInputs);
         setSelectedIntestatario(savedState.selectedIntestatario);
         setSelectedConto(savedState.selectedConto);
         setTipoBonus(savedState.tipoBonus as any);
-        
+
         form.reset(savedState.formValues);
-        
-        toast.info('Recuperati dati non salvati');
+
+        if (savedState.autoSave) {
+          autoSaveRef.current = true;
+        } else {
+          toast.info('Recuperati dati non salvati');
+        }
       } else {
         // Default initialization
         const predefinito = intestatari.find(int => int.predefinito && int.stato === 'Abilitato');
@@ -313,6 +319,38 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
       }
     };
   }, []);
+
+  // Auto-save da import Oddsmatcher: appena accounts è pronto, seleziona il conto e invia
+  useEffect(() => {
+    if (!autoSaveRef.current || !selectedIntestatario || !open || accounts.length === 0) return;
+
+    const contiDisponibili = accounts.filter(
+      a => a.intestatario === selectedIntestatario && a.stato === 'Abilitato'
+    );
+
+    if (contiDisponibili.length === 0) {
+      autoSaveRef.current = false;
+      toast.error(`Nessun conto abilitato trovato per "${selectedIntestatario}". Selezionalo manualmente.`);
+      return;
+    }
+
+    // Se c'è un solo conto, auto-seleziona e salva
+    if (contiDisponibili.length === 1) {
+      const conto = contiDisponibili[0].conto;
+      setSelectedConto(conto);
+      form.setValue('conto', conto);
+      autoSaveRef.current = false;
+      // Timeout per permettere lo state update prima del submit
+      setTimeout(() => {
+        form.handleSubmit(onSubmit)();
+      }, 300);
+      return;
+    }
+
+    // Più conti disponibili: non possiamo scegliere automaticamente
+    autoSaveRef.current = false;
+    toast.info(`Più conti disponibili per "${selectedIntestatario}". Seleziona il conto e salva.`);
+  }, [selectedIntestatario, accounts, open]);
 
   // Handle dialog close
   const handleDialogClose = (newOpen: boolean) => {
