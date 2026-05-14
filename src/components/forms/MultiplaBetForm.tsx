@@ -56,6 +56,7 @@ interface SavedFormState {
   selectedConto: string;
   tipoBonus: string;
   autoSave?: boolean;
+  bookmakerPunta?: string;
   intestatarioBanca?: string;
   bancate?: Array<{
     evento: string;
@@ -146,6 +147,7 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
   const autoSaveRef = useRef(false);
   const pendingBancateRef = useRef<SavedFormState['bancate'] | null>(null);
   const pendingIntestatarioBancaRef = useRef<string | null>(null);
+  const pendingBookmakerPuntaRef = useRef<string | null>(null);
   const [quotaInputs, setQuotaInputs] = useState<string[]>(['1,50', '1,50']);
   
   // State for bet selections
@@ -275,9 +277,11 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
           autoSaveRef.current = true;
           pendingBancateRef.current = savedState.bancate ?? null;
           pendingIntestatarioBancaRef.current = savedState.intestatarioBanca ?? null;
+          pendingBookmakerPuntaRef.current = savedState.bookmakerPunta ?? null;
         } else {
           pendingBancateRef.current = null;
           pendingIntestatarioBancaRef.current = null;
+          pendingBookmakerPuntaRef.current = null;
           toast.info('Recuperati dati non salvati');
         }
       } else {
@@ -342,30 +346,39 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
   useEffect(() => {
     if (!autoSaveRef.current || !selectedIntestatario || !open || accounts.length === 0) return;
 
-    const contiDisponibili = accounts.filter(
+    const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    const tuttiConti = accounts.filter(
       a => a.intestatario === selectedIntestatario && a.stato === 'Abilitato'
     );
 
-    if (contiDisponibili.length === 0) {
+    if (tuttiConti.length === 0) {
       autoSaveRef.current = false;
       toast.error(`Nessun conto abilitato trovato per "${selectedIntestatario}". Selezionalo manualmente.`);
       return;
     }
 
-    // Se c'è un solo conto, auto-seleziona e salva
-    if (contiDisponibili.length === 1) {
-      const conto = contiDisponibili[0].conto;
+    // Prova a filtrare per bookmaker se disponibile
+    const bookmaker = pendingBookmakerPuntaRef.current ?? '';
+    const contiDisponibili = bookmaker
+      ? tuttiConti.filter(a => normalize(a.conto).includes(normalize(bookmaker)))
+      : tuttiConti;
+
+    // Usa il match per bookmaker se trovato, altrimenti cade su tutti i conti
+    const contiTarget = contiDisponibili.length > 0 ? contiDisponibili : tuttiConti;
+
+    if (contiTarget.length === 1) {
+      const conto = contiTarget[0].conto;
       setSelectedConto(conto);
       form.setValue('conto', conto);
       autoSaveRef.current = false;
-      // Timeout per permettere lo state update prima del submit
       setTimeout(() => {
         form.handleSubmit(onSubmit)();
       }, 300);
       return;
     }
 
-    // Più conti disponibili: non possiamo scegliere automaticamente
+    // Più conti: non possiamo scegliere automaticamente
     autoSaveRef.current = false;
     toast.info(`Più conti disponibili per "${selectedIntestatario}". Seleziona il conto e salva.`);
   }, [selectedIntestatario, accounts, open]);
