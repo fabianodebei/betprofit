@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Plus, Zap, ArrowRight, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SingleBetForm } from '@/components/forms/SingleBetForm';
@@ -27,6 +28,7 @@ import { SingleBetDetailDialog } from '@/components/dialogs/SingleBetDetailDialo
 import { Bet } from '@/types';
 
 export default function OngoingBets() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { getOngoingBets, deleteBet, archiveBet, loading } = useBets();
   const { selectedYear } = useYear();
   const { tags } = useTags();
@@ -66,6 +68,29 @@ export default function OngoingBets() {
   const [editingBet, setEditingBet] = useState<Bet | null>(null);
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'clone'>('create');
   const [expandedBets, setExpandedBets] = useState<Set<string>>(new Set());
+
+  // Import multipla da Oddsmatcher via ?import=<base64>
+  useEffect(() => {
+    const encoded = searchParams.get('import');
+    if (!encoded) return;
+    try {
+      const json = decodeURIComponent(escape(atob(encoded)));
+      const draft = JSON.parse(json);
+      sessionStorage.setItem('multipla_form_draft', JSON.stringify(draft));
+      // Apri il form multipla e pulisci il param dall'URL
+      setEditingBet(null);
+      setFormMode('create');
+      setShowMultiplaBetForm(true);
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        next.delete('import');
+        return next;
+      }, { replace: true });
+    } catch (e) {
+      console.error('Errore nel parsing import multipla:', e);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const toggleLayBets = (betId: string) => {
     setExpandedBets(prev => {
