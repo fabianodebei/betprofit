@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useBets } from '@/contexts/BetContext';
 import { useBetLegs } from '@/contexts/BetLegContext';
+import { useLayBets } from '@/contexts/LayBetContext';
 import { useAccounts } from '@/contexts/AccountContext';
 import { useTags } from '@/contexts/TagContext';
 import { useSettings } from '@/contexts/SettingsContext';
@@ -55,6 +56,16 @@ interface SavedFormState {
   selectedConto: string;
   tipoBonus: string;
   autoSave?: boolean;
+  intestatarioBanca?: string;
+  bancate?: Array<{
+    evento: string;
+    dataEvento: string;
+    mercato: string;
+    stake: number;
+    quotaBanca: number;
+    quotaPunta: number;
+    tassePercentuale: number;
+  }>;
 }
 
 const saveFormState = (state: SavedFormState) => {
@@ -121,6 +132,7 @@ interface MultiplaBetFormProps {
 export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create' }: MultiplaBetFormProps) {
   const { addBet, updateBet } = useBets();
   const { addBetLeg, getBetLegsByBetId, refetchBetLegs, deleteBetLeg } = useBetLegs();
+  const { addLayBet } = useLayBets();
   const { accounts, updateAccount } = useAccounts();
   const { tags } = useTags();
   const { settings } = useSettings();
@@ -132,6 +144,8 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
   const [tipoBonus, setTipoBonus] = useState<Bet['tipoBonus']>('Nessuno');
   const [selectionErrors, setSelectionErrors] = useState<number[]>([]);
   const autoSaveRef = useRef(false);
+  const pendingBancateRef = useRef<SavedFormState['bancate'] | null>(null);
+  const pendingIntestatarioBancaRef = useRef<string | null>(null);
   const [quotaInputs, setQuotaInputs] = useState<string[]>(['1,50', '1,50']);
   
   // State for bet selections
@@ -259,7 +273,11 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
 
         if (savedState.autoSave) {
           autoSaveRef.current = true;
+          pendingBancateRef.current = savedState.bancate ?? null;
+          pendingIntestatarioBancaRef.current = savedState.intestatarioBanca ?? null;
         } else {
+          pendingBancateRef.current = null;
+          pendingIntestatarioBancaRef.current = null;
           toast.info('Recuperati dati non salvati');
         }
       } else {
@@ -615,7 +633,35 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
             dataEvento: selection.dataEvento,
           });
         }
-        
+
+        // Crea bancate automatiche da import Oddsmatcher
+        const bancate = pendingBancateRef.current;
+        const intestatarioBanca = pendingIntestatarioBancaRef.current;
+        if (bancate && bancate.length > 0 && intestatarioBanca) {
+          const contiDisponibili = accounts.filter(
+            a => a.intestatario === intestatarioBanca && a.stato === 'Abilitato'
+          );
+          const contoBanca = contiDisponibili.length >= 1 ? contiDisponibili[0].conto : '';
+          for (const b of bancate) {
+            await addLayBet({
+              parentBetId: betId,
+              metodo: 'Banca',
+              evento: b.evento,
+              dataEvento: new Date(b.dataEvento),
+              mercato: b.mercato,
+              conto: contoBanca,
+              stake: b.stake,
+              quotaBanca: b.quotaBanca,
+              quotaPunta: b.quotaPunta,
+              tassePercentuale: b.tassePercentuale,
+              attiva: true,
+              stato: 'Bozza',
+            });
+          }
+          pendingBancateRef.current = null;
+          pendingIntestatarioBancaRef.current = null;
+        }
+
         // Forza il refetch delle bet legs per aggiornare immediatamente la UI
         await refetchBetLegs();
         
