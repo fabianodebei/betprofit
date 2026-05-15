@@ -5,13 +5,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, ExternalLink } from 'lucide-react';
-import { Bet } from '@/types';
+import { Bet, LayBet } from '@/types';
 import { useLayBets } from '@/contexts/LayBetContext';
-import { useBets } from '@/contexts/BetContext';
 import { LayBetForm } from '@/components/forms/LayBetForm';
 import { formatCurrency } from '@/utils/currency';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
 
 interface SingleBetDetailDialogProps {
   open: boolean;
@@ -19,21 +17,25 @@ interface SingleBetDetailDialogProps {
   bet: Bet | null;
 }
 
+function sportEmoji(mercato?: string): string {
+  const m = (mercato || '').toLowerCase();
+  if (m.includes('calcio') || m.includes('calcio')) return '⚽';
+  if (m.includes('tennis')) return '🎾';
+  if (m.includes('basket')) return '🏀';
+  return '🏅';
+}
+
 export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDetailDialogProps) {
-  const { getLayBetsByParentId, deleteLayBet } = useLayBets();
-  const { updateBet } = useBets();
+  const { getLayBetsByParentId, deleteLayBet, updateLayBet } = useLayBets();
   const [showLayBetForm, setShowLayBetForm] = useState(false);
   const [editingLayBet, setEditingLayBet] = useState<any>(null);
 
   const layBets = bet ? getLayBetsByParentId(bet.id) : [];
 
-  // Calculate totals - GM è lo stesso per tutte le bancate
   const calculations = useMemo(() => {
     if (!bet) return { totalRisk: 0, guadagnoGarantito: 0, scenarioVincita: 0, scenarioPerdita: 0 };
 
-    // Calcolo vincita/perdita puntata principale
     let puntaWin: number, puntaLoss: number;
-    
     if (bet.tipoBonus === 'Free Bet') {
       puntaWin = bet.stake * ((bet.quota || 1) - 1);
       puntaLoss = 0;
@@ -45,53 +47,27 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
       puntaLoss = -bet.stake;
     }
 
-    // Somma tutte le liability
     const sumLiability = layBets.reduce((sum, lb) => {
-      // Se la bancata ha vinto, non abbiamo pagato la liability
-      if (lb.stato === 'Vinto') {
-        return sum;
-      }
+      if (lb.stato === 'Vinto') return sum;
       return sum + lb.stake * (lb.quotaBanca - 1);
     }, 0);
 
-    // Somma tutte le vincite nette delle bancate
     const sumLayWins = layBets.reduce((sum, lb) => {
-      // Se la bancata ha perso, non guadagniamo nulla da essa
-      if (lb.stato === 'Perso') {
-        return sum;
-      }
-      
-      // Se la bancata ha vinto o è in corso, calcoliamo il guadagno netto
+      if (lb.stato === 'Perso') return sum;
       const profitLordo = lb.stake;
       const tasse = profitLordo * ((lb.tassePercentuale || 0) / 100);
       return sum + (profitLordo - tasse);
     }, 0);
 
-    // Scenario 1: Puntata vince, tutte le bancate perdono
     const scenarioVincita = puntaWin - sumLiability;
-    
-    // Scenario 2: Puntata perde, tutte le bancate vincono
     const scenarioPerdita = puntaLoss + sumLayWins;
-
-    // GM = guadagno garantito (minimo tra i due scenari, uguale per tutte le bancate)
     const guadagnoGarantito = Math.min(scenarioVincita, scenarioPerdita);
-
     const totalRisk = bet.stake + layBets.reduce((sum, lb) => sum + lb.stake, 0);
 
-    return {
-      totalRisk,
-      guadagnoGarantito,
-      scenarioVincita,
-      scenarioPerdita,
-    };
+    return { totalRisk, guadagnoGarantito, scenarioVincita, scenarioPerdita };
   }, [bet, layBets]);
 
   if (!bet) return null;
-
-  const handleEditLayBet = (layBet: any) => {
-    setEditingLayBet(layBet);
-    setShowLayBetForm(true);
-  };
 
   const handleDeleteLayBet = async (id: string) => {
     if (confirm('Sei sicuro di voler eliminare questa bancata?')) {
@@ -99,37 +75,34 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
     }
   };
 
-
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[99vw] w-screen max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Dettaglio Puntata #{bet.id.substring(0, 7)}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Actions */}
             <div className="flex gap-2">
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => {
-                  setEditingLayBet(null);
-                  setShowLayBetForm(true);
-                }}
+                onClick={() => { setEditingLayBet(null); setShowLayBetForm(true); }}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Nuova Bancata
               </Button>
             </div>
 
-            {/* Main Table */}
+            {/* Table */}
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="text-xs">
                 <TableHeader>
-                  <TableRow>
+                  <TableRow className="[&>th]:px-2 [&>th]:py-1.5 [&>th]:whitespace-nowrap">
                     <TableHead>Data Evento</TableHead>
+                    <TableHead></TableHead>
                     <TableHead>Evento</TableHead>
                     <TableHead>Competizione</TableHead>
                     <TableHead>Mercato</TableHead>
@@ -137,114 +110,137 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                     <TableHead>Tipo Bonus</TableHead>
                     <TableHead>Conto</TableHead>
                     <TableHead>Stake</TableHead>
-                    <TableHead>Quota Punta</TableHead>
-                    <TableHead>Quota Banca</TableHead>
+                    <TableHead>Quota</TableHead>
                     <TableHead>Rischio</TableHead>
                     <TableHead>Bonus</TableHead>
                     <TableHead>Rimborso</TableHead>
                     <TableHead>Tasse</TableHead>
                     <TableHead>Mov.</TableHead>
-                    <TableHead>GM</TableHead>
+                    <TableHead>Stato Evento</TableHead>
                     <TableHead>Tag</TableHead>
                     <TableHead>Opzioni</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {/* Main Bet Row */}
-                  <TableRow>
-                    <TableCell>{format(new Date(bet.dataEvento), 'dd MMMM yyyy HH:mm')}</TableCell>
-                    <TableCell className="font-medium">{bet.evento || '-'}</TableCell>
-                    <TableCell>{bet.competizione || '-'}</TableCell>
-                    <TableCell>{bet.mercato || '-'}</TableCell>
-                    <TableCell><Badge variant="outline">{bet.metodo || 'Punta'}</Badge></TableCell>
-                    <TableCell><Badge variant="outline">{bet.tipoBonus || 'Nessuno'}</Badge></TableCell>
-                    <TableCell>{bet.conto}</TableCell>
-                    <TableCell className="font-semibold">{formatCurrency(bet.stake)}</TableCell>
-                    <TableCell>{bet.quota?.toFixed(2)}</TableCell>
-                    <TableCell>-</TableCell>
+                  <TableRow className="[&>td]:px-2 [&>td]:py-1.5">
+                    <TableCell className="whitespace-nowrap">{format(new Date(bet.dataEvento), 'dd/MM HH:mm')}</TableCell>
+                    <TableCell className="text-base">{sportEmoji(bet.mercato)}</TableCell>
+                    <TableCell className="font-medium max-w-[180px] truncate">{bet.evento || '-'}</TableCell>
+                    <TableCell className="max-w-[120px] truncate text-primary">{bet.competizione || '-'}</TableCell>
+                    <TableCell className="whitespace-nowrap">{bet.mercato || '-'}</TableCell>
+                    <TableCell><Badge variant="outline" className="text-xs">{bet.metodo || 'Punta'}</Badge></TableCell>
+                    <TableCell><Badge variant="outline" className="text-xs">{bet.tipoBonus || 'Nessuno'}</Badge></TableCell>
+                    <TableCell className="whitespace-nowrap">{bet.conto}</TableCell>
+                    <TableCell className="font-semibold whitespace-nowrap">{formatCurrency(bet.stake)}</TableCell>
+                    <TableCell className="text-center">{bet.quota?.toFixed(3) ?? '-'}</TableCell>
                     <TableCell>{formatCurrency(0)}</TableCell>
                     <TableCell>{formatCurrency(bet.bonus || 0)}</TableCell>
                     <TableCell>{formatCurrency(bet.rimborso || 0)}</TableCell>
-                    <TableCell>0,00</TableCell>
+                    <TableCell>-</TableCell>
                     <TableCell>{formatCurrency(0)}</TableCell>
-                    <TableCell className={`font-semibold ${calculations.guadagnoGarantito >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatCurrency(calculations.guadagnoGarantito)}
-                    </TableCell>
-                    <TableCell className="text-sm">{bet.tag || '-'}</TableCell>
                     <TableCell>
-                      <Button size="sm" variant="ghost">Clona</Button>
+                      <Badge variant="secondary" className="text-xs whitespace-nowrap">
+                        {bet.stato || 'Bozza'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="italic text-muted-foreground max-w-[100px] truncate">
+                      {bet.tag || '(non impostato)'}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-0.5">
+                        <Button size="sm" variant="ghost" className="h-6 px-1.5 text-xs"
+                          onClick={() => { setEditingLayBet(null); setShowLayBetForm(true); }}>
+                          Clona
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-6 px-1.5 text-xs text-destructive"
+                          onClick={() => { if (confirm('Eliminare questa puntata?')) {} }}>
+                          Elimina
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
 
-                  {/* Lay Bets Rows */}
+                  {/* Lay Bet Rows */}
                   {layBets.map((layBet) => {
-                    const liability = layBet.stake * (layBet.quotaBanca - 1);
-                    const rischio = liability;
-                    const tassePerRischio = layBet.stato === 'Vinto'
-                      ? liability * (layBet.tassePercentuale / 100)
-                      : 0;
-                    const gm = calculations.guadagnoGarantito;
-
+                    const rischio = layBet.stake * (layBet.quotaBanca - 1);
                     return (
-                      <TableRow key={layBet.id} className="bg-muted/30">
-                        <TableCell>{format(new Date(layBet.dataEvento), 'dd MMMM yyyy HH:mm')}</TableCell>
-                        <TableCell className="font-medium">{layBet.evento}</TableCell>
-                        <TableCell>{layBet.competizione || '-'}</TableCell>
-                        <TableCell>{layBet.mercato}</TableCell>
-                        <TableCell><Badge variant="outline">Banca</Badge></TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell>{layBet.conto}</TableCell>
-                        <TableCell className="font-semibold">{formatCurrency(layBet.stake)}</TableCell>
-                        <TableCell>{layBet.quotaPunta.toFixed(2)}</TableCell>
-                        <TableCell>{layBet.quotaBanca.toFixed(2)}</TableCell>
-                        <TableCell className="text-red-600 font-semibold">{formatCurrency(rischio)}</TableCell>
-                        <TableCell>{formatCurrency(0)}</TableCell>
-                        <TableCell>{formatCurrency(0)}</TableCell>
-                        <TableCell>{formatCurrency(tassePerRischio)}</TableCell>
-                        <TableCell>{formatCurrency(0)}</TableCell>
-                        <TableCell className={`font-semibold ${gm >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {formatCurrency(gm)}
-                        </TableCell>
-                        <TableCell className="text-sm">-</TableCell>
-                        <TableCell>
-                          <div className="flex gap-1">
-                            {layBet.urlEvento && (
-                              <Button size="sm" variant="ghost" className="text-blue-500" onClick={() => window.open(layBet.urlEvento, '_blank')}>
-                                <ExternalLink className="h-4 w-4" />
+                      <TableRow key={layBet.id} className="bg-muted/30 [&>td]:px-2 [&>td]:py-1.5">
+                        <TableCell className="whitespace-nowrap">{format(new Date(layBet.dataEvento), 'dd/MM HH:mm')}</TableCell>
+                        <TableCell className="text-base">{sportEmoji(layBet.mercato)}</TableCell>
+                        <TableCell className="font-medium max-w-[180px] truncate">{layBet.evento}</TableCell>
+                        <TableCell className="max-w-[120px] truncate text-primary">{layBet.competizione || '-'}</TableCell>
+                        <TableCell className="whitespace-nowrap">{layBet.mercato}</TableCell>
+                        <TableCell><Badge variant="outline" className="text-xs">Banca</Badge></TableCell>
+                        {/* Tipo Bonus: link esterno */}
+                        <TableCell className="text-center">
+                          {layBet.urlEvento
+                            ? <Button size="sm" variant="ghost" className="text-blue-500 p-0.5 h-auto"
+                                onClick={() => window.open(layBet.urlEvento, '_blank')}>
+                                <ExternalLink className="h-3.5 w-3.5" />
                               </Button>
-                            )}
-                            <Button size="sm" variant="ghost" onClick={() => handleEditLayBet(layBet)}>Clona</Button>
-                            <Button size="sm" variant="ghost" onClick={() => handleEditLayBet(layBet)}>Punta</Button>
-                            <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDeleteLayBet(layBet.id)}>Elimina</Button>
+                            : '-'}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">{layBet.conto}</TableCell>
+                        <TableCell className="font-semibold whitespace-nowrap">{formatCurrency(layBet.stake)}</TableCell>
+                        <TableCell className="font-semibold text-center whitespace-nowrap" style={{ backgroundColor: '#f4a9ba', color: '#2d0d1a' }}>
+                          {layBet.quotaBanca.toFixed(3)}
+                        </TableCell>
+                        <TableCell className="text-red-600 font-semibold whitespace-nowrap">{formatCurrency(rischio)}</TableCell>
+                        <TableCell>{formatCurrency(0)}</TableCell>
+                        <TableCell>{formatCurrency(0)}</TableCell>
+                        <TableCell>{layBet.tassePercentuale > 0 ? layBet.tassePercentuale.toFixed(2) : '-'}</TableCell>
+                        <TableCell>{formatCurrency(0)}</TableCell>
+                        <TableCell>
+                          <Select
+                            value={layBet.stato}
+                            onValueChange={async (value) => {
+                              await updateLayBet(layBet.id, { stato: value as LayBet['stato'] });
+                            }}
+                          >
+                            <SelectTrigger className="h-7 w-[95px] text-xs px-2">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Bozza">Bozza</SelectItem>
+                              <SelectItem value="In Corso">In Corso</SelectItem>
+                              <SelectItem value="Vinto">Vinto</SelectItem>
+                              <SelectItem value="Perso">Perso</SelectItem>
+                              <SelectItem value="Annullato">Annullato</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>
+                          <div className="flex gap-0.5 flex-nowrap">
+                            <Button size="sm" variant="ghost" className="h-6 px-1.5 text-xs"
+                              onClick={() => { setEditingLayBet(layBet); setShowLayBetForm(true); }}>
+                              Clona
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-6 px-1.5 text-xs text-destructive"
+                              onClick={() => handleDeleteLayBet(layBet.id)}>
+                              Elimina
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
                     );
                   })}
+
+                  {/* Totals Row */}
+                  <TableRow className="bg-muted/50 border-t-2 [&>td]:px-2 [&>td]:py-1.5">
+                    <TableCell colSpan={8}></TableCell>
+                    <TableCell colSpan={2} className="text-right font-semibold whitespace-nowrap text-xs">Totale Rischio</TableCell>
+                    <TableCell className="font-bold text-red-600 whitespace-nowrap">{formatCurrency(calculations.totalRisk)}</TableCell>
+                    <TableCell colSpan={2}></TableCell>
+                    <TableCell colSpan={2} className="text-right font-semibold whitespace-nowrap text-xs">Guadagno Totale</TableCell>
+                    <TableCell className={`font-bold whitespace-nowrap ${calculations.guadagnoGarantito >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(calculations.guadagnoGarantito)}
+                    </TableCell>
+                    <TableCell colSpan={2}></TableCell>
+                  </TableRow>
                 </TableBody>
               </Table>
-            </div>
-
-            {/* Totals */}
-            <div className="flex justify-end gap-8 px-4 py-3 bg-muted/30 rounded-lg border border-border">
-              <div className="text-center">
-                <div className="text-xs text-muted-foreground mb-1">Totale Rischio</div>
-                <div className="text-lg font-bold text-red-600">
-                  {formatCurrency(calculations.totalRisk)}
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-xs text-muted-foreground mb-1">Se Puntata Vince</div>
-                <div className={`text-lg font-bold ${calculations.scenarioVincita >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {formatCurrency(calculations.scenarioVincita)}
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-xs text-muted-foreground mb-1">Se Puntata Perde</div>
-                <div className={`text-lg font-bold ${calculations.scenarioPerdita >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {formatCurrency(calculations.scenarioPerdita)}
-                </div>
-              </div>
             </div>
           </div>
         </DialogContent>
