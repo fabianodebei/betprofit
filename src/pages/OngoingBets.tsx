@@ -252,10 +252,10 @@ export default function OngoingBets() {
                       
                         return (
                         <>
-                          <tr key={bet.id} className={`${idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'} ${bet.tipo === 'Multipla' || hasLayBets ? 'cursor-pointer' : ''}`} onClick={() => { if (bet.tipo === 'Multipla' || hasLayBets) toggleLayBets(bet.id); }}>
+                          <tr key={bet.id} className={`${idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'} ${bet.tipo === 'Multipla' ? 'cursor-pointer' : ''}`} onClick={() => { if (bet.tipo === 'Multipla') toggleLayBets(bet.id); }}>
                             <td className="p-2 md:p-3 text-xs md:text-sm">
                               <div className="flex items-center gap-1 md:gap-2">
-                                {(hasLayBets || bet.tipo === 'Multipla') && (
+                                {bet.tipo === 'Multipla' && (
                                   <Button
                                     size="sm"
                                     variant="ghost"
@@ -362,7 +362,7 @@ export default function OngoingBets() {
                               </td>
                             </tr>
                           )}
-                          {isExpanded && layBets.map((layBet) => {
+                          {isExpanded && bet.tipo !== 'Singola' && layBets.map((layBet) => {
                             const liability = layBet.stake * (layBet.quotaBanca - 1);
                             return (
                               <tr key={`lay-${layBet.id}`} className={`${idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'} border-l-4 border-l-warning`}>
