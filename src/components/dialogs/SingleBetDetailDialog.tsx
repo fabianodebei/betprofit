@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus } from 'lucide-react';
+import { Plus, ExternalLink } from 'lucide-react';
 import { Bet } from '@/types';
 import { useLayBets } from '@/contexts/LayBetContext';
 import { useBets } from '@/contexts/BetContext';
@@ -208,6 +208,11 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                         <TableCell className="text-sm">-</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
+                            {layBet.urlEvento && (
+                              <Button size="sm" variant="ghost" className="text-blue-500" onClick={() => window.open(layBet.urlEvento, '_blank')}>
+                                <ExternalLink className="h-4 w-4" />
+                              </Button>
+                            )}
                             <Button size="sm" variant="ghost" onClick={() => handleEditLayBet(layBet)}>Clona</Button>
                             <Button size="sm" variant="ghost" onClick={() => handleEditLayBet(layBet)}>Punta</Button>
                             <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDeleteLayBet(layBet.id)}>Elimina</Button>

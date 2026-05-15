@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Copy } from 'lucide-react';
+import { Plus, Copy, ExternalLink } from 'lucide-react';
 import { Bet, LayBet } from '@/types';
 import { useLayBets } from '@/contexts/LayBetContext';
 import { useBetLegs } from '@/contexts/BetLegContext';
@@ -199,7 +199,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                       <TableRow key={layBet.id} className="bg-muted/30">
                         <TableCell>{format(new Date(layBet.dataEvento), 'dd MMMM yyyy HH:mm')}</TableCell>
                         <TableCell className="font-medium">{layBet.evento}</TableCell>
-                        <TableCell>{(() => {
+                        <TableCell>{layBet.competizione || (() => {
                           const matchingLeg = betLegs.find(leg => leg.evento === layBet.evento);
                           return matchingLeg?.competizione || '-';
                         })()}</TableCell>
@@ -334,6 +334,16 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                          </TableCell>
                          <TableCell>
                            <div className="flex gap-1">
+                             {layBet.urlEvento && (
+                               <Button
+                                 size="sm"
+                                 variant="ghost"
+                                 className="text-blue-500"
+                                 onClick={() => window.open(layBet.urlEvento, '_blank')}
+                               >
+                                 <ExternalLink className="h-4 w-4" />
+                               </Button>
+                             )}
                              <Button
                                size="sm"
                                variant="ghost"
