@@ -145,43 +145,30 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                   </TableHeader>
                 <TableBody>
                   {/* Main Multipla Bet Row */}
-                  <TableRow className="bg-primary/5 border-l-4 border-l-primary">
-                    <TableCell>
-                        {format(new Date(bet.dataEvento), 'dd MMMM yyyy HH:mm')}
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          <Copy className="h-4 w-4" />
-                          {betLegs.length > 0 
-                            ? [...betLegs].sort((a, b) => new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime())[0].evento
-                            : bet.evento || 'MULTIPLA'}
-                        </div>
-                      </TableCell>
-                      <TableCell>{betLegs.length > 0 ? [...betLegs].sort((a, b) => new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime())[0].competizione || '-' : '-'}</TableCell>
-                      <TableCell>Multipla</TableCell>
-                      <TableCell>
-                        <Badge>Punta</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{bet.tipoBonus || 'Nessuno'}</Badge>
-                      </TableCell>
-                      <TableCell className="font-medium">{bet.conto}</TableCell>
-                      <TableCell className="font-semibold text-primary">{formatCurrency(bet.stake)}</TableCell>
-                      <TableCell className="font-semibold">{bet.quotaCombinata?.toFixed(3) || bet.quota?.toFixed(3)}</TableCell>
-                      <TableCell>-</TableCell>
-                      <TableCell className="text-red-600">{formatCurrency(0)}</TableCell>
-                      <TableCell>{formatCurrency(bet.bonus || 0)}</TableCell>
-                      <TableCell>{formatCurrency(bet.rimborso || 0)}</TableCell>
-                      <TableCell>0,00</TableCell>
-                      <TableCell>{formatCurrency(0)}</TableCell>
-                      <TableCell>-</TableCell>
-                      <TableCell className="text-primary text-sm">{bet.tag || '(non impostato)'}</TableCell>
-                      <TableCell>-</TableCell>
-                      <TableCell>
-                        <Button size="sm" variant="ghost">
-                          Clona
-                        </Button>
-                      </TableCell>
+                  <TableRow>
+                    <TableCell>{format(new Date(bet.dataEvento), 'dd MMMM yyyy HH:mm')}</TableCell>
+                    <TableCell className="font-medium">
+                      {betLegs.length > 0
+                        ? [...betLegs].sort((a, b) => new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime())[0].evento
+                        : bet.evento || 'MULTIPLA'}
+                    </TableCell>
+                    <TableCell>{betLegs.length > 0 ? [...betLegs].sort((a, b) => new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime())[0].competizione || '-' : '-'}</TableCell>
+                    <TableCell>Multipla</TableCell>
+                    <TableCell><Badge variant="outline">Punta</Badge></TableCell>
+                    <TableCell><Badge variant="outline">{bet.tipoBonus || 'Nessuno'}</Badge></TableCell>
+                    <TableCell>{bet.conto}</TableCell>
+                    <TableCell className="font-semibold">{formatCurrency(bet.stake)}</TableCell>
+                    <TableCell>{bet.quotaCombinata?.toFixed(3) || bet.quota?.toFixed(3)}</TableCell>
+                    <TableCell>-</TableCell>
+                    <TableCell>{formatCurrency(0)}</TableCell>
+                    <TableCell>{formatCurrency(bet.bonus || 0)}</TableCell>
+                    <TableCell>{formatCurrency(bet.rimborso || 0)}</TableCell>
+                    <TableCell>0,00</TableCell>
+                    <TableCell>{formatCurrency(0)}</TableCell>
+                    <TableCell>-</TableCell>
+                    <TableCell className="text-sm">{bet.tag || '-'}</TableCell>
+                    <TableCell>-</TableCell>
+                    <TableCell><Button size="sm" variant="ghost">Clona</Button></TableCell>
                   </TableRow>
 
                   {/* Lay Bets Rows */}
@@ -209,37 +196,29 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                     // Se è in Bozza o In Corso, GM = 0
                     
                     return (
-                      <TableRow key={layBet.id} className="bg-accent/5 border-l-4 border-l-accent">
-                        <TableCell>
-                          {format(new Date(layBet.dataEvento), 'dd MMMM yyyy HH:mm')}
-                        </TableCell>
+                      <TableRow key={layBet.id} className="bg-muted/30">
+                        <TableCell>{format(new Date(layBet.dataEvento), 'dd MMMM yyyy HH:mm')}</TableCell>
                         <TableCell className="font-medium">{layBet.evento}</TableCell>
                         <TableCell>{(() => {
                           const matchingLeg = betLegs.find(leg => leg.evento === layBet.evento);
                           return matchingLeg?.competizione || '-';
                         })()}</TableCell>
                         <TableCell>{layBet.mercato}</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">Banca</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {layBet.metodo === 'Banca' ? '📝' : '✓'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-medium">{layBet.conto}</TableCell>
-                        <TableCell className="font-semibold text-accent">{formatCurrency(layBet.stake)}</TableCell>
-                        <TableCell className="font-semibold">{layBet.quotaPunta.toFixed(2)}</TableCell>
-                        <TableCell className="font-semibold text-red-600">{layBet.quotaBanca.toFixed(2)}</TableCell>
+                        <TableCell><Badge variant="outline">Banca</Badge></TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>{layBet.conto}</TableCell>
+                        <TableCell className="font-semibold">{formatCurrency(layBet.stake)}</TableCell>
+                        <TableCell>{layBet.quotaPunta.toFixed(2)}</TableCell>
+                        <TableCell>{layBet.quotaBanca.toFixed(2)}</TableCell>
                         <TableCell className="text-red-600 font-semibold">{formatCurrency(rischio)}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
-                         <TableCell>{formatCurrency(0)}</TableCell>
-                          <TableCell className="text-accent">{formatCurrency(tassePerRischio)}</TableCell>
-                         <TableCell>{formatCurrency(0)}</TableCell>
-                         <TableCell className={`font-semibold ${gm > 0 ? 'text-green-600' : gm < 0 ? 'text-red-600' : ''}`}>
-                           {formatCurrency(gm)}
-                         </TableCell>
-                         <TableCell className="text-sm">-</TableCell>
+                        <TableCell>{formatCurrency(0)}</TableCell>
+                        <TableCell>{formatCurrency(tassePerRischio)}</TableCell>
+                        <TableCell>{formatCurrency(0)}</TableCell>
+                        <TableCell className={`font-semibold ${gm > 0 ? 'text-green-600' : gm < 0 ? 'text-red-600' : ''}`}>
+                          {formatCurrency(gm)}
+                        </TableCell>
+                        <TableCell className="text-sm">-</TableCell>
                          <TableCell>
                            {(() => {
                              // Trova l'indice corrente
@@ -384,7 +363,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                   })}
                   
                   {/* Riga Totali */}
-                  <TableRow className="bg-muted/50 border-t-2 border-primary">
+                  <TableRow className="bg-muted/50 border-t-2">
                     <TableCell colSpan={9}></TableCell>
                     <TableCell className="text-right font-semibold pr-1 whitespace-nowrap">Rischio:</TableCell>
                     <TableCell className="font-bold text-lg text-red-600">
