@@ -66,6 +66,8 @@ interface SavedFormState {
     quotaBanca: number;
     quotaPunta: number;
     tassePercentuale: number;
+    urlEvento?: string;
+    competizione?: string;
   }>;
 }
 
@@ -669,6 +671,8 @@ export function MultiplaBetForm({ open, onOpenChange, editingBet, mode = 'create
               tassePercentuale: b.tassePercentuale,
               attiva: true,
               stato: 'Bozza',
+              urlEvento: b.urlEvento || undefined,
+              competizione: b.competizione || undefined,
             });
           }
           pendingBancateRef.current = null;
