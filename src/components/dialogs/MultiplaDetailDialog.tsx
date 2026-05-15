@@ -122,35 +122,33 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                 <TableHeader>
                   <TableRow>
                     <TableHead>Data Evento</TableHead>
-                      <TableHead>Evento</TableHead>
-                      <TableHead>Competizione</TableHead>
-                      <TableHead>Mercato</TableHead>
-                      <TableHead>Metodo</TableHead>
-                      <TableHead>Tipo Bonus</TableHead>
-                      <TableHead>Conto</TableHead>
-                      <TableHead>Stake</TableHead>
-                      <TableHead>Quota Punta</TableHead>
-                      <TableHead>Quota Banca</TableHead>
-                      <TableHead>Rischio</TableHead>
-                      <TableHead>Bonus</TableHead>
-                      <TableHead>Rimborso</TableHead>
-                      <TableHead>Tasse</TableHead>
-                      <TableHead>Mov.</TableHead>
-                      <TableHead>GM</TableHead>
-                      <TableHead>Tag</TableHead>
-                      <TableHead>Stato</TableHead>
-                      <TableHead>Archivia</TableHead>
-                      <TableHead>Opzioni</TableHead>
-                    </TableRow>
-                  </TableHeader>
+                    <TableHead>Evento</TableHead>
+                    <TableHead>Competizione</TableHead>
+                    <TableHead>Mercato</TableHead>
+                    <TableHead>Metodo</TableHead>
+                    <TableHead>Tipo Bonus</TableHead>
+                    <TableHead>Conto</TableHead>
+                    <TableHead>Stake</TableHead>
+                    <TableHead>Quota Punta</TableHead>
+                    <TableHead>Quota Banca</TableHead>
+                    <TableHead>Rischio</TableHead>
+                    <TableHead>Bonus</TableHead>
+                    <TableHead>Rimborso</TableHead>
+                    <TableHead>Tasse</TableHead>
+                    <TableHead>Mov.</TableHead>
+                    <TableHead>Stato Evento</TableHead>
+                    <TableHead>Tag</TableHead>
+                    <TableHead>Opzioni</TableHead>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
                   {/* Main Multipla Bet Row */}
                   <TableRow>
                     <TableCell>{format(new Date(bet.dataEvento), 'dd MMMM yyyy HH:mm')}</TableCell>
                     <TableCell className="font-medium">
-                      {betLegs.length > 0
-                        ? [...betLegs].sort((a, b) => new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime())[0].evento
-                        : bet.evento || 'MULTIPLA'}
+                      {'MULTIPLA ' + (betLegs.length > 0
+                        ? [...betLegs].sort((a, b) => new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime()).map(l => l.evento).join(' / ')
+                        : bet.evento || '')}
                     </TableCell>
                     <TableCell>{betLegs.length > 0 ? [...betLegs].sort((a, b) => new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime())[0].competizione || '-' : '-'}</TableCell>
                     <TableCell>Multipla</TableCell>
@@ -165,10 +163,18 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                     <TableCell>{formatCurrency(bet.rimborso || 0)}</TableCell>
                     <TableCell>0,00</TableCell>
                     <TableCell>{formatCurrency(0)}</TableCell>
-                    <TableCell>-</TableCell>
+                    <TableCell>
+                      <Badge variant={
+                        bet.stato === 'Vinto' ? 'default' :
+                        bet.stato === 'Perso' ? 'destructive' :
+                        bet.stato === 'In Corso' ? 'warning' :
+                        'secondary'
+                      }>{bet.stato || 'Bozza'}</Badge>
+                    </TableCell>
                     <TableCell className="text-sm">{bet.tag || '-'}</TableCell>
-                    <TableCell>-</TableCell>
-                    <TableCell><Button size="sm" variant="ghost">Clona</Button></TableCell>
+                    <TableCell>
+                      <Button size="sm" variant="ghost" className="text-destructive" onClick={() => { if (confirm('Eliminare questa puntata?')) { /* delete handled by parent */ } }}>Elimina</Button>
+                    </TableCell>
                   </TableRow>
 
                   {/* Lay Bets Rows */}
@@ -195,6 +201,9 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                     }
                     // Se è in Bozza o In Corso, GM = 0
                     
+                    const currentIndex = layBets.findIndex(lb => lb.id === layBet.id);
+                    const hasPreviousWonBet = layBets.slice(0, currentIndex).some(lb => lb.stato === 'Vinto');
+
                     return (
                       <TableRow key={layBet.id} className="bg-muted/30">
                         <TableCell>{format(new Date(layBet.dataEvento), 'dd MMMM yyyy HH:mm')}</TableCell>
@@ -205,182 +214,73 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                         })()}</TableCell>
                         <TableCell>{layBet.mercato}</TableCell>
                         <TableCell><Badge variant="outline">Banca</Badge></TableCell>
-                        <TableCell>-</TableCell>
+                        {/* Tipo Bonus: link esterno se disponibile */}
+                        <TableCell>
+                          {layBet.urlEvento
+                            ? <Button size="sm" variant="ghost" className="text-blue-500 p-1 h-auto" onClick={() => window.open(layBet.urlEvento, '_blank')}><ExternalLink className="h-4 w-4" /></Button>
+                            : '-'}
+                        </TableCell>
                         <TableCell>{layBet.conto}</TableCell>
                         <TableCell className="font-semibold">{formatCurrency(layBet.stake)}</TableCell>
-                        <TableCell>{layBet.quotaPunta.toFixed(2)}</TableCell>
-                        <TableCell>{layBet.quotaBanca.toFixed(2)}</TableCell>
+                        {/* Quota Punta - sfondo azzurro */}
+                        <TableCell className="bg-blue-500/10 font-semibold text-center">{layBet.quotaPunta.toFixed(3)}</TableCell>
+                        {/* Quota Banca - sfondo rosa */}
+                        <TableCell className="bg-pink-500/10 font-semibold text-center">{layBet.quotaBanca.toFixed(3)}</TableCell>
                         <TableCell className="text-red-600 font-semibold">{formatCurrency(rischio)}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
-                        <TableCell>{formatCurrency(tassePerRischio)}</TableCell>
+                        <TableCell>{layBet.tassePercentuale > 0 ? layBet.tassePercentuale.toFixed(2) : '0,00'}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
-                        <TableCell className={`font-semibold ${gm > 0 ? 'text-green-600' : gm < 0 ? 'text-red-600' : ''}`}>
-                          {formatCurrency(gm)}
+                        {/* Stato Evento */}
+                        <TableCell>
+                          {hasPreviousWonBet ? (
+                            <Badge variant="secondary">Bozza</Badge>
+                          ) : (
+                            <Select
+                              value={layBet.stato}
+                              onValueChange={async (value) => {
+                                await updateLayBet(layBet.id, { stato: value as LayBet['stato'] });
+                                if (value === 'Vinto') {
+                                  if (currentIndex > 0) await updateLayBet(layBets[currentIndex - 1].id, { stato: 'Perso' });
+                                  for (const nb of layBets.slice(currentIndex + 1)) await updateLayBet(nb.id, { stato: 'Bozza' });
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="w-[110px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Bozza">Bozza</SelectItem>
+                                <SelectItem value="In Corso">In Corso</SelectItem>
+                                <SelectItem value="Vinto">Vinto</SelectItem>
+                                <SelectItem value="Perso">Perso</SelectItem>
+                                <SelectItem value="Annullato">Annullato</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          )}
                         </TableCell>
                         <TableCell className="text-sm">-</TableCell>
-                         <TableCell>
-                           {(() => {
-                             // Trova l'indice corrente
-                             const currentIndex = layBets.findIndex(lb => lb.id === layBet.id);
-                             // Verifica se c'è una bancata vinta prima di questa
-                             const hasPreviousWonBet = layBets.slice(0, currentIndex).some(lb => lb.stato === 'Vinto');
-                             
-                             // Se c'è una bancata vinta prima, questo deve essere in bozza e non modificabile
-                             if (hasPreviousWonBet) {
-                               return (
-                                 <Select value="Bozza" disabled>
-                                   <SelectTrigger className="w-[130px]">
-                                     <SelectValue />
-                                   </SelectTrigger>
-                                   <SelectContent>
-                                     <SelectItem value="Bozza">Bozza</SelectItem>
-                                   </SelectContent>
-                                 </Select>
-                               );
-                             }
-                             
-                              // Altrimenti, normale select modificabile
-                              return (
-                                <Select
-                                  value={layBet.stato}
-                                  onValueChange={async (value) => {
-                                    await updateLayBet(layBet.id, { stato: value as LayBet['stato'] });
-                                    
-                                    // Se è stata vinta, imposta le successive a Bozza e la precedente a Perso
-                                    if (value === 'Vinto') {
-                                      // Imposta la bancata precedente come Perso (la punta è arrivata lì)
-                                      if (currentIndex > 0) {
-                                        const previousBet = layBets[currentIndex - 1];
-                                        await updateLayBet(previousBet.id, { stato: 'Perso' });
-                                      }
-                                      
-                                      // Imposta le successive a Bozza (non giocate)
-                                      const nextBets = layBets.slice(currentIndex + 1);
-                                      for (const nextBet of nextBets) {
-                                        await updateLayBet(nextBet.id, { stato: 'Bozza' });
-                                      }
-                                    }
-                                  }}
-                                >
-                                  <SelectTrigger className="w-[130px]">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="Bozza">Bozza</SelectItem>
-                                    <SelectItem value="In Corso">In Corso</SelectItem>
-                                    <SelectItem value="Vinto">Vinto</SelectItem>
-                                    <SelectItem value="Perso">Perso</SelectItem>
-                                    <SelectItem value="Annullato">Annullato</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              );
-                            })()}
-                         </TableCell>
-                         <TableCell>
-                           {(() => {
-                             // Se questa bancata è vinta, la multipla è chiusa
-                             if (layBet.stato === 'Vinto') {
-                               return (
-                                 <Button
-                                   size="sm"
-                                   variant="default"
-                                   onClick={() => {
-                                     if (confirm(`La multipla è chiusa perché questa bancata è vinta. Vuoi archiviare?`)) {
-                                       handleArchiviaFromLayBet(layBet);
-                                     }
-                                   }}
-                                 >
-                                   Archivia
-                                 </Button>
-                               );
-                             }
-                             
-                             // Per altri stati finali, verifica che non ci siano bancate attive
-                             if (['Perso', 'Annullato'].includes(layBet.stato)) {
-                               const hasOtherActiveBets = layBets.some(
-                                 lb => lb.stato === 'In Corso' || lb.stato === 'Bozza'
-                               );
-                               
-                               const completedBets = layBets.filter(lb => 
-                                 ['Vinto', 'Perso', 'Annullato'].includes(lb.stato)
-                               );
-                               const lastCompletedBet = completedBets.length > 0 
-                                 ? completedBets[completedBets.length - 1] 
-                                 : null;
-                               
-                               const isLastCompleted = lastCompletedBet?.id === layBet.id;
-                               const canArchive = isLastCompleted && !hasOtherActiveBets;
-                               
-                               if (canArchive) {
-                                 return (
-                                   <Button
-                                     size="sm"
-                                     variant="default"
-                                     onClick={() => {
-                                       if (confirm(`Sei sicuro di voler archiviare la multipla? Lo stato della bancata è "${layBet.stato}".`)) {
-                                         handleArchiviaFromLayBet(layBet);
-                                       }
-                                     }}
-                                   >
-                                     Archivia
-                                   </Button>
-                                 );
-                               }
-                             }
-                             
-                             return null;
-                           })()}
-                         </TableCell>
-                         <TableCell>
-                           <div className="flex gap-1">
-                             {layBet.urlEvento && (
-                               <Button
-                                 size="sm"
-                                 variant="ghost"
-                                 className="text-blue-500"
-                                 onClick={() => window.open(layBet.urlEvento, '_blank')}
-                               >
-                                 <ExternalLink className="h-4 w-4" />
-                               </Button>
-                             )}
-                             <Button
-                               size="sm"
-                               variant="ghost"
-                               onClick={() => handleModifyLayBet(layBet)}
-                             >
-                               Modifica
-                             </Button>
-                             <Button
-                               size="sm"
-                               variant="ghost"
-                               onClick={() => handleCloneLayBet(layBet)}
-                             >
-                               Clona
-                             </Button>
-                             <Button
-                               size="sm"
-                               variant="ghost"
-                               className="text-destructive"
-                               onClick={() => handleDeleteLayBet(layBet.id)}
-                             >
-                               Elimina
-                             </Button>
-                           </div>
-                         </TableCell>
+                        {/* Opzioni */}
+                        <TableCell>
+                          <div className="flex gap-1 flex-nowrap">
+                            <Button size="sm" variant="ghost" onClick={() => handleCloneLayBet(layBet)}>Clona</Button>
+                            <Button size="sm" variant="ghost" onClick={() => handleModifyLayBet(layBet)}>Punta</Button>
+                            <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDeleteLayBet(layBet.id)}>Elimina</Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     );
                   })}
                   
                   {/* Riga Totali */}
                   <TableRow className="bg-muted/50 border-t-2">
-                    <TableCell colSpan={9}></TableCell>
-                    <TableCell className="text-right font-semibold pr-1 whitespace-nowrap">Rischio:</TableCell>
+                    <TableCell colSpan={8}></TableCell>
+                    <TableCell colSpan={2} className="text-right font-semibold pr-1 whitespace-nowrap">Totale Rischio</TableCell>
                     <TableCell className="font-bold text-lg text-red-600">
                       {formatCurrency(calculations.totalRisk)}
                     </TableCell>
                     <TableCell colSpan={3}></TableCell>
-                    <TableCell className="text-right font-semibold pr-1 whitespace-nowrap">Totale GM:</TableCell>
+                    <TableCell className="text-right font-semibold pr-1 whitespace-nowrap">Guadagno Totale</TableCell>
                     <TableCell className={`font-bold text-lg ${
                       (() => {
                         // Se TUTTE le bancate sono perse, la multipla è vinta
@@ -451,7 +351,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                         }, 0);
                       })())}
                     </TableCell>
-                    <TableCell colSpan={4}></TableCell>
+                    <TableCell colSpan={2}></TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
