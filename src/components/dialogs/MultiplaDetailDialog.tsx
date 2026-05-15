@@ -146,11 +146,21 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                   <TableRow>
                     <TableCell>{format(new Date(bet.dataEvento), 'dd MMMM yyyy HH:mm')}</TableCell>
                     <TableCell className="font-medium">
-                      {'MULTIPLA ' + (betLegs.length > 0
-                        ? [...betLegs].sort((a, b) => new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime()).map(l => l.evento).join(' / ')
-                        : bet.evento || '')}
+                      {(() => {
+                        const first = betLegs.length > 0
+                          ? [...betLegs].sort((a, b) => new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime())[0]
+                          : null;
+                        return first ? first.evento : (bet.evento || 'MULTIPLA');
+                      })()}
                     </TableCell>
-                    <TableCell>{betLegs.length > 0 ? [...betLegs].sort((a, b) => new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime())[0].competizione || '-' : '-'}</TableCell>
+                    <TableCell>
+                      {(() => {
+                        const first = betLegs.length > 0
+                          ? [...betLegs].sort((a, b) => new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime())[0]
+                          : null;
+                        return first?.competizione || '-';
+                      })()}
+                    </TableCell>
                     <TableCell>Multipla</TableCell>
                     <TableCell><Badge variant="outline">Punta</Badge></TableCell>
                     <TableCell><Badge variant="outline">{bet.tipoBonus || 'Nessuno'}</Badge></TableCell>
