@@ -207,7 +207,7 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                           {format(new Date(layBet.dataEvento), 'dd MMMM yyyy HH:mm')}
                         </TableCell>
                         <TableCell className="font-medium">{layBet.evento}</TableCell>
-                        <TableCell>-</TableCell>
+                        <TableCell>{layBet.competizione || '-'}</TableCell>
                         <TableCell>{layBet.mercato}</TableCell>
                         <TableCell>
                           <Badge variant="secondary">Banca</Badge>

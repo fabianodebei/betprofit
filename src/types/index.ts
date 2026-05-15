@@ -122,5 +122,6 @@ export interface LayBet {
   attiva: boolean;
   stato: 'Bozza' | 'In Corso' | 'Vinto' | 'Perso' | 'Annullato';
   urlEvento?: string;
+  competizione?: string;
   createdAt: Date;
 }

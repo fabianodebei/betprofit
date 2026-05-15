@@ -77,6 +77,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
         attiva: lb.attiva ?? true,
         stato: lb.stato || 'Bozza',
         urlEvento: lb.url_evento || undefined,
+        competizione: lb.competizione || undefined,
         createdAt: new Date(lb.created_at),
       }));
 
@@ -108,6 +109,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
           attiva: layBet.attiva ?? true,
           stato: layBet.stato || 'Bozza',
           url_evento: layBet.urlEvento || null,
+          competizione: layBet.competizione || null,
           user_id: effectiveUserId,
         })
         .select()
@@ -131,6 +133,7 @@ export function LayBetProvider({ children }: { children: ReactNode }) {
         attiva: dataAny.attiva ?? true,
         stato: (dataAny.stato || 'Bozza') as LayBet['stato'],
         urlEvento: dataAny.url_evento || undefined,
+        competizione: dataAny.competizione || undefined,
         createdAt: new Date(dataAny.created_at),
       };
 
