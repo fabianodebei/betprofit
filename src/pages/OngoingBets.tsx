@@ -260,7 +260,10 @@ export default function OngoingBets() {
                             </td>
                             <td className="p-2 md:p-3">
                               <div className="flex flex-col gap-1">
-                                <Badge variant="info" className="text-xs">{bet.tipo}</Badge>
+                                <Badge
+                                  variant="info"
+                                  className={`text-xs ${bet.tipo === 'Multipla' ? 'bg-pink-500 text-white' : 'bg-sky-500 text-white'}`}
+                                >{bet.tipo}</Badge>
                               </div>
                             </td>
                             <td className="p-2 md:p-3 text-xs md:text-sm max-w-[200px] truncate">
