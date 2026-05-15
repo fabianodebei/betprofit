@@ -151,26 +151,18 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                 </TableHeader>
                 <TableBody>
                   {/* Main Bet Row */}
-                  <TableRow className="bg-primary/5 border-l-4 border-l-primary">
-                    <TableCell>
-                      {format(new Date(bet.dataEvento), 'dd MMMM yyyy HH:mm')}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {bet.evento || '-'}
-                    </TableCell>
+                  <TableRow>
+                    <TableCell>{format(new Date(bet.dataEvento), 'dd MMMM yyyy HH:mm')}</TableCell>
+                    <TableCell className="font-medium">{bet.evento || '-'}</TableCell>
                     <TableCell>{bet.competizione || '-'}</TableCell>
                     <TableCell>{bet.mercato || '-'}</TableCell>
-                    <TableCell>
-                      <Badge>{bet.metodo || 'Punta'}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{bet.tipoBonus || 'Nessuno'}</Badge>
-                    </TableCell>
-                    <TableCell className="font-medium">{bet.conto}</TableCell>
-                    <TableCell className="font-semibold text-primary">{formatCurrency(bet.stake)}</TableCell>
-                    <TableCell className="font-semibold">{bet.quota?.toFixed(2)}</TableCell>
+                    <TableCell><Badge variant="outline">{bet.metodo || 'Punta'}</Badge></TableCell>
+                    <TableCell><Badge variant="outline">{bet.tipoBonus || 'Nessuno'}</Badge></TableCell>
+                    <TableCell>{bet.conto}</TableCell>
+                    <TableCell className="font-semibold">{formatCurrency(bet.stake)}</TableCell>
+                    <TableCell>{bet.quota?.toFixed(2)}</TableCell>
                     <TableCell>-</TableCell>
-                    <TableCell className="text-red-600">{formatCurrency(0)}</TableCell>
+                    <TableCell>{formatCurrency(0)}</TableCell>
                     <TableCell>{formatCurrency(bet.bonus || 0)}</TableCell>
                     <TableCell>{formatCurrency(bet.rimborso || 0)}</TableCell>
                     <TableCell>0,00</TableCell>
@@ -178,53 +170,37 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                     <TableCell className={`font-semibold ${calculations.guadagnoGarantito >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {formatCurrency(calculations.guadagnoGarantito)}
                     </TableCell>
-                    <TableCell className="text-primary text-sm">{bet.tag || '(non impostato)'}</TableCell>
+                    <TableCell className="text-sm">{bet.tag || '-'}</TableCell>
                     <TableCell>
-                      <Button size="sm" variant="ghost">
-                        Clona
-                      </Button>
+                      <Button size="sm" variant="ghost">Clona</Button>
                     </TableCell>
                   </TableRow>
 
                   {/* Lay Bets Rows */}
                   {layBets.map((layBet) => {
                     const liability = layBet.stake * (layBet.quotaBanca - 1);
-                    
-                    // Il rischio è solo la liability (senza tasse)
                     const rischio = liability;
-                    
-                    // Tasse si pagano solo quando la bancata VINCE (puntata perde)
-                    const tassePerRischio = layBet.stato === 'Vinto' 
+                    const tassePerRischio = layBet.stato === 'Vinto'
                       ? liability * (layBet.tassePercentuale / 100)
                       : 0;
-                    
-                    // GM è lo stesso per tutte le bancate (guadagno garantito)
                     const gm = calculations.guadagnoGarantito;
-                    
+
                     return (
-                      <TableRow key={layBet.id} className="bg-accent/5 border-l-4 border-l-accent">
-                        <TableCell>
-                          {format(new Date(layBet.dataEvento), 'dd MMMM yyyy HH:mm')}
-                        </TableCell>
+                      <TableRow key={layBet.id} className="bg-muted/30">
+                        <TableCell>{format(new Date(layBet.dataEvento), 'dd MMMM yyyy HH:mm')}</TableCell>
                         <TableCell className="font-medium">{layBet.evento}</TableCell>
                         <TableCell>{layBet.competizione || '-'}</TableCell>
                         <TableCell>{layBet.mercato}</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">Banca</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {layBet.metodo === 'Banca' ? '📝' : '✓'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-medium">{layBet.conto}</TableCell>
-                        <TableCell className="font-semibold text-accent">{formatCurrency(layBet.stake)}</TableCell>
-                        <TableCell className="font-semibold">{layBet.quotaPunta.toFixed(2)}</TableCell>
-                        <TableCell className="font-semibold text-red-600">{layBet.quotaBanca.toFixed(2)}</TableCell>
+                        <TableCell><Badge variant="outline">Banca</Badge></TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>{layBet.conto}</TableCell>
+                        <TableCell className="font-semibold">{formatCurrency(layBet.stake)}</TableCell>
+                        <TableCell>{layBet.quotaPunta.toFixed(2)}</TableCell>
+                        <TableCell>{layBet.quotaBanca.toFixed(2)}</TableCell>
                         <TableCell className="text-red-600 font-semibold">{formatCurrency(rischio)}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
-                        <TableCell className="text-accent">{formatCurrency(tassePerRischio)}</TableCell>
+                        <TableCell>{formatCurrency(tassePerRischio)}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
                         <TableCell className={`font-semibold ${gm >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {formatCurrency(gm)}
@@ -232,28 +208,9 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                         <TableCell className="text-sm">-</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleEditLayBet(layBet)}
-                            >
-                              Clona
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleEditLayBet(layBet)}
-                            >
-                              Punta
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="text-destructive"
-                              onClick={() => handleDeleteLayBet(layBet.id)}
-                            >
-                              Elimina
-                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => handleEditLayBet(layBet)}>Clona</Button>
+                            <Button size="sm" variant="ghost" onClick={() => handleEditLayBet(layBet)}>Punta</Button>
+                            <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDeleteLayBet(layBet.id)}>Elimina</Button>
                           </div>
                         </TableCell>
                       </TableRow>
