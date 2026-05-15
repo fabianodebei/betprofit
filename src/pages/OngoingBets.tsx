@@ -252,23 +252,9 @@ export default function OngoingBets() {
                       
                         return (
                         <>
-                          <tr key={bet.id} className={`${idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'} ${bet.tipo === 'Multipla' ? 'cursor-pointer' : ''}`} onClick={() => { if (bet.tipo === 'Multipla') toggleLayBets(bet.id); }}>
+                          <tr key={bet.id} className={`${idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}`}>
                             <td className="p-2 md:p-3 text-xs md:text-sm">
                               <div className="flex items-center gap-1 md:gap-2">
-                                {bet.tipo === 'Multipla' && (
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => toggleLayBets(bet.id)}
-                                    className="h-5 w-5 md:h-6 md:w-6 p-0"
-                                  >
-                                    {isExpanded ? (
-                                      <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />
-                                    ) : (
-                                      <ChevronRight className="h-3 w-3 md:h-4 md:w-4" />
-                                    )}
-                                  </Button>
-                                )}
                                 <span className="whitespace-nowrap">{formatDateTime(bet.dataEvento)}</span>
                               </div>
                             </td>
@@ -315,36 +301,6 @@ export default function OngoingBets() {
                               </div>
                             </td>
                           </tr>
-                          {/* Expanded legs for multipla */}
-                          {isExpanded && bet.tipo === 'Multipla' && (() => {
-                            const legs = getBetLegsByBetId(bet.id).sort((a, b) => new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime());
-                            return legs.map((leg) => (
-                              <tr key={`leg-${leg.id}`} className={`${idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'} border-l-4 border-l-primary/30`}>
-                                <td className="p-2 md:p-3 text-xs md:text-sm pl-10 md:pl-12">
-                                  <div className="flex items-center gap-2">
-                                    <ArrowRight className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
-                                    {formatDateTime(leg.dataEvento)}
-                                  </div>
-                                </td>
-                                <td className="p-2 md:p-3">
-                                  <Badge variant={leg.stato === 'Vinta' ? 'success' : leg.stato === 'Persa' ? 'destructive' : leg.stato === 'Void' ? 'secondary' : 'info'} className="text-xs">
-                                    {leg.stato}
-                                  </Badge>
-                                </td>
-                                <td className="p-2 md:p-3 text-xs md:text-sm max-w-[200px] truncate">{leg.evento}</td>
-                                <td className="p-2 md:p-3 text-xs hidden lg:table-cell">
-                                  {leg.competizione && <span className="text-muted-foreground">{leg.competizione}</span>}
-                                </td>
-                                <td className="p-2 md:p-3 text-xs md:text-sm">
-                                  {leg.mercato || '-'}
-                                </td>
-                                <td className="p-2 md:p-3 text-xs md:text-sm hidden md:table-cell">
-                                  Quota: {leg.quota.toFixed(2)}
-                                </td>
-                                <td className="p-2 md:p-3"></td>
-                              </tr>
-                            ));
-                          })()}
                           {/* Statistics row for multipla without lay bets */}
                           {bet.tipo === 'Multipla' && !hasLayBets && bet.vincitaPotenziale !== undefined && (
                             <tr className={`${idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'} border-t border-muted`}>
@@ -362,7 +318,7 @@ export default function OngoingBets() {
                               </td>
                             </tr>
                           )}
-                          {isExpanded && bet.tipo !== 'Singola' && layBets.map((layBet) => {
+                          {false && layBets.map((layBet) => {
                             const liability = layBet.stake * (layBet.quotaBanca - 1);
                             return (
                               <tr key={`lay-${layBet.id}`} className={`${idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'} border-l-4 border-l-warning`}>
