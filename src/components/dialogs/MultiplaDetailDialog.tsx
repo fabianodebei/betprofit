@@ -222,10 +222,10 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                         </TableCell>
                         <TableCell>{layBet.conto}</TableCell>
                         <TableCell className="font-semibold">{formatCurrency(layBet.stake)}</TableCell>
-                        {/* Quota Punta - sfondo azzurro */}
-                        <TableCell className="bg-blue-500/10 font-semibold text-center">{layBet.quotaPunta.toFixed(3)}</TableCell>
-                        {/* Quota Banca - sfondo rosa */}
-                        <TableCell className="bg-pink-500/10 font-semibold text-center">{layBet.quotaBanca.toFixed(3)}</TableCell>
+                        {/* Quota Punta - colore bookmaker */}
+                        <TableCell className="font-semibold text-center" style={{ backgroundColor: '#87c4e8', color: '#0d2035' }}>{layBet.quotaPunta.toFixed(3)}</TableCell>
+                        {/* Quota Banca - colore exchange */}
+                        <TableCell className="font-semibold text-center" style={{ backgroundColor: '#f4a9ba', color: '#2d0d1a' }}>{layBet.quotaBanca.toFixed(3)}</TableCell>
                         <TableCell className="text-red-600 font-semibold">{formatCurrency(rischio)}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
