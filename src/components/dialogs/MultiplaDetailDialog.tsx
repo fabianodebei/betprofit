@@ -92,7 +92,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[99vw] w-screen max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               Dettaglio Puntata
@@ -118,74 +118,64 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
 
             {/* Main Table */}
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="text-xs">
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Data Evento</TableHead>
+                  <TableRow className="[&>th]:px-2 [&>th]:py-1.5 [&>th]:whitespace-nowrap">
+                    <TableHead>Data</TableHead>
                     <TableHead>Evento</TableHead>
-                    <TableHead>Competizione</TableHead>
+                    <TableHead>Comp.</TableHead>
                     <TableHead>Mercato</TableHead>
                     <TableHead>Metodo</TableHead>
                     <TableHead>Tipo Bonus</TableHead>
                     <TableHead>Conto</TableHead>
                     <TableHead>Stake</TableHead>
-                    <TableHead>Quota Punta</TableHead>
-                    <TableHead>Quota Banca</TableHead>
+                    <TableHead>Q.Punta</TableHead>
+                    <TableHead>Q.Banca</TableHead>
                     <TableHead>Rischio</TableHead>
                     <TableHead>Bonus</TableHead>
                     <TableHead>Rimborso</TableHead>
-                    <TableHead>Tasse</TableHead>
-                    <TableHead>Mov.</TableHead>
-                    <TableHead>Stato Evento</TableHead>
+                    <TableHead>Tasse%</TableHead>
+                    <TableHead>Stato</TableHead>
                     <TableHead>Tag</TableHead>
                     <TableHead>Opzioni</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {/* Main Multipla Bet Row */}
-                  <TableRow>
-                    <TableCell>{format(new Date(bet.dataEvento), 'dd MMMM yyyy HH:mm')}</TableCell>
-                    <TableCell className="font-medium">
-                      {(() => {
-                        const first = betLegs.length > 0
-                          ? [...betLegs].sort((a, b) => new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime())[0]
-                          : null;
-                        return first ? first.evento : (bet.evento || 'MULTIPLA');
-                      })()}
-                    </TableCell>
-                    <TableCell>
-                      {(() => {
-                        const first = betLegs.length > 0
-                          ? [...betLegs].sort((a, b) => new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime())[0]
-                          : null;
-                        return first?.competizione || '-';
-                      })()}
-                    </TableCell>
-                    <TableCell>Multipla</TableCell>
-                    <TableCell><Badge variant="outline">Punta</Badge></TableCell>
-                    <TableCell><Badge variant="outline">{bet.tipoBonus || 'Nessuno'}</Badge></TableCell>
-                    <TableCell>{bet.conto}</TableCell>
-                    <TableCell className="font-semibold">{formatCurrency(bet.stake)}</TableCell>
-                    <TableCell>{bet.quotaCombinata?.toFixed(3) || bet.quota?.toFixed(3)}</TableCell>
-                    <TableCell>-</TableCell>
-                    <TableCell>{formatCurrency(0)}</TableCell>
-                    <TableCell>{formatCurrency(bet.bonus || 0)}</TableCell>
-                    <TableCell>{formatCurrency(bet.rimborso || 0)}</TableCell>
-                    <TableCell>0,00</TableCell>
-                    <TableCell>{formatCurrency(0)}</TableCell>
-                    <TableCell>
-                      <Badge variant={
-                        bet.stato === 'Vinto' ? 'default' :
-                        bet.stato === 'Perso' ? 'destructive' :
-                        bet.stato === 'In Corso' ? 'warning' :
-                        'secondary'
-                      }>{bet.stato || 'Bozza'}</Badge>
-                    </TableCell>
-                    <TableCell className="text-sm">{bet.tag || '-'}</TableCell>
-                    <TableCell>
-                      <Button size="sm" variant="ghost" className="text-destructive" onClick={() => { if (confirm('Eliminare questa puntata?')) { /* delete handled by parent */ } }}>Elimina</Button>
-                    </TableCell>
-                  </TableRow>
+                  {(() => {
+                    const firstLeg = betLegs.length > 0
+                      ? [...betLegs].sort((a, b) => new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime())[0]
+                      : null;
+                    return (
+                      <TableRow className="[&>td]:px-2 [&>td]:py-1.5">
+                        <TableCell className="whitespace-nowrap">{format(new Date(bet.dataEvento), 'dd/MM HH:mm')}</TableCell>
+                        <TableCell className="font-medium max-w-[160px] truncate">{firstLeg?.evento ?? (bet.evento || 'MULTIPLA')}</TableCell>
+                        <TableCell className="max-w-[120px] truncate">{firstLeg?.competizione || '-'}</TableCell>
+                        <TableCell>Multipla</TableCell>
+                        <TableCell><Badge variant="outline" className="text-xs">Punta</Badge></TableCell>
+                        <TableCell><Badge variant="outline" className="text-xs">{bet.tipoBonus || 'Nessuno'}</Badge></TableCell>
+                        <TableCell className="whitespace-nowrap">{bet.conto}</TableCell>
+                        <TableCell className="font-semibold whitespace-nowrap">{formatCurrency(bet.stake)}</TableCell>
+                        <TableCell className="text-center">{bet.quotaCombinata?.toFixed(3) || bet.quota?.toFixed(3)}</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>{formatCurrency(0)}</TableCell>
+                        <TableCell>{formatCurrency(bet.bonus || 0)}</TableCell>
+                        <TableCell>{formatCurrency(bet.rimborso || 0)}</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>
+                          <Badge variant={
+                            bet.stato === 'Vinto' ? 'default' :
+                            bet.stato === 'Perso' ? 'destructive' :
+                            bet.stato === 'In Corso' ? 'warning' : 'secondary'
+                          } className="text-xs whitespace-nowrap">{bet.stato || 'Bozza'}</Badge>
+                        </TableCell>
+                        <TableCell className="max-w-[80px] truncate">{bet.tag || '-'}</TableCell>
+                        <TableCell>
+                          <Button size="sm" variant="ghost" className="text-destructive h-6 px-1 text-xs" onClick={() => { if (confirm('Eliminare questa puntata?')) {} }}>Elimina</Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })()}
 
                   {/* Lay Bets Rows */}
                   {layBets.map((layBet) => {
@@ -215,36 +205,33 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                     const hasPreviousWonBet = layBets.slice(0, currentIndex).some(lb => lb.stato === 'Vinto');
 
                     return (
-                      <TableRow key={layBet.id} className="bg-muted/30">
-                        <TableCell>{format(new Date(layBet.dataEvento), 'dd MMMM yyyy HH:mm')}</TableCell>
-                        <TableCell className="font-medium">{layBet.evento}</TableCell>
-                        <TableCell>{layBet.competizione || (() => {
+                      <TableRow key={layBet.id} className="bg-muted/30 [&>td]:px-2 [&>td]:py-1.5">
+                        <TableCell className="whitespace-nowrap">{format(new Date(layBet.dataEvento), 'dd/MM HH:mm')}</TableCell>
+                        <TableCell className="font-medium max-w-[160px] truncate">{layBet.evento}</TableCell>
+                        <TableCell className="max-w-[120px] truncate">{layBet.competizione || (() => {
                           const matchingLeg = betLegs.find(leg => leg.evento === layBet.evento);
                           return matchingLeg?.competizione || '-';
                         })()}</TableCell>
-                        <TableCell>{layBet.mercato}</TableCell>
-                        <TableCell><Badge variant="outline">Banca</Badge></TableCell>
-                        {/* Tipo Bonus: link esterno se disponibile */}
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">{layBet.mercato}</TableCell>
+                        <TableCell><Badge variant="outline" className="text-xs">Banca</Badge></TableCell>
+                        {/* Tipo Bonus: link esterno */}
+                        <TableCell className="text-center">
                           {layBet.urlEvento
-                            ? <Button size="sm" variant="ghost" className="text-blue-500 p-1 h-auto" onClick={() => window.open(layBet.urlEvento, '_blank')}><ExternalLink className="h-4 w-4" /></Button>
+                            ? <Button size="sm" variant="ghost" className="text-blue-500 p-0.5 h-auto" onClick={() => window.open(layBet.urlEvento, '_blank')}><ExternalLink className="h-3.5 w-3.5" /></Button>
                             : '-'}
                         </TableCell>
-                        <TableCell>{layBet.conto}</TableCell>
-                        <TableCell className="font-semibold">{formatCurrency(layBet.stake)}</TableCell>
-                        {/* Quota Punta - colore bookmaker */}
-                        <TableCell className="font-semibold text-center" style={{ backgroundColor: '#87c4e8', color: '#0d2035' }}>{layBet.quotaPunta.toFixed(3)}</TableCell>
-                        {/* Quota Banca - colore exchange */}
-                        <TableCell className="font-semibold text-center" style={{ backgroundColor: '#f4a9ba', color: '#2d0d1a' }}>{layBet.quotaBanca.toFixed(3)}</TableCell>
-                        <TableCell className="text-red-600 font-semibold">{formatCurrency(rischio)}</TableCell>
+                        <TableCell className="whitespace-nowrap">{layBet.conto}</TableCell>
+                        <TableCell className="font-semibold whitespace-nowrap">{formatCurrency(layBet.stake)}</TableCell>
+                        <TableCell className="font-semibold text-center whitespace-nowrap" style={{ backgroundColor: '#87c4e8', color: '#0d2035' }}>{layBet.quotaPunta.toFixed(3)}</TableCell>
+                        <TableCell className="font-semibold text-center whitespace-nowrap" style={{ backgroundColor: '#f4a9ba', color: '#2d0d1a' }}>{layBet.quotaBanca.toFixed(3)}</TableCell>
+                        <TableCell className="text-red-600 font-semibold whitespace-nowrap">{formatCurrency(rischio)}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
                         <TableCell>{formatCurrency(0)}</TableCell>
-                        <TableCell>{layBet.tassePercentuale > 0 ? layBet.tassePercentuale.toFixed(2) : '0,00'}</TableCell>
-                        <TableCell>{formatCurrency(0)}</TableCell>
-                        {/* Stato Evento */}
+                        <TableCell>{layBet.tassePercentuale > 0 ? layBet.tassePercentuale.toFixed(2) : '-'}</TableCell>
+                        {/* Stato */}
                         <TableCell>
                           {hasPreviousWonBet ? (
-                            <Badge variant="secondary">Bozza</Badge>
+                            <Badge variant="secondary" className="text-xs">Bozza</Badge>
                           ) : (
                             <Select
                               value={layBet.stato}
@@ -256,7 +243,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                                 }
                               }}
                             >
-                              <SelectTrigger className="w-[110px]">
+                              <SelectTrigger className="h-7 w-[95px] text-xs px-2">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -269,13 +256,13 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                             </Select>
                           )}
                         </TableCell>
-                        <TableCell className="text-sm">-</TableCell>
+                        <TableCell>-</TableCell>
                         {/* Opzioni */}
                         <TableCell>
-                          <div className="flex gap-1 flex-nowrap">
-                            <Button size="sm" variant="ghost" onClick={() => handleCloneLayBet(layBet)}>Clona</Button>
-                            <Button size="sm" variant="ghost" onClick={() => handleModifyLayBet(layBet)}>Punta</Button>
-                            <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDeleteLayBet(layBet.id)}>Elimina</Button>
+                          <div className="flex gap-0.5 flex-nowrap">
+                            <Button size="sm" variant="ghost" className="h-6 px-1.5 text-xs" onClick={() => handleCloneLayBet(layBet)}>Clona</Button>
+                            <Button size="sm" variant="ghost" className="h-6 px-1.5 text-xs" onClick={() => handleModifyLayBet(layBet)}>Punta</Button>
+                            <Button size="sm" variant="ghost" className="h-6 px-1.5 text-xs text-destructive" onClick={() => handleDeleteLayBet(layBet.id)}>Elimina</Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -283,14 +270,14 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                   })}
                   
                   {/* Riga Totali */}
-                  <TableRow className="bg-muted/50 border-t-2">
-                    <TableCell colSpan={8}></TableCell>
-                    <TableCell colSpan={2} className="text-right font-semibold pr-1 whitespace-nowrap">Totale Rischio</TableCell>
-                    <TableCell className="font-bold text-lg text-red-600">
+                  <TableRow className="bg-muted/50 border-t-2 [&>td]:px-2 [&>td]:py-1.5">
+                    <TableCell colSpan={7}></TableCell>
+                    <TableCell colSpan={2} className="text-right font-semibold whitespace-nowrap text-xs">Totale Rischio</TableCell>
+                    <TableCell className="font-bold text-red-600 whitespace-nowrap">
                       {formatCurrency(calculations.totalRisk)}
                     </TableCell>
-                    <TableCell colSpan={3}></TableCell>
-                    <TableCell className="text-right font-semibold pr-1 whitespace-nowrap">Guadagno Totale</TableCell>
+                    <TableCell colSpan={2}></TableCell>
+                    <TableCell className="text-right font-semibold whitespace-nowrap text-xs">Guadagno Totale</TableCell>
                     <TableCell className={`font-bold text-lg ${
                       (() => {
                         // Se TUTTE le bancate sono perse, la multipla è vinta
@@ -361,7 +348,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                         }, 0);
                       })())}
                     </TableCell>
-                    <TableCell colSpan={2}></TableCell>
+                    <TableCell colSpan={3}></TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
