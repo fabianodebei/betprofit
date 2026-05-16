@@ -100,18 +100,28 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet: betProp }: Sing
     const scenarioPerdita = puntaLoss + sumLayWins;     // bookmaker perde → incassa lay stake
 
     // Se le bancate sono risolte, mostra lo scenario effettivamente accaduto
-    // (in matched betting i due scenari danno circa lo stesso risultato)
     let guadagnoGarantito: number;
-    if (bancataPersa) {
-      guadagnoGarantito = scenarioVincita; // bookmaker ha vinto, exchange ha perso
+    const giocataVinta = statoLocale === 'Vinto';
+    const giocataPersa = statoLocale === 'Perso';
+
+    if (giocataVinta && bancataVinta) {
+      // Entrambe vinte: somma dei profitti (bookmaker win + lay win)
+      guadagnoGarantito = puntaWin + sumLayWins;
+    } else if (giocataPersa && bancataPersa) {
+      // Entrambe perse: somma delle perdite (stake perso + liability pagata)
+      guadagnoGarantito = puntaLoss - sumLiability;
+    } else if (bancataPersa) {
+      // Normale matched: bookmaker vince, exchange perde
+      guadagnoGarantito = scenarioVincita; // puntaWin - liability
     } else if (bancataVinta) {
-      guadagnoGarantito = scenarioPerdita; // bookmaker ha perso, exchange ha vinto
+      // Normale matched: bookmaker perde, exchange vince
+      guadagnoGarantito = scenarioPerdita; // puntaLoss + layWin
     } else {
       guadagnoGarantito = Math.min(scenarioVincita, scenarioPerdita); // ancora in gioco
     }
 
     return { totalRisk, guadagnoGarantito, scenarioVincita, scenarioPerdita };
-  }, [bet, layBets]);
+  }, [bet, layBets, statoLocale]);
 
   if (!bet) return null;
 
