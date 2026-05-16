@@ -79,21 +79,36 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet: betProp }: Sing
       return { totalRisk, guadagnoGarantito: -totalRisk, scenarioVincita: 0, scenarioPerdita: 0 };
     }
 
-    const sumLiability = layBets.reduce((sum, lb) => {
-      if (lb.stato === 'Vinto' || lb.stato === 'Bozza' || lb.stato === 'Annullato') return sum;
+    // Bancate con esito noto
+    const activeBancate = layBets.filter(lb => lb.stato !== 'Bozza' && lb.stato !== 'Annullato');
+    const bancataVinta = activeBancate.some(lb => lb.stato === 'Vinto');  // exchange ha vinto → bookmaker ha perso
+    const bancataPersa = activeBancate.some(lb => lb.stato === 'Perso'); // exchange ha perso → bookmaker ha vinto
+
+    const sumLiability = activeBancate.reduce((sum, lb) => {
+      if (lb.stato === 'Vinto') return sum; // vinta: non è più un costo
       return sum + lb.stake * (lb.quotaBanca - 1);
     }, 0);
 
-    const sumLayWins = layBets.reduce((sum, lb) => {
-      if (lb.stato === 'Perso' || lb.stato === 'Bozza' || lb.stato === 'Annullato') return sum;
+    const sumLayWins = activeBancate.reduce((sum, lb) => {
+      if (lb.stato === 'Perso') return sum; // persa: non ha prodotto profitto
       const profitLordo = lb.stake;
       const tasse = profitLordo * ((lb.tassePercentuale || 0) / 100);
       return sum + (profitLordo - tasse);
     }, 0);
 
-    const scenarioVincita = puntaWin - sumLiability;
-    const scenarioPerdita = puntaLoss + sumLayWins;
-    const guadagnoGarantito = Math.min(scenarioVincita, scenarioPerdita);
+    const scenarioVincita = puntaWin - sumLiability;   // bookmaker vince → paga la liability
+    const scenarioPerdita = puntaLoss + sumLayWins;     // bookmaker perde → incassa lay stake
+
+    // Se le bancate sono risolte, mostra lo scenario effettivamente accaduto
+    // (in matched betting i due scenari danno circa lo stesso risultato)
+    let guadagnoGarantito: number;
+    if (bancataPersa) {
+      guadagnoGarantito = scenarioVincita; // bookmaker ha vinto, exchange ha perso
+    } else if (bancataVinta) {
+      guadagnoGarantito = scenarioPerdita; // bookmaker ha perso, exchange ha vinto
+    } else {
+      guadagnoGarantito = Math.min(scenarioVincita, scenarioPerdita); // ancora in gioco
+    }
 
     return { totalRisk, guadagnoGarantito, scenarioVincita, scenarioPerdita };
   }, [bet, layBets]);
