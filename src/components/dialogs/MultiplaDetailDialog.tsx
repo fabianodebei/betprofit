@@ -4,10 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Copy, ExternalLink } from 'lucide-react';
+import { Plus, ExternalLink } from 'lucide-react';
 import { Bet, LayBet } from '@/types';
 import { useLayBets } from '@/contexts/LayBetContext';
 import { useBetLegs } from '@/contexts/BetLegContext';
@@ -16,7 +14,16 @@ import { LayBetForm } from '@/components/forms/LayBetForm';
 import { formatCurrency } from '@/utils/currency';
 import { format } from 'date-fns';
 import { getMultiplaCalculations } from '@/utils/multiplaCalculations';
-import { toast } from 'sonner';
+
+function statoTriggerClass(stato: string): string {
+  switch (stato) {
+    case 'In Corso': return 'border-green-500 text-green-600';
+    case 'Vinto': return 'border-green-600 bg-green-50 text-green-700';
+    case 'Perso': return 'border-red-500 text-red-600';
+    case 'Annullato': return 'border-gray-400 text-gray-500';
+    default: return '';
+  }
+}
 
 interface MultiplaDetailDialogProps {
   open: boolean;
@@ -178,14 +185,12 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet: betProp }: Multi
                               setStatoLocale(nuovoStato);
                               try {
                                 await updateBet(bet.id, { stato: nuovoStato });
-                                toast.success(`Stato aggiornato: ${nuovoStato}`);
-                              } catch (e: any) {
-                                toast.error(`Errore: ${e.message}`);
+                              } catch {
                                 setStatoLocale(bet.stato || 'Bozza');
                               }
                             }}
                           >
-                            <SelectTrigger className="h-7 w-[105px] text-xs px-2">
+                            <SelectTrigger className={`h-7 w-[105px] text-xs px-2 ${statoTriggerClass(statoLocale)}`}>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -307,68 +312,42 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet: betProp }: Multi
                     <TableCell colSpan={2}></TableCell>
                     <TableCell className="text-right font-semibold whitespace-nowrap text-xs">Guadagno Totale</TableCell>
                     <TableCell className={`font-bold text-lg ${
-                      (() => {
-                        // Se TUTTE le bancate sono perse, la multipla è vinta
+                      statoLocale === 'Bozza' ? 'text-muted-foreground' : (() => {
                         const tutteBancatePerso = layBets.length > 0 && layBets.every(lb => lb.stato === 'Perso');
-                        
                         if (tutteBancatePerso) {
-                          // Calcola vincita multipla
                           const quotaEffettiva = bet.quotaCombinata || bet.quota || 1;
                           let vincitaMultipla = 0;
-                          if (bet.tipoBonus === 'Free Bet') {
-                            vincitaMultipla = bet.stake * (quotaEffettiva - 1);
-                          } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
-                            vincitaMultipla = (bet.stake + bet.bonus) * quotaEffettiva - bet.stake;
-                          } else {
-                            vincitaMultipla = bet.stake * quotaEffettiva - bet.stake;
-                          }
-                          
-                          // GM = vincita multipla - tutti i rischi
+                          if (bet.tipoBonus === 'Free Bet') vincitaMultipla = bet.stake * (quotaEffettiva - 1);
+                          else if (bet.tipoBonus === 'Bonus' && bet.bonus) vincitaMultipla = (bet.stake + bet.bonus) * quotaEffettiva - bet.stake;
+                          else vincitaMultipla = bet.stake * quotaEffettiva - bet.stake;
                           const sommaRischi = layBets.reduce((sum, lb) => sum + lb.stake * (lb.quotaBanca - 1), 0);
-                          return vincitaMultipla - sommaRischi >= 0;
+                          return vincitaMultipla - sommaRischi >= 0 ? 'text-green-600' : 'text-red-600';
                         }
-                        
-                        // Altrimenti, calcolo normale
                         const gmTotale = layBets.reduce((sum, lb) => {
                           const rischio = lb.stake * (lb.quotaBanca - 1);
-                          const tassePerStake = lb.stato === 'Vinto' 
-                            ? lb.stake * (lb.tassePercentuale / 100)
-                            : 0;
+                          const tassePerStake = lb.stato === 'Vinto' ? lb.stake * (lb.tassePercentuale / 100) : 0;
                           let gm = 0;
                           if (lb.stato === 'Vinto') gm = lb.stake - tassePerStake;
                           else if (lb.stato === 'Perso') gm = -rischio;
                           return sum + gm;
                         }, 0);
-                        return gmTotale >= 0;
-                      })() ? 'text-green-600' : 'text-red-600'
+                        return gmTotale >= 0 ? 'text-green-600' : 'text-red-600';
+                      })()
                     }`}>
-                      {formatCurrency((() => {
-                        // Se TUTTE le bancate sono perse, la multipla è vinta
+                      {statoLocale === 'Bozza' ? formatCurrency(0) : formatCurrency((() => {
                         const tutteBancatePerso = layBets.length > 0 && layBets.every(lb => lb.stato === 'Perso');
-                        
                         if (tutteBancatePerso) {
-                          // Calcola vincita multipla
                           const quotaEffettiva = bet.quotaCombinata || bet.quota || 1;
                           let vincitaMultipla = 0;
-                          if (bet.tipoBonus === 'Free Bet') {
-                            vincitaMultipla = bet.stake * (quotaEffettiva - 1);
-                          } else if (bet.tipoBonus === 'Bonus' && bet.bonus) {
-                            vincitaMultipla = (bet.stake + bet.bonus) * quotaEffettiva - bet.stake;
-                          } else {
-                            vincitaMultipla = bet.stake * quotaEffettiva - bet.stake;
-                          }
-                          
-                          // GM = vincita multipla - tutti i rischi
+                          if (bet.tipoBonus === 'Free Bet') vincitaMultipla = bet.stake * (quotaEffettiva - 1);
+                          else if (bet.tipoBonus === 'Bonus' && bet.bonus) vincitaMultipla = (bet.stake + bet.bonus) * quotaEffettiva - bet.stake;
+                          else vincitaMultipla = bet.stake * quotaEffettiva - bet.stake;
                           const sommaRischi = layBets.reduce((sum, lb) => sum + lb.stake * (lb.quotaBanca - 1), 0);
                           return vincitaMultipla - sommaRischi;
                         }
-                        
-                        // Altrimenti, calcolo normale
                         return layBets.reduce((sum, lb) => {
                           const rischio = lb.stake * (lb.quotaBanca - 1);
-                          const tassePerStake = lb.stato === 'Vinto'
-                            ? lb.stake * (lb.tassePercentuale / 100)
-                            : 0;
+                          const tassePerStake = lb.stato === 'Vinto' ? lb.stake * (lb.tassePercentuale / 100) : 0;
                           let gm = 0;
                           if (lb.stato === 'Vinto') gm = lb.stake - tassePerStake;
                           else if (lb.stato === 'Perso') gm = -rischio;

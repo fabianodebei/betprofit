@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect } from 'react';
-import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -17,6 +16,16 @@ interface SingleBetDetailDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   bet: Bet | null;
+}
+
+function statoTriggerClass(stato: string): string {
+  switch (stato) {
+    case 'In Corso': return 'border-green-500 text-green-600';
+    case 'Vinto': return 'border-green-600 bg-green-50 text-green-700';
+    case 'Perso': return 'border-red-500 text-red-600';
+    case 'Annullato': return 'border-gray-400 text-gray-500';
+    default: return '';
+  }
 }
 
 function sportEmoji(mercato?: string): string {
@@ -59,12 +68,12 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet: betProp }: Sing
     }
 
     const sumLiability = layBets.reduce((sum, lb) => {
-      if (lb.stato === 'Vinto') return sum;
+      if (lb.stato === 'Vinto' || lb.stato === 'Bozza' || lb.stato === 'Annullato') return sum;
       return sum + lb.stake * (lb.quotaBanca - 1);
     }, 0);
 
     const sumLayWins = layBets.reduce((sum, lb) => {
-      if (lb.stato === 'Perso') return sum;
+      if (lb.stato === 'Perso' || lb.stato === 'Bozza' || lb.stato === 'Annullato') return sum;
       const profitLordo = lb.stake;
       const tasse = profitLordo * ((lb.tassePercentuale || 0) / 100);
       return sum + (profitLordo - tasse);
@@ -158,14 +167,12 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet: betProp }: Sing
                           setStatoLocale(nuovoStato);
                           try {
                             await updateBet(bet.id, { stato: nuovoStato });
-                            toast.success(`Stato aggiornato: ${nuovoStato}`);
-                          } catch (e: any) {
-                            toast.error(`Errore: ${e.message}`);
+                          } catch {
                             setStatoLocale(bet.stato || 'Bozza');
                           }
                         }}
                       >
-                        <SelectTrigger className="h-7 w-[105px] text-xs px-2">
+                        <SelectTrigger className={`h-7 w-[105px] text-xs px-2 ${statoTriggerClass(statoLocale)}`}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -272,8 +279,8 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet: betProp }: Sing
                     <TableCell className="font-bold text-red-600 whitespace-nowrap">{formatCurrency(calculations.totalRisk)}</TableCell>
                     <TableCell colSpan={2}></TableCell>
                     <TableCell colSpan={2} className="text-right font-semibold whitespace-nowrap text-xs">Guadagno Totale</TableCell>
-                    <TableCell className={`font-bold whitespace-nowrap ${calculations.guadagnoGarantito >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatCurrency(calculations.guadagnoGarantito)}
+                    <TableCell className={`font-bold whitespace-nowrap ${statoLocale === 'Bozza' ? 'text-muted-foreground' : calculations.guadagnoGarantito >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {statoLocale === 'Bozza' ? formatCurrency(0) : formatCurrency(calculations.guadagnoGarantito)}
                     </TableCell>
                     <TableCell colSpan={2}></TableCell>
                   </TableRow>
