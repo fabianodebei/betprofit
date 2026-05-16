@@ -290,8 +290,14 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet: betProp }: Sing
                     <TableCell className="font-bold text-red-600 whitespace-nowrap">{formatCurrency(calculations.totalRisk)}</TableCell>
                     <TableCell colSpan={2}></TableCell>
                     <TableCell colSpan={2} className="text-right font-semibold whitespace-nowrap text-xs">Guadagno Totale</TableCell>
-                    <TableCell className={`font-bold whitespace-nowrap ${statoLocale === 'Bozza' ? 'text-muted-foreground' : calculations.guadagnoGarantito >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {statoLocale === 'Bozza' ? formatCurrency(0) : formatCurrency(calculations.guadagnoGarantito)}
+                    <TableCell className={`font-bold whitespace-nowrap ${
+                      layBets.every(lb => lb.stato === 'Bozza' || lb.stato === 'Annullato')
+                        ? 'text-muted-foreground'
+                        : calculations.guadagnoGarantito >= 0 ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {layBets.every(lb => lb.stato === 'Bozza' || lb.stato === 'Annullato')
+                        ? formatCurrency(0)
+                        : formatCurrency(calculations.guadagnoGarantito)}
                     </TableCell>
                     <TableCell colSpan={2}></TableCell>
                   </TableRow>
