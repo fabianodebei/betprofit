@@ -20,11 +20,11 @@ interface SingleBetDetailDialogProps {
 
 function statoTriggerClass(stato: string): string {
   switch (stato) {
-    case 'In Corso': return 'border-green-500 text-green-600';
-    case 'Vinto': return 'border-green-600 bg-green-50 text-green-700';
-    case 'Perso': return 'border-red-500 text-red-600';
-    case 'Annullato': return 'border-gray-400 text-gray-500';
-    default: return '';
+    case 'Vinto':    return 'bg-green-500  border-green-500  text-white';
+    case 'Perso':    return 'bg-red-500    border-red-500    text-white';
+    case 'In Corso': return 'bg-yellow-400 border-yellow-400 text-blue-800';
+    case 'Annullato':return 'bg-gray-400   border-gray-400   text-white';
+    default:         return '';
   }
 }
 
@@ -286,7 +286,7 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet: betProp }: Sing
                               }
                             }}
                           >
-                            <SelectTrigger className={`h-7 w-[95px] text-xs px-2 ${statoTriggerClass(layBet.stato)}`}>
+                            <SelectTrigger className={`h-7 w-[105px] text-xs px-2 ${statoTriggerClass(layBet.stato)}`}>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
