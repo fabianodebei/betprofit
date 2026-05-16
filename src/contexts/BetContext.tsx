@@ -81,7 +81,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
         tipoBonus: b.tipo_bonus as 'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet' | undefined,
         bonus: b.bonus ? Number(b.bonus) : undefined,
         rimborso: b.rimborso ? Number(b.rimborso) : undefined,
-        stato: b.stato as 'In Corso' | 'Archiviata',
+        stato: (b.stato || 'Bozza') as Bet['stato'],
         risultato: b.risultato ? Number(b.risultato) : undefined,
         esito: b.esito as 'win' | 'loss' | 'refund' | undefined,
         esitoDettaglio: b.esito_dettaglio || undefined,
@@ -160,7 +160,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
         tipoBonus: data.tipo_bonus as 'Nessuno' | 'Bonus' | 'Rimborso' | 'Free Bet' | undefined,
         bonus: data.bonus ? Number(data.bonus) : undefined,
         rimborso: data.rimborso ? Number(data.rimborso) : undefined,
-        stato: data.stato as 'In Corso' | 'Archiviata',
+        stato: (data.stato || 'Bozza') as Bet['stato'],
         risultato: data.risultato ? Number(data.risultato) : undefined,
         esito: data.esito as 'win' | 'loss' | 'refund' | undefined,
         esitoDettaglio: data.esito_dettaglio || undefined,
@@ -395,7 +395,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
   };
 
   const getOngoingBets = () => {
-    return bets.filter((bet) => bet.stato === 'In Corso' && bet.tipo !== 'Rapida');
+    return bets.filter((bet) => bet.stato !== 'Archiviata' && bet.tipo !== 'Rapida');
   };
 
   const getArchivedBets = () => {

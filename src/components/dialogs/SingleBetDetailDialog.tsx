@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, ExternalLink } from 'lucide-react';
 import { Bet, LayBet } from '@/types';
 import { useLayBets } from '@/contexts/LayBetContext';
+import { useBets } from '@/contexts/BetContext';
 import { LayBetForm } from '@/components/forms/LayBetForm';
 import { formatCurrency } from '@/utils/currency';
 import { format } from 'date-fns';
@@ -27,6 +28,7 @@ function sportEmoji(mercato?: string): string {
 
 export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDetailDialogProps) {
   const { getLayBetsByParentId, deleteLayBet, updateLayBet } = useLayBets();
+  const { updateBet } = useBets();
   const [showLayBetForm, setShowLayBetForm] = useState(false);
   const [editingLayBet, setEditingLayBet] = useState<any>(null);
 
@@ -140,9 +142,23 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDeta
                     <TableCell>-</TableCell>
                     <TableCell>{formatCurrency(0)}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className="text-xs whitespace-nowrap">
-                        {bet.stato || 'Bozza'}
-                      </Badge>
+                      <Select
+                        value={bet.stato || 'Bozza'}
+                        onValueChange={async (value) => {
+                          await updateBet(bet.id, { stato: value as Bet['stato'] });
+                        }}
+                      >
+                        <SelectTrigger className="h-7 w-[105px] text-xs px-2">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Bozza">Bozza</SelectItem>
+                          <SelectItem value="In Corso">In Corso</SelectItem>
+                          <SelectItem value="Vinto">Vinto</SelectItem>
+                          <SelectItem value="Perso">Perso</SelectItem>
+                          <SelectItem value="Annullato">Annullato</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell className="italic text-muted-foreground max-w-[100px] truncate">
                       {bet.tag || '(non impostato)'}

@@ -26,7 +26,7 @@ interface MultiplaDetailDialogProps {
 export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetailDialogProps) {
   const { getLayBetsByParentId, deleteLayBet, updateLayBet } = useLayBets();
   const { getBetLegsByBetId } = useBetLegs();
-  const { archiveBet } = useBets();
+  const { archiveBet, updateBet } = useBets();
   const [showLayBetForm, setShowLayBetForm] = useState(false);
   const [editingLayBet, setEditingLayBet] = useState<any>(null);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
@@ -163,11 +163,23 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetail
                         <TableCell>{formatCurrency(bet.rimborso || 0)}</TableCell>
                         <TableCell>-</TableCell>
                         <TableCell>
-                          <Badge variant={
-                            bet.stato === 'Vinto' ? 'default' :
-                            bet.stato === 'Perso' ? 'destructive' :
-                            bet.stato === 'In Corso' ? 'warning' : 'secondary'
-                          } className="text-xs whitespace-nowrap">{bet.stato || 'Bozza'}</Badge>
+                          <Select
+                            value={bet.stato || 'Bozza'}
+                            onValueChange={async (value) => {
+                              await updateBet(bet.id, { stato: value as Bet['stato'] });
+                            }}
+                          >
+                            <SelectTrigger className="h-7 w-[105px] text-xs px-2">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Bozza">Bozza</SelectItem>
+                              <SelectItem value="In Corso">In Corso</SelectItem>
+                              <SelectItem value="Vinto">Vinto</SelectItem>
+                              <SelectItem value="Perso">Perso</SelectItem>
+                              <SelectItem value="Annullato">Annullato</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </TableCell>
                         <TableCell className="max-w-[80px] truncate">{bet.tag || '-'}</TableCell>
                         <TableCell>
