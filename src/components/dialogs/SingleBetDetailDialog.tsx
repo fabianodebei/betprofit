@@ -243,7 +243,7 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet: betProp }: Sing
                               }
                             }}
                           >
-                            <SelectTrigger className="h-7 w-[95px] text-xs px-2">
+                            <SelectTrigger className={`h-7 w-[95px] text-xs px-2 ${statoTriggerClass(layBet.stato)}`}>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>

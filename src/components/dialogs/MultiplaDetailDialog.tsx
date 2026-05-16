@@ -276,7 +276,7 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet: betProp }: Multi
                                 }
                               }}
                             >
-                              <SelectTrigger className="h-7 w-[95px] text-xs px-2">
+                              <SelectTrigger className={`h-7 w-[95px] text-xs px-2 ${statoTriggerClass(layBet.stato)}`}>
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
