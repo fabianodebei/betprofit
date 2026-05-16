@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -30,9 +31,13 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet: betProp }: Multi
   const [showLayBetForm, setShowLayBetForm] = useState(false);
   const [editingLayBet, setEditingLayBet] = useState<any>(null);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
+  const [statoLocale, setStatoLocale] = useState<Bet['stato']>(betProp?.stato || 'Bozza');
 
-  // Leggi sempre la versione aggiornata dal context
-  const bet = betProp ? (bets.find(b => b.id === betProp.id) ?? betProp) : null;
+  useEffect(() => {
+    if (betProp?.stato) setStatoLocale(betProp.stato);
+  }, [betProp?.stato, open]);
+
+  const bet = betProp;
 
   const layBets = bet ? getLayBetsByParentId(bet.id) : [];
   const betLegs = bet ? getBetLegsByBetId(bet.id) : [];
@@ -167,9 +172,17 @@ export function MultiplaDetailDialog({ open, onOpenChange, bet: betProp }: Multi
                         <TableCell>-</TableCell>
                         <TableCell>
                           <Select
-                            value={bet.stato || 'Bozza'}
+                            value={statoLocale}
                             onValueChange={async (value) => {
-                              await updateBet(bet.id, { stato: value as Bet['stato'] });
+                              const nuovoStato = value as Bet['stato'];
+                              setStatoLocale(nuovoStato);
+                              try {
+                                await updateBet(bet.id, { stato: nuovoStato });
+                                toast.success(`Stato aggiornato: ${nuovoStato}`);
+                              } catch (e: any) {
+                                toast.error(`Errore: ${e.message}`);
+                                setStatoLocale(bet.stato || 'Bozza');
+                              }
                             }}
                           >
                             <SelectTrigger className="h-7 w-[105px] text-xs px-2">
