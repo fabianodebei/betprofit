@@ -67,6 +67,18 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet: betProp }: Sing
       puntaLoss = -bet.stake;
     }
 
+    // Totale rischio = somma delle liability (rischi) delle bancate attive
+    const totalRisk = layBets.reduce((sum, lb) => {
+      if (lb.stato === 'Bozza' || lb.stato === 'Annullato') return sum;
+      return sum + lb.stake * (lb.quotaBanca - 1);
+    }, 0);
+
+    // Se qualche bancata è ancora "In Corso", mostra il rischio negativo (esposizione massima sull'exchange)
+    const hasInCorsoBancata = layBets.some(lb => lb.stato === 'In Corso');
+    if (hasInCorsoBancata) {
+      return { totalRisk, guadagnoGarantito: -totalRisk, scenarioVincita: 0, scenarioPerdita: 0 };
+    }
+
     const sumLiability = layBets.reduce((sum, lb) => {
       if (lb.stato === 'Vinto' || lb.stato === 'Bozza' || lb.stato === 'Annullato') return sum;
       return sum + lb.stake * (lb.quotaBanca - 1);
@@ -82,7 +94,6 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet: betProp }: Sing
     const scenarioVincita = puntaWin - sumLiability;
     const scenarioPerdita = puntaLoss + sumLayWins;
     const guadagnoGarantito = Math.min(scenarioVincita, scenarioPerdita);
-    const totalRisk = bet.stake + layBets.reduce((sum, lb) => sum + lb.stake, 0);
 
     return { totalRisk, guadagnoGarantito, scenarioVincita, scenarioPerdita };
   }, [bet, layBets]);
