@@ -79,8 +79,15 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet: betProp }: Sing
       return { totalRisk, guadagnoGarantito: -totalRisk, scenarioVincita: 0, scenarioPerdita: 0 };
     }
 
-    // Bancate con esito noto
+    // Bancate con esito noto (esclude Bozza e Annullato)
     const activeBancate = layBets.filter(lb => lb.stato !== 'Bozza' && lb.stato !== 'Annullato');
+
+    // Se non ci sono bancate attive, mostra solo il risultato della giocata (es. bancata annullata)
+    if (activeBancate.length === 0) {
+      if (statoLocale === 'Vinto') return { totalRisk: 0, guadagnoGarantito: puntaWin, scenarioVincita: puntaWin, scenarioPerdita: 0 };
+      if (statoLocale === 'Perso') return { totalRisk: 0, guadagnoGarantito: puntaLoss, scenarioVincita: 0, scenarioPerdita: puntaLoss };
+      return { totalRisk: 0, guadagnoGarantito: 0, scenarioVincita: 0, scenarioPerdita: 0 };
+    }
     const bancataVinta = activeBancate.some(lb => lb.stato === 'Vinto');  // exchange ha vinto → bookmaker ha perso
     const bancataPersa = activeBancate.some(lb => lb.stato === 'Perso'); // exchange ha perso → bookmaker ha vinto
 
@@ -316,13 +323,11 @@ export function SingleBetDetailDialog({ open, onOpenChange, bet: betProp }: Sing
                     <TableCell colSpan={2}></TableCell>
                     <TableCell colSpan={2} className="text-right font-semibold whitespace-nowrap text-xs">Guadagno Totale</TableCell>
                     <TableCell className={`font-bold whitespace-nowrap ${
-                      layBets.every(lb => lb.stato === 'Bozza' || lb.stato === 'Annullato')
+                      calculations.guadagnoGarantito === 0 && statoLocale !== 'Vinto' && statoLocale !== 'Perso'
                         ? 'text-muted-foreground'
                         : calculations.guadagnoGarantito >= 0 ? 'text-green-600' : 'text-red-600'
                     }`}>
-                      {layBets.every(lb => lb.stato === 'Bozza' || lb.stato === 'Annullato')
-                        ? formatCurrency(0)
-                        : formatCurrency(calculations.guadagnoGarantito)}
+                      {formatCurrency(calculations.guadagnoGarantito)}
                     </TableCell>
                     <TableCell colSpan={2}></TableCell>
                   </TableRow>
