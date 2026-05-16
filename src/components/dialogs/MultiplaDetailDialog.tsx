@@ -23,13 +23,16 @@ interface MultiplaDetailDialogProps {
   bet: Bet | null;
 }
 
-export function MultiplaDetailDialog({ open, onOpenChange, bet }: MultiplaDetailDialogProps) {
+export function MultiplaDetailDialog({ open, onOpenChange, bet: betProp }: MultiplaDetailDialogProps) {
   const { getLayBetsByParentId, deleteLayBet, updateLayBet } = useLayBets();
   const { getBetLegsByBetId } = useBetLegs();
-  const { archiveBet, updateBet } = useBets();
+  const { archiveBet, updateBet, bets } = useBets();
   const [showLayBetForm, setShowLayBetForm] = useState(false);
   const [editingLayBet, setEditingLayBet] = useState<any>(null);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
+
+  // Leggi sempre la versione aggiornata dal context
+  const bet = betProp ? (bets.find(b => b.id === betProp.id) ?? betProp) : null;
 
   const layBets = bet ? getLayBetsByParentId(bet.id) : [];
   const betLegs = bet ? getBetLegsByBetId(bet.id) : [];

@@ -26,11 +26,14 @@ function sportEmoji(mercato?: string): string {
   return '🏅';
 }
 
-export function SingleBetDetailDialog({ open, onOpenChange, bet }: SingleBetDetailDialogProps) {
+export function SingleBetDetailDialog({ open, onOpenChange, bet: betProp }: SingleBetDetailDialogProps) {
   const { getLayBetsByParentId, deleteLayBet, updateLayBet } = useLayBets();
-  const { updateBet } = useBets();
+  const { updateBet, bets } = useBets();
   const [showLayBetForm, setShowLayBetForm] = useState(false);
   const [editingLayBet, setEditingLayBet] = useState<any>(null);
+
+  // Leggi sempre la versione aggiornata dal context
+  const bet = betProp ? (bets.find(b => b.id === betProp.id) ?? betProp) : null;
 
   const layBets = bet ? getLayBetsByParentId(bet.id) : [];
 
